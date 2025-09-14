@@ -1,0 +1,78 @@
+/*
+  ==============================================================================
+
+    AdvancedTab.cpp
+    Created: 9 Sep 2025 11:12:00am
+    Author:  Achim Stein
+
+  ==============================================================================
+*/
+
+#include "AdvancedTab.h"
+#include "UiHelpers.h"
+#include "../midi/MidiHandler.h"
+
+AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler)
+{
+    textEdit_midiMessageLog.setReadOnly(true);
+    textEdit_midiMessageLog.setMultiLine(true);
+
+    button_sendMessage.setButtonText("Send");
+    button_sendMessage.onClick = [this, midiHandler] {
+      juce::String message = textEdit_inputMidiMessage.getText();
+
+      juce::StringArray bytes;
+      bytes.addTokens(message, false);
+
+      juce::Array<uint8_t> midiMessage;
+      for( const auto &byte : bytes )
+      {
+        if ( byte.length() > 2 )
+        {
+          addMidiMessage("Invalid input: " + message);
+          return;
+        }
+
+        midiMessage.add((uint8_t)byte.getHexValue32());
+      }
+
+      juce::MidiMessage messageToSend(midiMessage.data(), midiMessage.size());
+      midiHandler->sendMidiMessage(messageToSend);
+    };
+
+    addAndMakeVisible(textEdit_midiMessageLog);
+    addAndMakeVisible(textEdit_inputMidiMessage);
+    addAndMakeVisible(button_sendMessage);
+
+    setupMidiLogComponent(&textEdit_midiMessageLog);
+}
+
+AdvancedTab::~AdvancedTab()
+{
+  removeMidiLogComponent(&textEdit_midiMessageLog);
+}
+
+void AdvancedTab::resized()
+{
+    juce::FlexBox input;
+    input.flexDirection = juce::FlexBox::Direction::row;
+    input.items = {
+        juce::FlexItem(textEdit_inputMidiMessage).withFlex(1.0f),
+        juce::FlexItem(button_sendMessage).withFlex(0.1f)
+    };
+
+    juce::FlexBox fb;
+    fb.flexDirection = juce::FlexBox::Direction::column;
+    fb.items = {
+        juce::FlexItem(textEdit_midiMessageLog).withFlex(1.0f),
+        juce::FlexItem(input).withFlex(0.0f).withMinHeight(30)
+    };
+    
+    fb.performLayout(getLocalBounds().reduced(10));
+}
+
+void AdvancedTab::addMidiMessage(const juce::String &message)
+{
+    textEdit_midiMessageLog.moveCaretToEnd();
+    textEdit_midiMessageLog.insertTextAtCaret(message + "\n\n");
+}
