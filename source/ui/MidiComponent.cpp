@@ -2,34 +2,54 @@
 
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
+#include "../midi/VersionMessage.h"
 
-MidiComponent::MidiComponent(MidiHandler *handler, bool registerSettingsMessage)
+
+MidiComponent::MidiComponent(MidiHandler *handler, const juce::Array<Pro800MessageType> messageTypes)
 {
-    this->registerSettings = registerSettingsMessage;
+    this->registeredMessageTypes = messageTypes;
     this->midiHandler = handler;
 
-    if ( registerSettings )
+    for ( auto type : this->registeredMessageTypes )
     {
-        this->midiHandler->registerSettingsComponent(this);
+        this->midiHandler->registerPro800MessageComponent(type, this);
     }
 }
 
 MidiComponent::~MidiComponent()
 {
-
-    if( registerSettings )
+    for ( auto type : this->registeredMessageTypes )
     {
-        this->midiHandler->unregisterSettingsComponent(this);
+        this->midiHandler->unregisterPro800MessageComponent(type, this);
     }
 }
 
-void MidiComponent::handlePro800SettingsMessage(std::shared_ptr<SettingsMessage> &settingsMessage)
+void MidiComponent::handlePro800Message(Pro800MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
 {
-    this->currentSettings = settingsMessage;
-    handlePro800SettingsUpdate();
+    switch(type)
+    {
+        case PRO800_SETTINGS_MESSAGE:
+            this->currentSettings = std::dynamic_pointer_cast<SettingsMessage>(message);
+            handlePro800SettingsUpdate();
+            break;
+
+        case PRO800_VERSION_MESSAGE:
+            this->currentVersion = std::dynamic_pointer_cast<VersionMessage>(message);
+            handlePro800VersionUpdate();
+            break;
+
+        default:
+            std::cerr << "[WARNING] handlePro800Message(): Unsupported message type" << type << std::endl;
+            // do nothing
+    }
 }
 
 void MidiComponent::handlePro800SettingsUpdate()
+{
+    // do nothing by default
+}
+
+void MidiComponent::handlePro800VersionUpdate()
 {
     // do nothing by default
 }
@@ -99,4 +119,9 @@ void MidiComponent::updateSettings(Pro800Settings setting, int value)
 
     this->currentSettings->setValue(setting, value);
     midiHandler->sendMidiMessage(*(this->currentSettings->toMidiMessage().get()));
+}
+
+std::shared_ptr<VersionMessage> &MidiComponent::getCurrentVersion()
+{
+    return this->currentVersion;
 }

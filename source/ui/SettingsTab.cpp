@@ -13,7 +13,7 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 
-SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, true)
+SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, {Pro800MessageType::PRO800_SETTINGS_MESSAGE})
 {
     button_RefreshSettings.onClick = [midiHandler] {
         midiHandler->sendMidiMessage(SettingsMessage::request());

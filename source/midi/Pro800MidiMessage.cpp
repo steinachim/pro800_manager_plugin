@@ -16,9 +16,9 @@ Pro800MidiMessage::~Pro800MidiMessage()
     delete this->rawData;
 }
 
-std::string Pro800MidiMessage::toString() const
+juce::String Pro800MidiMessage::toString() const
 {
-    return "Pro800 SysEx Message (unknown)";
+    return "Pro800 SysEx Message: " + juce::String::toHexString(rawData, rawDataSize);
 }
 
 std::shared_ptr<juce::MidiMessage> Pro800MidiMessage::toMidiMessage() const

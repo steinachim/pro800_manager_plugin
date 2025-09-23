@@ -1,5 +1,14 @@
 #pragma once
 
+enum Pro800MessageType
+{
+    PRO800_UNKNOWN_MESSAGE,
+    PRO800_SETTINGS_MESSAGE,
+    PRO800_VERSION_MESSAGE,
+    PRO800_STATUS_MESSAGE,
+    PRO800_PROGRAM_MESSAGE
+};
+
 enum Pro800FilterKeyboardTracking
 {
     TRACKING_OFF = 0,

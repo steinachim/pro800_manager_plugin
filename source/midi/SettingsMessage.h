@@ -17,9 +17,12 @@ public:
     static juce::MidiMessage request();
 
     SettingsMessage(const juce::MidiMessage &message);
+    virtual Pro800MessageType getMessageType() const override { return Pro800MessageType::PRO800_SETTINGS_MESSAGE;}
+
+
     virtual bool isValid() const override;
     
-    virtual std::string toString() const override;
+    virtual juce::String toString() const override;
 
     uint16_t getExternalCVAmount() const;
     void setExternalCVAmount(uint16_t value);

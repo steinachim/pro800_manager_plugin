@@ -44,12 +44,17 @@ void MidiHandler::handleMidiMessage (const juce::MidiMessage& message)
     else if ( message.isSysEx())
     {
         std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage(message);
-        if ( auto settingsMessage = std::dynamic_pointer_cast<SettingsMessage>(pro800Message))
+        if ( !pro800Message )
         {
-            for(auto *component : this->settingsComponents )
-            {
-                component->handlePro800SettingsMessage(settingsMessage);
-            }
+            std::cerr << "[WARNING] Received invalid pro800Message" << std::endl;
+            return;
+        }
+
+        Pro800MessageType type = pro800Message->getMessageType();
+
+        for(auto *component : this->pro800Components.getReference(type) )
+        {
+                component->handlePro800Message(type, pro800Message);
         }
     }
 }
@@ -74,14 +79,14 @@ void MidiHandler::unregisterMidiLogComponent(juce::Component *component)
     this->logComponents.removeAllInstancesOf(component);
 }
 
-void MidiHandler::registerSettingsComponent(MidiComponent *component)
+void MidiHandler::registerPro800MessageComponent(Pro800MessageType type, MidiComponent *component)
 {
-    this->settingsComponents.add(component);
+    this->pro800Components.getReference(type).add(component);
 }
 
-void MidiHandler::unregisterSettingsComponent(MidiComponent *component)
+void MidiHandler::unregisterPro800MessageComponent(Pro800MessageType type, MidiComponent *component)
 {
-    this->settingsComponents.removeAllInstancesOf(component);
+    this->pro800Components.getReference(type).removeAllInstancesOf(component);
 }
 
 void MidiHandler::sendMidiCCMessage (uint8_t midiCC, uint8_t value)

@@ -65,6 +65,6 @@ void UiHelpers::setComponentLogValue(juce::Component *component, const juce::Mid
     }
     else
     {
-        std::cerr << "[WARNING] setComponentLogValue: Unknown target component type" << std::endl;
+        std::cerr << "[WARNING] setComponentLogValue(): Unknown target component type" << std::endl;
     }
 }

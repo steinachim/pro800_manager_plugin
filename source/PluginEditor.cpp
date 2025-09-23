@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "midi/VersionMessage.h"
+
 #include <iostream>
 
 //==============================================================================

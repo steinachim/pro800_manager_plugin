@@ -1,10 +1,10 @@
 #include "Pro800MessageFactory.h"
 
 
-//#include "ProgramMessage.h"
+#include "ProgramMessage.h"
 #include "SettingsMessage.h"
-//#include "VersionMessage.h"
-//#include "StatusMessage.h"
+#include "VersionMessage.h"
+#include "StatusMessage.h"
 
 std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const juce::MidiMessage &midiMessage)
 {
@@ -27,17 +27,17 @@ std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const 
         {
             return std::shared_ptr<Pro800MidiMessage>(new SettingsMessage(midiMessage));
         }
-        //else
-        //{       
-        //    return new ProgramMessage(midiMessage);
-       // }
+        else
+        {       
+            return std::shared_ptr<ProgramMessage>(new ProgramMessage(midiMessage));
+        }
     }
 
-    /*case VersionMessage::RESPONSE_ID:
-        return new VersionMessage(midiMessage);
+    case VersionMessage::RESPONSE_ID:
+        return std::shared_ptr<VersionMessage>(new VersionMessage(midiMessage));
 
     case StatusMessage::RESPONSE_ID:
-        return new StatusMessage(midiMessage);*/
+        return std::shared_ptr<StatusMessage>(new StatusMessage(midiMessage));
 
     default:
         return pro800Message;

@@ -23,7 +23,7 @@ bool SettingsMessage::isValid() const
     return Pro800MidiMessage::isValid() && (getRawDataSize() >= POS_MESSAGE_START + SETTINGS_LENGTH);
 }
 
-std::string SettingsMessage::toString() const
+juce::String SettingsMessage::toString() const
 {
     uint16_t extCvAmount = getExternalCVAmount();
     unsigned short extCvAmountDisplayValue = (extCvAmount * 999)/65535;

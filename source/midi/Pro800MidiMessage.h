@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_audio_basics/juce_audio_basics.h>
+#include "../Pro800Constants.h"
 
 class Pro800MidiMessage
 {
@@ -20,7 +21,9 @@ public:
     Pro800MidiMessage(const juce::MidiMessage &message);
     virtual ~Pro800MidiMessage();
 
-    virtual std::string toString() const;
+    virtual Pro800MessageType getMessageType() const { return Pro800MessageType::PRO800_UNKNOWN_MESSAGE;}
+
+    virtual juce::String toString() const;
     std::shared_ptr<juce::MidiMessage> toMidiMessage() const;
 
     uint8_t *getRawData() const;
