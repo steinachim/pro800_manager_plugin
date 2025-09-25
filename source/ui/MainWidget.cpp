@@ -23,13 +23,13 @@ MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedB
     auto colour = findColour (juce::ResizableWindow::backgroundColourId);
 
     addTab("Front Panel", colour, new FrontPanelTab(midiHandler), true, TAB_FRONTPANEL);
-    addTab("Performance", colour, new PerformanceTab(), true, TAB_PERFORMANCE);
+    addTab("Performance", colour, new PerformanceTab(midiHandler), true, TAB_PERFORMANCE);
     addTab("Settings", colour, new SettingsTab(midiHandler), true, TAB_SETTINGS);
     addTab("Advanced", colour, new AdvancedTab(midiHandler), true, TAB_ADVANCED);
 
     this->getTabContentComponent(TAB_FRONTPANEL)->setEnabled(false);
     this->getTabContentComponent(TAB_PERFORMANCE)->setEnabled(false);
-    this->getTabContentComponent(TAB_SETTINGS)->setEnabled(false);
+    //this->getTabContentComponent(TAB_SETTINGS)->setEnabled(false);
     this->getTabContentComponent(TAB_ADVANCED)->setEnabled(false);
 
     midiHandler->sendMidiMessage(VersionMessage::request());    

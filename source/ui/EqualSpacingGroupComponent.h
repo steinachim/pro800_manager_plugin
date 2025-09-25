@@ -18,13 +18,15 @@ class EqualSpacingGroupComponent : public juce::GroupComponent
 public:
     EqualSpacingGroupComponent();
     EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha = 255, juce::FlexBox::Direction boxDirection = juce::FlexBox::Direction::row);
+    EqualSpacingGroupComponent(const juce::String &text, const juce::Array<juce::Component*> components);
+
     void setOutlineAlpha(uint8_t outlineAlpha);
     void setDirection(juce::FlexBox::Direction boxDirection);
     
     void resized() override;
     
     void addComponent(juce::Component *component, double spaceFactor = 1.0);
-    void addComponents(juce::Array<juce::Component *> components);
+    void addComponents(const juce::Array<juce::Component *> components);
     void removeComponent(juce::Component *component);
     void removeComponents(juce::Array<juce::Component *> components);
 

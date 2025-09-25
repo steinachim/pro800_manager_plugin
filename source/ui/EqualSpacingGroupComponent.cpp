@@ -23,6 +23,12 @@ EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text,
     setOutlineAlpha(outlineAlpha);
 }
 
+EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, const juce::Array<juce::Component*> components) : EqualSpacingGroupComponent()
+{
+    this->setText(text);
+    addComponents(components);
+}
+
 
 void EqualSpacingGroupComponent::setDirection(juce::FlexBox::Direction boxDirection)
 {
@@ -86,7 +92,7 @@ void EqualSpacingGroupComponent::addComponent(juce::Component *component, double
     addComponents( {component} );
 }
 
-void EqualSpacingGroupComponent::addComponents(juce::Array<juce::Component *> components)
+void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> components)
 {
     for ( auto *component : components)
     {
