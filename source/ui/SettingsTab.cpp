@@ -246,7 +246,7 @@ void SettingsTab::setupGroupMiscellaneous()
   combo_MiscVoicePriority.addItem("Low", Pro800VoicePriority::VOICE_PRIORITY_LOW+1);
   combo_MiscVoicePriority.addItem("High", Pro800VoicePriority::VOICE_PRIORITY_HIGH+1);
 
-  combo_MiscPedalPriority.setEnabled(false); // not implemented yet
+  combo_MiscPedalPriority.setEnabled(false); // not implemented yet (not in standard settings message)
 
   this->group_Miscellaneous.addLabelledComponents(
     { "External Filter Mod Amount:",         "Voice Priority",         "Pedal Priority" },
@@ -290,7 +290,15 @@ void SettingsTab::setupGroupFactoryReset()
   this->group_FactoryReset.addComponent(&button_FactoryReset, 0.2);
   this->group_FactoryReset.setTextLabelPosition(juce::Justification::left);
 
-  this->group_FactoryReset.setEnabled(false); // not implemented yet
+  button_FactoryReset.onClick = [this] {
+    const auto callback = juce::ModalCallbackFunction::create ([this] (int result) {
+      if ( result == 1 )
+      {
+        this->requestFactoryReset();
+      }
+    });
+    juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon, "Factory Reset", "This will trigger a factory reset of the device. Are you sure?", "OK", "Abort", this, callback);
+  };
 
   addAndMakeVisible(group_FactoryReset);
 }

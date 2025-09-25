@@ -8,10 +8,11 @@ class MidiHandler;
 class MidiCallbackMessage : public juce::CallbackMessage
 {
 public:
-    MidiCallbackMessage(MidiHandler *handler, juce::MidiMessage &message);
+    MidiCallbackMessage(MidiHandler *handler, const juce::MidiMessage &message, bool sent = false);
     void messageCallback() override;
 
 private:
     MidiHandler *midiHandler;
     juce::MidiMessage midiMessage;
+    bool sentMessage = false;
 };

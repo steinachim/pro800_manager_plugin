@@ -20,6 +20,8 @@ public:
     virtual void handlePro800SettingsUpdate();
     virtual void handlePro800VersionUpdate();
 
+    void requestFactoryReset();
+
 protected:
     void setupMidiCCComponent(uint8_t midiCC, juce::Component *component);
     void removeMidiCCComponent(uint8_t midiCC, juce::Component *component);

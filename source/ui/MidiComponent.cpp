@@ -5,6 +5,7 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
+#include "../midi/Pro800FactoryResetMessage.h"
 
 
 MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<Pro800MessageType> messageTypes)
@@ -31,6 +32,11 @@ MidiComponent::~MidiComponent()
     }
 
     this->midiHandler->unregisterMidiCCComponent(this);
+}
+
+void MidiComponent::requestFactoryReset()
+{
+    this->midiHandler->sendMidiMessage(Pro800FactoryResetMessage::request());
 }
 
 void MidiComponent::handlePro800Message(Pro800MessageType type, std::shared_ptr<Pro800MidiMessage> &message)

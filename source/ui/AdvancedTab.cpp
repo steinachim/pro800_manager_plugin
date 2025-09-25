@@ -14,7 +14,7 @@
 
 AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler)
 {
-    textEdit_midiMessageLog.setReadOnly(true);
+    textEdit_midiMessageLog.setReadOnly(false);
     textEdit_midiMessageLog.setMultiLine(true);
 
     button_sendMessage.setButtonText("Send");
@@ -40,9 +40,21 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
       midiHandler->sendMidiMessage(messageToSend);
     };
 
+    button_debug.setButtonText("Debug");
+    button_debug.onClick = [this]
+    {
+
+      juce::String prefix = "f0 00 20 32 00 01 24 00";
+      juce::String postfix = "00 f7";
+
+      this->textEdit_inputMidiMessage.setText( prefix + juce::String::formatted(" %02x ", this->currentTestNum) + postfix, false);      
+      this->currentTestNum++;
+    };
+
     addAndMakeVisible(textEdit_midiMessageLog);
     addAndMakeVisible(textEdit_inputMidiMessage);
     addAndMakeVisible(button_sendMessage);
+    addAndMakeVisible(button_debug);
 
     setupMidiLogComponent(&textEdit_midiMessageLog);
 }
@@ -58,7 +70,8 @@ void AdvancedTab::resized()
     input.flexDirection = juce::FlexBox::Direction::row;
     input.items = {
         juce::FlexItem(textEdit_inputMidiMessage).withFlex(1.0f),
-        juce::FlexItem(button_sendMessage).withFlex(0.1f)
+        juce::FlexItem(button_sendMessage).withFlex(0.1f),
+        juce::FlexItem(button_debug).withFlex(0.1f)
     };
 
     juce::FlexBox fb;

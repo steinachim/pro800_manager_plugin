@@ -4,6 +4,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "../PluginProcessor.h"
+#include "MidiCallbackMessage.h"
+
 #include "Pro800MidiMessage.h"
 #include "Pro800MessageFactory.h"
 #include "SettingsMessage.h"
@@ -22,12 +24,20 @@ MidiHandler::~MidiHandler()
 {
 }
 
-void MidiHandler::handleMidiMessage (const juce::MidiMessage& message)
-{
+void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent)
+{    
     for(auto *component : logComponents)
     {
-        UiHelpers::setComponentLogValue(component, message, "Received message:");
+        juce::String logPrefix = (sent ? "Sent message" : "Received message:");
+        UiHelpers::setComponentLogValue(component, message, logPrefix);
     }
+
+    if ( sent )
+    {
+        // we sent it ourselves. Don't do anything.
+        return;
+    }
+
 
     if (message.isController())
     {
@@ -95,9 +105,6 @@ void MidiHandler::sendMidiCCMessage (uint8_t midiCC, uint8_t value)
 
 void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
 {
-    for(auto *component : logComponents)
-    {
-        UiHelpers::setComponentLogValue(component, message, "Sending message:");
-    }
+    (new MidiCallbackMessage(this, message, true))->post();
     this->processor->sendMidiMessage(message);
 }

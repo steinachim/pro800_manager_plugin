@@ -30,6 +30,9 @@ class AdvancedTab : public juce::Component, public MidiComponent
         juce::TextEditor textEdit_midiMessageLog;
 
         juce::TextButton button_sendMessage;
+        juce::TextButton button_debug;
+
+        uint8_t currentTestNum = 0;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AdvancedTab)
 };

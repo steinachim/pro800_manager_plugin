@@ -38,7 +38,8 @@ juce::String SettingsMessage::toString() const
     ss << "Pro800 Settings Message\n"
        << "Brightness: " << (unsigned int)getUint8Value(SETTINGS_BRIGHTNESS) << "\n"
        << "External CV Amount: " << extCvAmount << " (display: " << extCvAmountDisplayValue << ")\n"
-       << "Clock BPM: " << bpm << std::hex << " - MSB: "<< (unsigned int)bpmMsb << ", LSB: " << (unsigned int)bpmLsb << ", overflow: " << (unsigned int)bpmOverflow << std::dec << "\n";
+       << "Clock BPM: " << bpm << std::hex << " - MSB: "<< (unsigned int)bpmMsb << ", LSB: " << (unsigned int)bpmLsb << ", overflow: " << (unsigned int)bpmOverflow << std::dec << "\n"
+       << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
 
     return ss.str();
 }

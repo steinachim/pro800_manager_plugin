@@ -22,7 +22,7 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *midiHandler, Pro800Manage
     
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (1200, 700);
+    setSize (1400, 800);
     setResizable(true, true);
 }
 

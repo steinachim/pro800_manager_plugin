@@ -21,7 +21,7 @@ public:
     ~MidiHandler();
 
 
-    void handleMidiMessage(const juce::MidiMessage& message);
+    void handleMidiMessage(const juce::MidiMessage& message, bool sent);
 
     void registerMidiCCComponent(MidiComponent *component);
     void unregisterMidiCCComponent(MidiComponent *component);
