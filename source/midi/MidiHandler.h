@@ -23,8 +23,8 @@ public:
 
     void handleMidiMessage(const juce::MidiMessage& message);
 
-    void registerMidiCCComponent(uint8_t midiCC, juce::Component *component);
-    void unregisterMidiCCComponent(uint8_t midiCC, juce::Component *component);
+    void registerMidiCCComponent(MidiComponent *component);
+    void unregisterMidiCCComponent(MidiComponent *component);
 
     void registerMidiLogComponent(juce::Component *component);
     void unregisterMidiLogComponent(juce::Component *component);
@@ -37,7 +37,7 @@ public:
 
 
 private:
-    juce::HashMap<uint8_t, juce::Array<juce::Component *>> midiCCComponents;
+    juce::Array<MidiComponent *> midiCCComponents;
     juce::HashMap<Pro800MessageType, juce::Array<MidiComponent *>> pro800Components;
     juce::Array<juce::Component*> logComponents;
     Pro800ManagerAudioProcessor* processor = nullptr;

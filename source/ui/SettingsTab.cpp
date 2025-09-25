@@ -16,7 +16,7 @@
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
 
-SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, {Pro800MessageType::PRO800_SETTINGS_MESSAGE, Pro800MessageType::PRO800_VERSION_MESSAGE})
+SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {Pro800MessageType::PRO800_SETTINGS_MESSAGE, Pro800MessageType::PRO800_VERSION_MESSAGE})
 {
     addAndMakeVisible(label_FirmwareVersion);
 
@@ -41,8 +41,6 @@ SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(
 
 SettingsTab::~SettingsTab() 
 {
-    delete group_PresetDump;
-    delete group_FactoryReset;
 }
 
 void SettingsTab::handlePro800SettingsUpdate()
@@ -53,6 +51,8 @@ void SettingsTab::handlePro800SettingsUpdate()
     return;
   }
 
+  combo_ConnectionsMidiCC.setSelectedId( settingsMessage->getValue(Pro800Settings::SETTINGS_MIDI_CC_MODE)+1, juce::NotificationType::dontSendNotification);
+  checkBox_ConnectionsSyncInForwardEnabled.setToggleState(settingsMessage->getValue(Pro800Settings::SETTINGS_SYNC_IN_FORWARD) == Pro800SettingsOnOff::SETTINGS_ON, juce::NotificationType::dontSendNotification);
   spinBox_DisplayBrightness.setValue( settingsMessage->getValue(Pro800Settings::SETTINGS_BRIGHTNESS), juce::NotificationType::dontSendNotification );
 }
 
@@ -86,7 +86,7 @@ void SettingsTab::resized()
 
     this->group_Connections.setBounds (leftColumn.removeFromTop (11*elementHeight));
     this->group_Transpose.setBounds (middleColumn.removeFromTop (11*elementHeight));
-    this->group_PresetDump->setBounds (rightColumn.removeFromTop (11*elementHeight));
+    this->group_PresetDump.setBounds (rightColumn.removeFromTop (11*elementHeight));
 
     this->group_Voices.setBounds (leftColumn.removeFromTop (6*elementHeight));
     this->group_Tuning.setBounds (middleColumn.removeFromTop (6*elementHeight));
@@ -97,7 +97,7 @@ void SettingsTab::resized()
     this->group_Miscellaneous.setBounds (rightColumn.removeFromTop (4*elementHeight));
 
     this->group_Sync.setBounds (leftColumn.removeFromTop (6*elementHeight));
-    this->group_FactoryReset->setBounds (middleColumn.removeFromTop (6*elementHeight));
+    this->group_FactoryReset.setBounds (middleColumn.removeFromTop (6*elementHeight));
 }
 
 void SettingsTab::setupGroupConnections()
@@ -162,14 +162,10 @@ void SettingsTab::setupGroupTranspose()
 
 void SettingsTab::setupGroupPresetDump()
 {
-  this->group_PresetDump = new EqualSpacingGroupComponent(
-    "3 - Preset Dump",
-    {&button_PresetDump}
-  );
+  this->group_PresetDump.addComponent(&button_PresetDump, 0.1);
+  this->group_PresetDump.setTextLabelPosition(juce::Justification::left);
 
-  this->group_PresetDump->setTextLabelPosition(juce::Justification::left);
-
-  this->group_PresetDump->setEnabled(false); // not implemented yet
+  this->group_PresetDump.setEnabled(false); // not implemented yet
 
   addAndMakeVisible(group_PresetDump);
 }
@@ -291,15 +287,10 @@ void SettingsTab::setupGroupSync()
 
 void SettingsTab::setupGroupFactoryReset()
 {
-  // only button_FactoryReset
-  this->group_FactoryReset = new EqualSpacingGroupComponent(
-    "0 - Factory Reset",
-    {&button_FactoryReset}
-  );
+  this->group_FactoryReset.addComponent(&button_FactoryReset, 0.2);
+  this->group_FactoryReset.setTextLabelPosition(juce::Justification::left);
 
-  this->group_FactoryReset->setTextLabelPosition(juce::Justification::left);
-
-  this->group_FactoryReset->setEnabled(false); // not implemented yet
+  this->group_FactoryReset.setEnabled(false); // not implemented yet
 
   addAndMakeVisible(group_FactoryReset);
 }

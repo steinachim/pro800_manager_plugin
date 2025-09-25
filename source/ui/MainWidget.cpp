@@ -18,7 +18,7 @@
 #include "AdvancedTab.h"
 #include "PerformanceTab.h"
 
-MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop), MidiComponent(midiHandler, {PRO800_VERSION_MESSAGE})
+MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop), MidiComponent(midiHandler, false, {PRO800_VERSION_MESSAGE})
 {
     auto colour = findColour (juce::ResizableWindow::backgroundColourId);
 
@@ -29,7 +29,7 @@ MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedB
 
     this->getTabContentComponent(TAB_FRONTPANEL)->setEnabled(false);
     this->getTabContentComponent(TAB_PERFORMANCE)->setEnabled(false);
-    //this->getTabContentComponent(TAB_SETTINGS)->setEnabled(false);
+    this->getTabContentComponent(TAB_SETTINGS)->setEnabled(false);
     this->getTabContentComponent(TAB_ADVANCED)->setEnabled(false);
 
     midiHandler->sendMidiMessage(VersionMessage::request());    

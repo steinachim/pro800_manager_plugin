@@ -1,11 +1,13 @@
 #include "MidiComponent.h"
 
+#include "UiHelpers.h"
+
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
 
 
-MidiComponent::MidiComponent(MidiHandler *handler, const juce::Array<Pro800MessageType> messageTypes)
+MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<Pro800MessageType> messageTypes)
 {
     this->registeredMessageTypes = messageTypes;
     this->midiHandler = handler;
@@ -13,6 +15,11 @@ MidiComponent::MidiComponent(MidiHandler *handler, const juce::Array<Pro800Messa
     for ( auto type : this->registeredMessageTypes )
     {
         this->midiHandler->registerPro800MessageComponent(type, this);
+    }
+
+    if ( registerMidiCC )
+    {
+        this->midiHandler->registerMidiCCComponent(this);
     }
 }
 
@@ -22,6 +29,8 @@ MidiComponent::~MidiComponent()
     {
         this->midiHandler->unregisterPro800MessageComponent(type, this);
     }
+
+    this->midiHandler->unregisterMidiCCComponent(this);
 }
 
 void MidiComponent::handlePro800Message(Pro800MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
@@ -44,6 +53,15 @@ void MidiComponent::handlePro800Message(Pro800MessageType type, std::shared_ptr<
     }
 }
 
+void MidiComponent::handleMidiCCMessage(uint8_t midiCC, uint8_t value)
+{
+    for( auto *component : this->registeredCCComponents.getReference(midiCC) )
+    {
+        UiHelpers::setComponentCCValue(component, midiCC, value);
+    }
+}
+
+
 void MidiComponent::handlePro800SettingsUpdate()
 {
     // do nothing by default
@@ -56,7 +74,7 @@ void MidiComponent::handlePro800VersionUpdate()
 
 void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *component)
 {
-  midiHandler->registerMidiCCComponent(midiCC, component);
+    this->registeredCCComponents.getReference(midiCC).add(component);
 
     if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
@@ -91,7 +109,7 @@ void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *compon
 
 void MidiComponent::removeMidiCCComponent(uint8_t midiCC, juce::Component *component)
 {
-    midiHandler->unregisterMidiCCComponent(midiCC, component);
+    this->registeredCCComponents.getReference(midiCC).removeAllInstancesOf(component);
 }
 
 void MidiComponent::setupMidiLogComponent(juce::Component *component)

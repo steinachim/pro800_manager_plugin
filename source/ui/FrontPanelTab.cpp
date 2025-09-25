@@ -80,7 +80,7 @@ void FrontPanelTab::resized()
 
 
 
-GroupOscillatorA::GroupOscillatorA(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupOscillatorA::GroupOscillatorA(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Oscillator A");
     setTextLabelPosition(juce::Justification::left);

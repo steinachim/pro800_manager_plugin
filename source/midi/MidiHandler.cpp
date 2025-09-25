@@ -34,11 +34,9 @@ void MidiHandler::handleMidiMessage (const juce::MidiMessage& message)
         uint8_t midiCC = (uint8_t) message.getControllerNumber();
         uint8_t value = (uint8_t) message.getControllerValue();
 
-        auto ccComponents = this->midiCCComponents[midiCC];
-        ccComponents.addArray(this->midiCCComponents[255]); // listeners to all ccs        
-        for(auto *component : ccComponents)
+        for(auto *component : this->midiCCComponents )
         {
-            UiHelpers::setComponentCCValue(component, midiCC, value);
+            component->handleMidiCCMessage(midiCC, value);
         }
     }
     else if ( message.isSysEx())
@@ -59,14 +57,14 @@ void MidiHandler::handleMidiMessage (const juce::MidiMessage& message)
     }
 }
 
-void MidiHandler::registerMidiCCComponent(uint8_t midiCC, juce::Component *component)
+void MidiHandler::registerMidiCCComponent(MidiComponent *component)
 {
-    this->midiCCComponents.getReference(midiCC).add(component);
+    this->midiCCComponents.add(component);
 }
 
-void MidiHandler::unregisterMidiCCComponent(uint8_t midiCC, juce::Component *component)
+void MidiHandler::unregisterMidiCCComponent(MidiComponent *component)
 {
-    this->midiCCComponents.getReference(midiCC).removeAllInstancesOf(component);
+    this->midiCCComponents.removeAllInstancesOf(component);
 }
 
 void MidiHandler::registerMidiLogComponent(juce::Component *component)

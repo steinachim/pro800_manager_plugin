@@ -11,10 +11,12 @@ class Pro800MidiMessage;
 class MidiComponent
 {
 public:
-    MidiComponent(MidiHandler *midiHandler, const juce::Array<Pro800MessageType> messageTypes = juce::Array<Pro800MessageType>());
+    MidiComponent(MidiHandler *midiHandler, bool registerMidiCC = false, const juce::Array<Pro800MessageType> messageTypes = juce::Array<Pro800MessageType>());
     virtual ~MidiComponent();
 
     void handlePro800Message(Pro800MessageType type, std::shared_ptr<Pro800MidiMessage> &settingsMessage);
+    void handleMidiCCMessage(uint8_t midiCC, uint8_t value);
+
     virtual void handlePro800SettingsUpdate();
     virtual void handlePro800VersionUpdate();
 
@@ -32,6 +34,8 @@ protected:
     
 private:
     juce::Array<Pro800MessageType> registeredMessageTypes = juce::Array<Pro800MessageType>();
+    juce::HashMap<uint8_t, juce::Array<juce::Component*>> registeredCCComponents;
+
     MidiHandler *midiHandler;
 
     std::shared_ptr<SettingsMessage> currentSettings = std::shared_ptr<SettingsMessage>();

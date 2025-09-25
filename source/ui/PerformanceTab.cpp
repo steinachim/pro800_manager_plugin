@@ -10,7 +10,7 @@
 
 #include "PerformanceTab.h"
 
-PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler)
+PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, true)
 {
     setupGroupLFO();
     setupGroupVibrato();
@@ -67,11 +67,11 @@ void PerformanceTab::setupGroupLFO()
     this->combo_LFOspeed.addItem("Slow", Pro800LFOSpeed::LFO_SPEED_SLOW+1);
 
     this->group_LFO.addLabelledComponents(
-        { "Target: ", "Speed: " },
+        { "Target:",        "Speed:" },
         { &combo_LFOtarget, &combo_LFOspeed }
     );
 
-    this->setupMidiCCComponent(Pro800CCMessages::LFO_TARGET, &combo_LFOtarget+1);
+    this->setupMidiCCComponent(Pro800CCMessages::LFO_TARGET, &combo_LFOtarget);
     this->setupMidiCCComponent(Pro800CCMessages::LFO_SPEED, &combo_LFOspeed);
 
     this->addAndMakeVisible(group_LFO);
@@ -80,16 +80,16 @@ void PerformanceTab::setupGroupLFO()
 void PerformanceTab::setupGroupVibrato()
 {
     // 2 - Vibrato
-    this->slider_VibratoAmount.setRange(0.0, 127.0, 1.0);
     this->slider_VibratoSpeed.setRange(0.0, 127.0, 1.0);
+    this->slider_VibratoAmount.setRange(0.0, 127.0, 1.0);
 
     this->group_Vibrato.addLabelledComponents(
-        { "Amount: ", "Speed: " },
-        { &slider_VibratoAmount, &slider_VibratoSpeed }
+        { "Speed:",             "Amount:" },
+        { &slider_VibratoSpeed, &slider_VibratoAmount }
     );
 
-    this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_AMOUNT, &slider_VibratoAmount);
     this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_SPEED, &slider_VibratoSpeed);
+    this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_AMOUNT, &slider_VibratoAmount);
 
     this->addAndMakeVisible(group_Vibrato);
 }
@@ -106,7 +106,7 @@ void PerformanceTab::setupGroupModulation()
     this->slider_ModulationDelay.setRange(0.0, 127.0, 1.0);
 
     this->group_Modulation.addLabelledComponents(
-        { "Wheel Target: ", "Wheel Amount: ", "Modulation Delay: " },
+        { "Wheel Amount:",              "Wheel Target:",              "Modulation Delay:" },
         { &combo_ModulationWheelAmount, &combo_ModulationWheelTarget, &slider_ModulationDelay }
     );
 
@@ -120,25 +120,27 @@ void PerformanceTab::setupGroupModulation()
 void PerformanceTab::setupGroupEnvelopes()
 {
     // 4 - Envelopes
-    this->combo_EnvShapeVCA.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
-    this->combo_EnvShapeVCA.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
     this->combo_EnvSpeedVCA.addItem("Fast", Pro800EnvelopeSpeed::ENV_SPEED_FAST+1);
     this->combo_EnvSpeedVCA.addItem("Slow", Pro800EnvelopeSpeed::ENV_SPEED_SLOW+1);
-    this->combo_EnvShapeVCF.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
-    this->combo_EnvShapeVCF.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
+    this->combo_EnvShapeVCA.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
+    this->combo_EnvShapeVCA.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
+
     this->combo_EnvSpeedVCF.addItem("Fast", Pro800EnvelopeSpeed::ENV_SPEED_FAST+1);
     this->combo_EnvSpeedVCF.addItem("Slow", Pro800EnvelopeSpeed::ENV_SPEED_SLOW+1);
+    this->combo_EnvShapeVCF.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
+    this->combo_EnvShapeVCF.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
 
     this->group_Envelopes.addLabelledComponents(
-        { "VCA Envelope Share: ", "VCA Envelope Speed", "VCF Envelope Shape: ", "VCF Envelope Speed" },
-        { &combo_EnvShapeVCA, &combo_EnvSpeedVCA, &combo_EnvShapeVCF, &combo_EnvSpeedVCF }
+        { "VCA Envelope Speed:", "VCA Envelope Shape:", "VCF Envelope Speed:", "VCF Envelope Shape:" },
+        { &combo_EnvSpeedVCA,    &combo_EnvShapeVCA,    &combo_EnvSpeedVCF,    &combo_EnvShapeVCF }
     );
 
-    this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SHAPE, &combo_EnvShapeVCA);
     this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SPEED, &combo_EnvSpeedVCA);
-    this->setupMidiCCComponent(Pro800CCMessages::VCF_ENV_SHAPE, &combo_EnvShapeVCF);
+    this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SHAPE, &combo_EnvShapeVCA);
+  
     this->setupMidiCCComponent(Pro800CCMessages::VCF_ENV_SPEED, &combo_EnvSpeedVCF);
-
+    this->setupMidiCCComponent(Pro800CCMessages::VCF_ENV_SHAPE, &combo_EnvShapeVCF);
+    
     this->addAndMakeVisible(group_Envelopes);
 }
 
@@ -149,10 +151,10 @@ void PerformanceTab::setupGroupPitchBend()
     this->combo_PitchBendTarget.addItem("VCF", Pro800PitchBendTarget::PITCH_BEND_TARGET_VCF+1);
     this->combo_PitchBendTarget.addItem("VCO", Pro800PitchBendTarget::PITCH_BEND_TARGET_VCO+1);
     this->combo_PitchBendTarget.addItem("Volume", Pro800PitchBendTarget::PITCH_BEND_TARGET_VOLUME+1);
-    this->slider_PitchBendRange.setRange(0.0, 127.0, 1.0);
+    this->slider_PitchBendRange.setRange(0.0, 31.0, 1.0);
 
     this->group_PitchBend.addLabelledComponents(
-        { "Target: ", "Range: " },
+        { "Target:",              "Range:" },
         { &combo_PitchBendTarget, &slider_PitchBendRange }
     );
 
@@ -179,7 +181,7 @@ void PerformanceTab::setupGroupOscillators()
     this->combo_OscKeyboardTracking.addItem("C4", Pro800KeyboardTracking::KEYBOARD_TRACKING_C4+1); 
 
     this->group_Oscillators.addLabelledComponents(
-        { "OSC A Freq Pot Mode: ", "OSC B Freq Pot Mode: ", "Keyboard Tracking: " },
+        { "OSC A Freq Pot Mode:", "OSC B Freq Pot Mode:", "Keyboard Tracking:" },
         { &combo_OscAFreqPotMode, &combo_OscBFreqPotMode, &combo_OscKeyboardTracking }
     );
     
@@ -197,7 +199,7 @@ void PerformanceTab::setupGroupVelocity()
     this->slider_VelocityAmountVCF.setRange(0.0, 127.0, 1.0);
     
     this->group_Velocity.addLabelledComponents(
-        { "VCA Velocity Amount: ", "VCF Velocity Amount: " },
+        { "VCA Velocity Amount: ",   "VCF Velocity Amount: " },
         { &slider_VelocityAmountVCA, &slider_VelocityAmountVCF }
     );
     
@@ -215,7 +217,7 @@ void PerformanceTab::setupGroupAftertouch()
     this->slider_AfterTouchAmountLFO.setRange(0.0, 127.0, 1.0);
 
     this->group_Aftertouch.addLabelledComponents(
-        { "VCA Amount: ", "VCF Amount: ", "LFO Amount: " },
+        { "VCA Amount: ",              "VCF Amount: ",              "LFO Amount: " },
         { &slider_AfterTouchAmountVCA, &slider_AfterTouchAmountVCF, &slider_AfterTouchAmountLFO }
     );
 
@@ -233,8 +235,8 @@ void PerformanceTab::setupGroupSpread()
     this->slider_SpreadUnisonDetune.setRange(0.0, 127.0, 1.0);
 
     this->group_Spread.addLabelledComponents(
-        { "Voice Spread: ", "Unison Spread Detune: " },
-        { &checkBox_SpreadVoiceEnable, &slider_SpreadUnisonDetune }
+        { "Unison Spread Detune: ",   "Voice Spread: " },
+        { &slider_SpreadUnisonDetune, &checkBox_SpreadVoiceEnable }
     );
 
     this->setupMidiCCComponent(Pro800CCMessages::VOICE_SPREAD_ENABLE, &checkBox_SpreadVoiceEnable);

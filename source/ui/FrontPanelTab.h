@@ -23,17 +23,17 @@ public:
     virtual ~GroupOscillatorA() override;
     
 private:
-    EqualSpacingGroupComponent group_Frequency = { "Frequency", 30 };
-    EqualSpacingGroupComponent group_PulseWidth = { "Pulse Width", 30};
-    EqualSpacingGroupComponent group_Level = { "Level", 30 };
+    EqualSpacingGroupComponent group_Frequency { "Frequency", 30 };
+    EqualSpacingGroupComponent group_PulseWidth { "Pulse Width", 30};
+    EqualSpacingGroupComponent group_Level { "Level", 30 };
     juce::Slider slider_Frequency;
     juce::Slider slider_PulseWidth;
     juce::Slider slider_Level;
     
-    EqualSpacingGroupComponent group_Sync = { "Sync", 30 };
+    EqualSpacingGroupComponent group_Sync { "Sync", 30 };
     juce::ToggleButton checkBox_Sync;
     
-    EqualSpacingGroupComponent group_Shape = { "Shape", 30, juce::FlexBox::Direction::column};
+    EqualSpacingGroupComponent group_Shape { "Shape", 30, juce::FlexBox::Direction::column};
     juce::ToggleButton checkBox_ShapeSaw;
     juce::ToggleButton checkBox_ShapeTri;
     juce::ToggleButton checkBox_ShapeRect;
@@ -49,16 +49,16 @@ public:
     virtual ~GroupOscillatorB() override;
 
 private:
-    EqualSpacingGroupComponent group_Frequency = { "Frequency", 30 };
-    EqualSpacingGroupComponent group_Fine = { "Fine", 30};
-    EqualSpacingGroupComponent group_PulseWidth = { "Pulse Width", 30};
-    EqualSpacingGroupComponent group_Level = { "Level", 30 };
+    EqualSpacingGroupComponent group_Frequency { "Frequency", 30 };
+    EqualSpacingGroupComponent group_Fine { "Fine", 30};
+    EqualSpacingGroupComponent group_PulseWidth { "Pulse Width", 30};
+    EqualSpacingGroupComponent group_Level { "Level", 30 };
     juce::Slider slider_Frequency;
     juce::Slider slider_Fine;
     juce::Slider slider_PulseWidth;
     juce::Slider slider_Level;
     
-    EqualSpacingGroupComponent group_Shape = { "Shape", 30, juce::FlexBox::Direction::column};
+    EqualSpacingGroupComponent group_Shape { "Shape", 30, juce::FlexBox::Direction::column};
     juce::ToggleButton checkBox_ShapeSaw;
     juce::ToggleButton checkBox_ShapeTri;
     juce::ToggleButton checkBox_ShapeRect;
@@ -73,12 +73,12 @@ public:
     virtual ~GroupPolyMod() override;
     
 private:
-    EqualSpacingGroupComponent group_SourceAmount = { "Source Amount", 30 };
-    EqualSpacingGroupComponent group_Destination = { "Destination", 30, juce::FlexBox::Direction::column };
-    EqualSpacingGroupComponent group_UnisonTrack = { "Unison Track", 30, juce::FlexBox::Direction::column };
+    EqualSpacingGroupComponent group_SourceAmount { "Source Amount", 30 };
+    EqualSpacingGroupComponent group_Destination { "Destination", 30, juce::FlexBox::Direction::column };
+    EqualSpacingGroupComponent group_UnisonTrack { "Unison Track", 30, juce::FlexBox::Direction::column };
     
-    EqualSpacingGroupComponent group_SourceFilterEnv = { "Filter Env", 0 };
-    EqualSpacingGroupComponent group_SourceOscB = { "OSC B", 0 };
+    EqualSpacingGroupComponent group_SourceFilterEnv { "Filter Env", 0 };
+    EqualSpacingGroupComponent group_SourceOscB { "OSC B", 0 };
     juce::Slider slider_SourceFilterEnv;
     juce::Slider slider_SourceOscB;
     
@@ -95,7 +95,7 @@ public:
     virtual ~GroupNoise() override;
 
 private:
-    EqualSpacingGroupComponent group_NoiseLevel = { "Noise Level", 30 };
+    EqualSpacingGroupComponent group_NoiseLevel { "Noise Level", 30 };
     juce::Slider slider_NoiseLevel;
 };
 
@@ -106,10 +106,10 @@ public:
     virtual ~GroupLfoMod() override;
     
 private:
-    EqualSpacingGroupComponent group_Frequency = { "Frequency", 30 };
-    EqualSpacingGroupComponent group_Shape = { "Shape", 30 };
-    EqualSpacingGroupComponent group_InitialAmount = { "Initial Amount", 30 };
-    EqualSpacingGroupComponent group_Destination = { "Destination", 30, juce::FlexBox::Direction::column };
+    EqualSpacingGroupComponent group_Frequency { "Frequency", 30 };
+    EqualSpacingGroupComponent group_Shape { "Shape", 30 };
+    EqualSpacingGroupComponent group_InitialAmount { "Initial Amount", 30 };
+    EqualSpacingGroupComponent group_Destination { "Destination", 30, juce::FlexBox::Direction::column };
     
     juce::Slider slider_Frequency;
     juce::ComboBox comboBox_Shape;
@@ -127,7 +127,7 @@ public:
     virtual ~GroupGlide() override;
     
 private:
-    EqualSpacingGroupComponent group_GlideAmount = { "Glide Amount", 30 };
+    EqualSpacingGroupComponent group_GlideAmount { "Glide Amount", 30 };
     juce::Slider slider_GlideAmount;
 };
 
@@ -139,10 +139,10 @@ public:
     virtual ~GroupAmplifier() override;
     
 private:
-    EqualSpacingGroupComponent group_Attack = { "Attack", 30 };
-    EqualSpacingGroupComponent group_Decay = { "Decay", 30 };
-    EqualSpacingGroupComponent group_Sustain = { "Sustain", 30 };
-    EqualSpacingGroupComponent group_Release = { "Release", 30 };
+    EqualSpacingGroupComponent group_Attack { "Attack", 30 };
+    EqualSpacingGroupComponent group_Decay { "Decay", 30 };
+    EqualSpacingGroupComponent group_Sustain { "Sustain", 30 };
+    EqualSpacingGroupComponent group_Release { "Release", 30 };
 
     juce::Slider slider_Attack;
     juce::Slider slider_Decay;
@@ -158,8 +158,8 @@ public:
     virtual ~GroupMaster() override;
     
 private:
-    EqualSpacingGroupComponent group_MasterTune = { "Master Tune", 30 };
-    EqualSpacingGroupComponent group_MasterVolume = { "Master Volume", 30 };
+    EqualSpacingGroupComponent group_MasterTune { "Master Tune", 30 };
+    EqualSpacingGroupComponent group_MasterVolume { "Master Volume", 30 };
 
     juce::Slider slider_MasterTune;
     juce::Slider slider_MasterVolume;
@@ -175,10 +175,10 @@ public:
     void resized() override;
     
 private:
-    EqualSpacingGroupComponent group_Cutoff = { "Cutoff", 30 };
-    EqualSpacingGroupComponent group_Resonance = { "Resonance", 30 };
-    EqualSpacingGroupComponent group_EnvAmount = { "Env Amount", 30 };
-    EqualSpacingGroupComponent group_KeyboardTracking = { "Keyboard Tracking", 30, juce::FlexBox::Direction::column };
+    EqualSpacingGroupComponent group_Cutoff { "Cutoff", 30 };
+    EqualSpacingGroupComponent group_Resonance { "Resonance", 30 };
+    EqualSpacingGroupComponent group_EnvAmount { "Env Amount", 30 };
+    EqualSpacingGroupComponent group_KeyboardTracking { "Keyboard Tracking", 30, juce::FlexBox::Direction::column };
     juce::Slider slider_Cutoff;
     juce::Slider slider_Resonance;
     juce::Slider slider_EnvAmount;
@@ -186,10 +186,10 @@ private:
     juce::ToggleButton radio_TrackingHalf;
     juce::ToggleButton radio_TrackingOff;
     
-    EqualSpacingGroupComponent group_Attack = { "Attack", 30 };
-    EqualSpacingGroupComponent group_Decay = { "Decay", 30 };
-    EqualSpacingGroupComponent group_Sustain = { "Sustain", 30 };
-    EqualSpacingGroupComponent group_Release = { "Release", 30 };
+    EqualSpacingGroupComponent group_Attack { "Attack", 30 };
+    EqualSpacingGroupComponent group_Decay { "Decay", 30 };
+    EqualSpacingGroupComponent group_Sustain { "Sustain", 30 };
+    EqualSpacingGroupComponent group_Release { "Release", 30 };
     juce::Slider slider_Attack;
     juce::Slider slider_Decay;
     juce::Slider slider_Sustain;

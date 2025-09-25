@@ -41,8 +41,8 @@ enum Pro800EnvelopeSpeed
 
 enum Pro800EnvelopeShape
 {
-    ENV_SHAPE_EXPONENTIAL = 0,
-    ENV_SHAPE_LINEAR = 64,
+    ENV_SHAPE_LINEAR = 0,
+    ENV_SHAPE_EXPONENTIAL = 64
 };
 
 enum Pro800LFOTarget
