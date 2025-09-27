@@ -53,8 +53,15 @@ void MidiComponent::handlePro800Message(Pro800MessageType type, std::shared_ptr<
             handlePro800VersionUpdate();
             break;
 
+        
+        case PRO800_STATUS_MESSAGE:
+            // do nothing
+            break;
+
+        case PRO800_UNKNOWN_MESSAGE:
+        case PRO800_PROGRAM_MESSAGE:
         default:
-            std::cerr << "[WARNING] handlePro800Message(): Unsupported message type" << type << std::endl;
+            std::cerr << "[WARNING] handlePro800Message(): Unsupported / unknown message type" << type << std::endl;
             // do nothing
     }
 }

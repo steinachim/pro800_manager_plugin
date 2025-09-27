@@ -9,8 +9,8 @@ using namespace std;
 
 juce::MidiMessage ProgramMessage::request(int programNumber)
 {
-    unsigned char programLSB = (programNumber & 0x7F);
-    unsigned char programMSB = (programNumber >> 7);
+    uint8_t programLSB = (programNumber & 0x7F);
+    uint8_t programMSB = (uint8_t)(programNumber >> 7);
 
     std::vector<uint8_t> request;
     request.insert(request.end(), std::begin(PRO800_HEADER), std::end(PRO800_HEADER));
@@ -20,7 +20,7 @@ juce::MidiMessage ProgramMessage::request(int programNumber)
 
 bool ProgramMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && getRawDataSize() >= DUMP_POS_PROGRAM_MSB;
+    return Pro800MidiMessage::isValid() && getRawDataSize() >= DUMP_POS_PROGRAM_MSB && this->valid;
 }
 
 
@@ -29,14 +29,14 @@ ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : Pro800MidiMes
     extractDumpData();
 }
 
-short ProgramMessage::getProgramNumber() const
+uint16_t ProgramMessage::getProgramNumber() const
 {
     return this->programNumber;
 }
 
-void ProgramMessage::setProgramNumber(short programNumber)
+void ProgramMessage::setProgramNumber(uint16_t newProgramNumber)
 {
-    this->programNumber = programNumber;
+    this->programNumber = newProgramNumber;
 
     uint8_t programLSB = programNumber & 0x7F;
     uint8_t programMSB = (programNumber >> 7) & 0x7F;
@@ -57,8 +57,8 @@ std::string ProgramMessage::getProgramBankNumber() const
         return "XXX";
     }
 
-    int bank = this->programNumber / 100;
-    int program = this->programNumber % 100;
+    uint8_t bank = (uint8_t)(this->programNumber / 100); // 0-3 = A-D
+    uint8_t program = (uint8_t)(this->programNumber % 100); // 0-99
 
     char bankName = 'A' + bank;
 
@@ -131,10 +131,10 @@ uint8_t ProgramMessage::getValue8(RawDumpPosition position)
 
 uint16_t ProgramMessage::getValue16(RawDumpPosition position)
 {
-    uint16_t msb = this->getRawData()[position];
-    uint16_t lsb = this->getRawData()[position + 1];
+    uint8_t msb = this->getRawData()[position];
+    uint8_t lsb = this->getRawData()[position + 1];
 
-    return (msb << 8) | lsb;
+    return (uint16_t)((msb << 8) | lsb);
 }
 
 uint32_t ProgramMessage::getValue32(RawDumpPosition position)
@@ -170,13 +170,14 @@ void ProgramMessage::extractDumpData()
     }
 
     // note program LSB is 7-byte value only
-    short programLSB = getRawData()[DUMP_POS_PROGRAM_LSB];
-    short programMSB = getRawData()[DUMP_POS_PROGRAM_MSB];
-    this->programNumber = (programMSB << 7) | programLSB;
+    uint8_t programLSB = getRawData()[DUMP_POS_PROGRAM_LSB];
+    uint8_t programMSB = getRawData()[DUMP_POS_PROGRAM_MSB];
+    this->programNumber = (uint16_t)((programMSB << 7) | programLSB);
 
     if (this->programNumber == 0x1FE) // global dump
     {
         this->programName = "GLOBAL";
+        this->valid = true;
         return;
     }
 
@@ -184,13 +185,12 @@ void ProgramMessage::extractDumpData()
     {
         cout << "Dump data truncated or not program dump. No extraction.\n";
         this->programName = "INVALID";
-        this->programNumber = -1;
+        this->valid = false;
         return;
     }
 
     this->programName = getValueString(DUMP_POS_PROGRAM_NAME_START, DUMP_POS_PROGRAM_NAME_END);
-
-    //setValid(true);
+    this->valid = true;
 }
 
 unsigned char ProgramMessage::getResponseType() const

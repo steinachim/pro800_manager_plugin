@@ -122,9 +122,9 @@ public:
 
     virtual bool isValid() const override;
 
-    short getProgramNumber() const;
+    uint16_t getProgramNumber() const;
     std::string getProgramBankNumber() const;
-    void setProgramNumber(short programNumber);
+    void setProgramNumber(uint16_t programNumber);
 
     std::string getProgramName() const;
     void setProgramName(const std::string &newName);
@@ -146,8 +146,10 @@ protected:
 private:
     void extractDumpData();
 
-    short programNumber;
+    uint16_t programNumber;
     std::string programName;
+
+    bool valid = true;
 
 
 
