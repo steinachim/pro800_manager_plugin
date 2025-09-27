@@ -152,8 +152,12 @@ std::string ProgramMessage::getValueString(RawDumpPosition start, RawDumpPositio
 
     std::string value = std::string(getRawData() + start, getRawData() + end);
 
+    // remove 0xf7
+    value.erase(std::remove(value.begin(), value.end(), '\xf7'), value.end());
+
     // remove 0x00
     value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());
+
 
     return value;
 }

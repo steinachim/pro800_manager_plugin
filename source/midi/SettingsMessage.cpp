@@ -34,11 +34,14 @@ juce::String SettingsMessage::toString() const
 
     uint16_t bpm = getClockBPM();
 
+    uint8_t presetMode = getUint8Value(SETTINGS_PRESET_MODE);
+
     std::stringstream ss;
     ss << "Pro800 Settings Message\n"
        << "Brightness: " << (unsigned int)getUint8Value(SETTINGS_BRIGHTNESS) << "\n"
        << "External CV Amount: " << extCvAmount << " (display: " << extCvAmountDisplayValue << ")\n"
        << "Clock BPM: " << bpm << std::hex << " - MSB: "<< (unsigned int)bpmMsb << ", LSB: " << (unsigned int)bpmLsb << ", overflow: " << (unsigned int)bpmOverflow << std::dec << "\n"
+       << "Preset Mode: " << (presetMode == Pro800PresetMode::PRESET_MODE_MANUAL ? "MANUAL" : (presetMode == Pro800PresetMode::PRESET_MODE_LOADED ? "LOADED" : "EDITED")) << "\n"
        << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
 
     return ss.str();

@@ -215,7 +215,7 @@ enum Pro800Settings
     SETTINGS_PRESET_1 = 8,
     SETTINGS_PRESET_2 = 9,
     SETTINGS_OVERFLOW_BPM_VOICE8 = 10, // overflow for bpm and voice 8 bit 8
-    SETTINGS_UNKNOWN_6 = 11,
+    SETTINGS_PRESET_MODE = 11, // see: Pro800PresetMode
     SETTINGS_MIDI_RX_CHANNEL = 12, // see: Pro800MidiReceiveChannel
     SETTINGS_VOICE_KILL = 13, // voices 1-7, bitwise // 14
     SETTINGS_MIDI_TX_CHANNEL = 14, // see: Pro800MidiTransmitChannel
@@ -381,4 +381,11 @@ enum Pro800OverflowBitPosition
     OVERFLOW_EXTERNAL_CV_AMOUNT_BIT16 = 2,
     OVERFLOW_TRANSPOSE_BIT8 = 2,
     OVERFLOW_NONE = -1
+};
+
+enum Pro800PresetMode
+{
+    PRESET_MODE_MANUAL = 0,
+    PRESET_MODE_LOADED = 1,
+    PRESET_MODE_EDITED = 2
 };

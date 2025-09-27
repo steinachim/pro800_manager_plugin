@@ -16,6 +16,7 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
 {
     textEdit_midiMessageLog.setReadOnly(false);
     textEdit_midiMessageLog.setMultiLine(true);
+    textEdit_midiMessageLog.setReturnKeyStartsNewLine(true);
 
     button_sendMessage.setButtonText("Send");
     button_sendMessage.onClick = [this, midiHandler] {
