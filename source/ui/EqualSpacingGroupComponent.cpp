@@ -55,7 +55,12 @@ void EqualSpacingGroupComponent::resized()
         directionSize = &minHeight;
     }
 
-    *directionSize /= children.size();
+    double numElements = children.size() - spaceFactor.size();
+    for ( double factor : spaceFactor )
+    {
+        numElements += factor;
+    }
+    *directionSize /= juce::roundToInt(numElements);
     
     
     juce::FlexBox fb;

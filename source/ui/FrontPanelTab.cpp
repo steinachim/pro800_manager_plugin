@@ -119,7 +119,7 @@ GroupOscillatorA::~GroupOscillatorA()
     removeMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_RECT, &checkBox_ShapeRect);
 }
 
-GroupOscillatorB::GroupOscillatorB(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupOscillatorB::GroupOscillatorB(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Oscillator B");
     setTextLabelPosition(juce::Justification::left);
@@ -133,6 +133,15 @@ GroupOscillatorB::GroupOscillatorB(MidiHandler *midiHandler) : EqualSpacingGroup
     checkBox_ShapeTri.setButtonText("Tri");
     checkBox_ShapeRect.setButtonText("Rect");
     group_Shape.addComponents({&checkBox_ShapeSaw, &checkBox_ShapeTri, &checkBox_ShapeRect});
+
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_FREQ, &slider_Frequency);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_FINE, &slider_Fine);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_PULSE_WIDTH, &slider_PulseWidth);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_LEVEL, &slider_Level);
+    
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_SAW, &checkBox_ShapeSaw);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_TRI, &checkBox_ShapeTri);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_RECT, &checkBox_ShapeRect);
     
     addComponents({ &group_Frequency, &group_Fine, &group_Shape, &group_PulseWidth, &group_Level});
 }
@@ -140,15 +149,16 @@ GroupOscillatorB::GroupOscillatorB(MidiHandler *midiHandler) : EqualSpacingGroup
 GroupOscillatorB::~GroupOscillatorB()
 {
     removeMidiCCComponent(Pro800CCMessages::OSC_B_FREQ, &slider_Frequency);
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_FINE, &slider_Level);
+    removeMidiCCComponent(Pro800CCMessages::OSC_B_FINE, &slider_Fine);
     removeMidiCCComponent(Pro800CCMessages::OSC_B_PULSE_WIDTH, &slider_PulseWidth);
     removeMidiCCComponent(Pro800CCMessages::OSC_B_LEVEL, &slider_Level);
+    
     removeMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_SAW, &checkBox_ShapeSaw);
     removeMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_TRI, &checkBox_ShapeTri);
     removeMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_RECT, &checkBox_ShapeRect);
 }
 
-GroupPolyMod::GroupPolyMod(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupPolyMod::GroupPolyMod(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Poly Mod");
     setTextLabelPosition(juce::Justification::left);
@@ -163,6 +173,12 @@ GroupPolyMod::GroupPolyMod(MidiHandler *midiHandler) : EqualSpacingGroupComponen
     
     checkBox_UnisonTrack.setButtonText("Enable");
     group_UnisonTrack.addComponent(&checkBox_UnisonTrack);
+
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_FILTER_ENV, &slider_SourceFilterEnv);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_OSC_B, &slider_SourceOscB);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FREQ_A, &checkBox_DestFreqA);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FILTER, &checkBox_DestFilter);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_UNISON_TRACK, &checkBox_UnisonTrack);
     
     addComponent(&group_SourceAmount, 2.0);
     addComponents({&group_Destination, &group_UnisonTrack});
@@ -170,24 +186,30 @@ GroupPolyMod::GroupPolyMod(MidiHandler *midiHandler) : EqualSpacingGroupComponen
 
 GroupPolyMod::~GroupPolyMod()
 {
-
+    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_FILTER_ENV, &slider_SourceFilterEnv);
+    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_OSC_B, &slider_SourceOscB);
+    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FREQ_A, &checkBox_DestFreqA);
+    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FILTER, &checkBox_DestFilter);
+    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_UNISON_TRACK, &checkBox_UnisonTrack);
 }
 
-GroupNoise::GroupNoise(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupNoise::GroupNoise(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Noise");
     setTextLabelPosition(juce::Justification::left);
     
     UiHelpers::setupRotarySlider(slider_NoiseLevel, group_NoiseLevel);
+
+    setupMidiCCComponent(Pro800CCMessages::NOISE_LEVEL, &slider_NoiseLevel);
     addComponent(&group_NoiseLevel);
 }
 
 GroupNoise::~GroupNoise()
 {
-
+    removeMidiCCComponent(Pro800CCMessages::NOISE_LEVEL, &slider_NoiseLevel);
 }
 
-GroupLfoMod::GroupLfoMod(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupLfoMod::GroupLfoMod(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("LFO Mod");
     setTextLabelPosition(juce::Justification::left);
@@ -228,21 +250,23 @@ GroupLfoMod::~GroupLfoMod()
     removeMidiCCComponent(Pro800CCMessages::LFO_MOD_SHAPE, &comboBox_Shape);
 }
 
-GroupGlide::GroupGlide(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupGlide::GroupGlide(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Glide");
     setTextLabelPosition(juce::Justification::left);
     
     UiHelpers::setupRotarySlider(slider_GlideAmount, group_GlideAmount);
+
+    setupMidiCCComponent(Pro800CCMessages::GLIDE_TIME, &slider_GlideAmount);
     addComponent(&group_GlideAmount);
 }
 
 GroupGlide::~GroupGlide()
 {
-
+    removeMidiCCComponent(Pro800CCMessages::GLIDE_TIME, &slider_GlideAmount);
 }
 
-GroupFilter::GroupFilter(MidiHandler *midiHandler) : juce::GroupComponent(), MidiComponent(midiHandler)
+GroupFilter::GroupFilter(MidiHandler *midiHandler) : juce::GroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Filter");
     setTextLabelPosition(juce::Justification::left);
@@ -272,11 +296,33 @@ GroupFilter::GroupFilter(MidiHandler *midiHandler) : juce::GroupComponent(), Mid
     addAndMakeVisible(&group_Sustain);
     addAndMakeVisible(&group_Release);
     addAndMakeVisible(&group_KeyboardTracking);
+
+    setupMidiCCComponent(Pro800CCMessages::FILTER_CUTOFF, &slider_Cutoff);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_RESONANCE, &slider_Resonance);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_ENV_AMOUNT, &slider_EnvAmount);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_ATTACK, &slider_Attack);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_DECAY, &slider_Decay);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_SUSTAIN, &slider_Sustain);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_RELEASE, &slider_Release);
+
+    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingFull); // TODO: FIX
+    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingHalf);
+    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingOff);
 }
 
 GroupFilter::~GroupFilter()
 {
+    removeMidiCCComponent(Pro800CCMessages::FILTER_CUTOFF, &slider_Cutoff);
+    removeMidiCCComponent(Pro800CCMessages::FILTER_RESONANCE, &slider_Resonance);
+    removeMidiCCComponent(Pro800CCMessages::FILTER_ENV_AMOUNT, &slider_EnvAmount);
+    removeMidiCCComponent(Pro800CCMessages::FILTER_ATTACK, &slider_Attack);
+    removeMidiCCComponent(Pro800CCMessages::FILTER_DECAY, &slider_Decay);
+    removeMidiCCComponent(Pro800CCMessages::FILTER_SUSTAIN, &slider_Sustain);
+    removeMidiCCComponent(Pro800CCMessages::FILTER_RELEASE, &slider_Release);
 
+    removeMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingFull);
+    removeMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingHalf);
+    removeMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingOff);  
 }
 
 void GroupFilter::resized()
@@ -296,7 +342,7 @@ void GroupFilter::resized()
     grid.performLayout(area);
 }
 
-GroupAmplifier::GroupAmplifier(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupAmplifier::GroupAmplifier(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Amplifier");
     setTextLabelPosition(juce::Justification::left);
@@ -306,15 +352,23 @@ GroupAmplifier::GroupAmplifier(MidiHandler *midiHandler) : EqualSpacingGroupComp
     UiHelpers::setupRotarySlider(slider_Sustain, group_Sustain);
     UiHelpers::setupRotarySlider(slider_Release, group_Release);
 
+    setupMidiCCComponent(Pro800CCMessages::AMP_ATTACK, &slider_Attack);
+    setupMidiCCComponent(Pro800CCMessages::AMP_DECAY, &slider_Decay);
+    setupMidiCCComponent(Pro800CCMessages::AMP_SUSTAIN, &slider_Sustain);
+    setupMidiCCComponent(Pro800CCMessages::AMP_RELEASE, &slider_Release);
+
     addComponents({&group_Attack, &group_Decay, &group_Sustain, &group_Release});
 }
 
 GroupAmplifier::~GroupAmplifier()
 {
-
+    removeMidiCCComponent(Pro800CCMessages::AMP_ATTACK, &slider_Attack);
+    removeMidiCCComponent(Pro800CCMessages::AMP_DECAY, &slider_Decay);
+    removeMidiCCComponent(Pro800CCMessages::AMP_SUSTAIN, &slider_Sustain);
+    removeMidiCCComponent(Pro800CCMessages::AMP_RELEASE, &slider_Release);
 }
 
-GroupMaster::GroupMaster(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler)
+GroupMaster::GroupMaster(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
 {
     setText("Master");
     setTextLabelPosition(juce::Justification::left);
@@ -322,10 +376,14 @@ GroupMaster::GroupMaster(MidiHandler *midiHandler) : EqualSpacingGroupComponent(
     UiHelpers::setupRotarySlider(slider_MasterTune, group_MasterTune);
     UiHelpers::setupRotarySlider(slider_MasterVolume, group_MasterVolume);
 
+    setupMidiCCComponent(Pro800CCMessages::MASTER_VOLUME, &slider_MasterVolume);
+    setupMidiCCComponent(Pro800CCMessages::MASTER_TUNE, &slider_MasterTune);
+
     addComponents({&group_MasterTune, &group_MasterVolume});
 }
 
 GroupMaster::~GroupMaster()
 {
-
+    removeMidiCCComponent(Pro800CCMessages::MASTER_VOLUME, &slider_MasterVolume);
+    removeMidiCCComponent(Pro800CCMessages::MASTER_TUNE, &slider_MasterTune);
 }
