@@ -253,6 +253,9 @@ enum Pro800Settings
     SETTINGS_LOCAL_ENABLE = 46, // see: Pro800SettingsOnOff
     SETTINGS_SOFT_THRU = 47, // see: Pro800SettingsOnOff
     SETTINGS_LENGTH=48,
+
+    SETTINGS_EXTERNAL_CV_AMOUNT = 100, // special case for handling EXTERNAL_CV_AMOUNT_LSB, EXTERNAL_CV_AMOUNT_MSB and EXTERNAL_CV_AMOUNT_OVERFLOW together
+    SETTINGS_SYNC_CLOCK_BPM = 101,     // special case for handling SYNC_CLOCK_BPM_LSB and SYNC_CLOCK_BPM_MSB together
     SETTINGS_NONE = -1
 };
 

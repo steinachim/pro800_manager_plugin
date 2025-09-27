@@ -42,6 +42,11 @@ private:
     void setupGroupSync();
     void setupGroupFactoryReset();
 
+    void setSettingsGroupsEnabled(bool enable);
+
+    void setupSettingsComponent(Pro800Settings setting, juce::Component *component);
+    juce::HashMap<Pro800Settings, juce::Component*> settingsListeners;
+
     juce::Label label_FirmwareVersion;
     juce::TextButton button_RefreshSettings { "Refresh Settings" };
 
@@ -64,7 +69,7 @@ private:
     juce::TextButton button_PresetDump { "Request Dump" };
 
     TwoColumnGroupComponent group_Voices { "4 - Voices", 5 };
-    juce::Label label_VoiceKill { "", "Voice Kill:" };
+    juce::Label label_VoiceKill { "", "Voice Enable:" };
     juce::ToggleButton checkBox_Voice[8];
 
     TwoColumnGroupComponent group_Tuning { "5 - Tuning", 5 };

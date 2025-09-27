@@ -41,15 +41,9 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
       midiHandler->sendMidiMessage(messageToSend);
     };
 
+    slider_debugInput.textFromValueFunction = [](double value)             { return juce::String::formatted("0x%02x", (uint8_t)value); };
+    slider_debugInput.valueFromTextFunction = [](const juce::String &text) { return (double)text.getHexValue32(); };
     slider_debugInput.setRange(0.0, 255.0, 1.0);
-    slider_debugInput.textFromValueFunction = [](double value) {
-      return juce::String::formatted("0x%02x", (uint8_t)value);
-    };
-    slider_debugInput.valueFromTextFunction = [](const juce::String &text)
-    {
-      return (double)text.getHexValue32();
-    };
-    slider_debugInput.setValue(0);
 
     button_debug.setButtonText("Debug");
     button_debug.onClick = [this]

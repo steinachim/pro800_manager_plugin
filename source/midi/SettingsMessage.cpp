@@ -34,14 +34,12 @@ juce::String SettingsMessage::toString() const
 
     uint16_t bpm = getClockBPM();
 
-    uint8_t presetMode = getUint8Value(SETTINGS_PRESET_MODE);
-
     std::stringstream ss;
     ss << "Pro800 Settings Message\n"
        << "Brightness: " << (unsigned int)getUint8Value(SETTINGS_BRIGHTNESS) << "\n"
        << "External CV Amount: " << extCvAmount << " (display: " << extCvAmountDisplayValue << ")\n"
        << "Clock BPM: " << bpm << std::hex << " - MSB: "<< (unsigned int)bpmMsb << ", LSB: " << (unsigned int)bpmLsb << ", overflow: " << (unsigned int)bpmOverflow << std::dec << "\n"
-       << "Preset Mode: " << (presetMode == Pro800PresetMode::PRESET_MODE_MANUAL ? "MANUAL" : (presetMode == Pro800PresetMode::PRESET_MODE_LOADED ? "LOADED" : "EDITED")) << "\n"
+       << "Sync In Polarity: " << (unsigned int)getUint8Value(SETTINGS_SYNC_IN_POLARITY) << "\n"
        << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
 
     return ss.str();
@@ -214,6 +212,18 @@ void SettingsMessage::setValue(Pro800Settings setting, int value)
             setTranspose((int8_t)value);
             break;
 
+        case SETTINGS_EXTERNAL_CV_AMOUNT:
+            setExternalCVAmount((uint16_t)value);
+            break;
+
+        case SETTINGS_SYNC_CLOCK_BPM:
+            setClockBPM((uint16_t)value);
+            break;
+
+        case SETTINGS_VOICE_KILL:
+            setVoiceStatus((uint8_t)value);
+            break;
+
         default:
             setUint8Value(setting, (uint8_t)value);
             break;
@@ -226,6 +236,15 @@ int SettingsMessage::getValue(Pro800Settings setting) const
     {
         case SETTINGS_TRANSPOSE:
             return getTranspose();
+
+        case SETTINGS_EXTERNAL_CV_AMOUNT:
+            return getExternalCVAmount();
+
+        case SETTINGS_SYNC_CLOCK_BPM:
+            return getClockBPM();
+
+        case SETTINGS_VOICE_KILL:
+            return getVoiceStatus();
 
         default:
             return (int)getUint8Value(setting);
