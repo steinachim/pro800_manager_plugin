@@ -60,6 +60,9 @@ void EqualSpacingGroupComponent::resized()
     {
         numElements += factor;
     }
+    if ( numElements < 1 ) {
+        numElements = 1;
+    }
     *directionSize /= juce::roundToInt(numElements);
     
     

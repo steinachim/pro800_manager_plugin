@@ -35,7 +35,7 @@ set(BUNDLE_ID "de.thewolkfwalkexperience.pro800_manager_plugin")
 
 # Change me! Set the plugin formats you want built
 # Valid choices: AAX Unity VST VST3 AU AUv3 Standalone
-set(FORMATS VST3 AUv3 AU)
+set(FORMATS VST3 AUv3 AU Standalone)
 
 # Force JUCE to work with sccache
 # instruct MSVC to embed debug info (/Z7) instead of emitting a .pdb
