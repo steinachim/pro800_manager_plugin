@@ -23,6 +23,7 @@ Testing
 
 # IDE config
 .idea
+.vscode/settings.json
 
 # clion cmake builds
 cmake-build-debug
