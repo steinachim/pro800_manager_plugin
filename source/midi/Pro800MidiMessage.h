@@ -3,6 +3,92 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include "../Pro800Constants.h"
 
+/**
+ * Known request types:
+ * 
+ * 02 - Unknown (responds with 03 00)
+ * 03 - Unknown (responds with Status OK)
+ * 04 - Unkonwn (responds with 05 50 30 45 39 49 00)
+ * 06 - Unknown (responds with 07 50 52 4f 2d 38 30 30 00)
+ * 08 00 - Request Version info (responds with VersionMessage)
+ * 0E - Unknown (responds with Status OK)
+ * 0F [00-18] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 11 [00-1F] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 12 [00-02] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 13 [00-07] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 17 [00-01] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 19 [00-02] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 1A [00-04] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 1B [00-03] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 1C [00-05] - Unknown (responds with Status OK in that range, Status Error otherwise)
+ * 1D - Unknown (responds with Status OK)
+ * 32 [00-7F] - parameter 00: Reset default mode and to saved preset settings (?)
+ *            - any other parameter: display 8888, then keeps dots enabled in display and responds strangely to controls. MIDI still seems to work. Some debug mode maybe?
+ *            - always responds with Status OK
+ * 35 - Unknown (responds with Status OK)
+ * 36 [00-7F] - parameter 00: appears to lock synth
+ *            - any other parameter: unlocks it again
+ *            - always responds with Status OK
+ * 37 [00-7F] - parameter 00: Turn off all button lights
+ *            - any other parameter: Lights up all buttons (
+ *            - always responds with Status OK
+ * 50 [00-7F] [00-01] -  (responds with Status OK in that range, Status Error otherwise)
+ * 71 [00-17] - "push" buttons:
+ *            - 00-09 = numpad
+ *            - 0A/0B = ??? - disable performace / settings if active
+ *            - 0C = preset
+ *            - 0D = rec
+ *            - 0e = perf
+ *            - 0f = settings
+ *            - 10 = seq 1
+ *            - 11 = seq 2
+ *            - 12 = ?? (in performance mode, disable perf mode; in settings mode, go to Tune)
+ *            - 13 = sync clock
+ *            - 14 = sync source
+ *            - 15 = ??
+ *            - 16 = Next Setting (value wheel?)
+ *            - 17 - Prev Setting (value wheel?)
+ * 72 [00-19] - Unknown (get value of param 1 - responds with 73 [param 1] [00-ff])
+ * 73 [00-19] [00-7F] - Unknown (set value of param 1, responds with status OK if values in range)
+ * 77 [00-7F] [00-03] - Request program dump (param1 = program lsb, param2 = program msb) - response with 73 (see ProgramMessage) - note: 7e 03 = SettingsMessage
+ * 78 [00-7F] [00-03] [...] - Set program dump (param1 = program lsb, param2 = program msb), following bytes = program data (may be empty -> set to "uninitialized")
+ * 7D - Factory Reset (no confirmation!)
+ * 
+ * 
+ * 
+ * Message dump formats:
+ * old format: 
+ * 00000000: f000 2032 0001 2400 7802 0001 2516 6100  .. 2..$.x...%.a.
+ * 00000010: 6d00 7521 7f7f 4434 0005 0047 006f 2e00  m.u!..D4...G.o..
+ * 00000020: 1866 4e08 0000 0000 0050 0025 7000 4000  .fN......P.%p.@.
+ * 00000030: 4000 7112 0070 0000 004d 0031 0000 0000  @.q..p...M.1....
+ * 00000040: 2900 4700 0000 0000 0000 0000 0001 0000  ).G.............
+ * 00000050: 0100 0000 0001 0104 0100 0000 0100 0103  ................
+ * 00000060: 0202 0000 0000 0000 0000 0000 0000 0000  ................
+ * 00000070: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 00000080: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 00000090: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 000000a0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 000000b0: 0000 0000 0001 0053 7472 6900 6e67 7300  .......Stri.ngs.
+ * 000000c0: f7                                       .
+ * 
+ * same message, new format:
+ * 00000000: f000 2032 0001 2400 7802 0001 2516 6100  .. 2..$.x...%.a.
+ * 00000010: 6f00 7521 7f7f 4434 0005 0047 006f 2e00  o.u!..D4...G.o..
+ * 00000020: 1866 4e08 0000 0000 0050 0025 7000 4000  .fN......P.%p.@.
+ * 00000030: 4000 7112 0070 0000 004d 0031 0000 0000  @.q..p...M.1....
+ * 00000040: 2900 4700 0000 0000 0000 0000 0001 0000  ).G.............
+ * 00000050: 0100 0000 0001 0104 0100 0000 0100 0103  ................
+ * 00000060: 0202 0000 0000 0000 0000 0000 0000 0000  ................
+ * 00000070: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 00000080: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 00000090: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 000000a0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+ * 000000b0: 0000 0000 0001 0053 7472 6900 6e67 7300  .......Stri.ngs.
+ * 000000c0: 7f00 0000 0000 0000 0000 0000 0003 0000  ................
+ * 000000d0: 60f7                                     `.
+ */
+
 class Pro800MidiMessage
 {
 public:

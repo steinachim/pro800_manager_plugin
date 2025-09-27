@@ -40,6 +40,16 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
       midiHandler->sendMidiMessage(messageToSend);
     };
 
+    slider_debugInput.setRange(0.0, 255.0, 1.0);
+    slider_debugInput.textFromValueFunction = [](double value) {
+      return juce::String::formatted("0x%02x", (uint8_t)value);
+    };
+    slider_debugInput.valueFromTextFunction = [](const juce::String &text)
+    {
+      return (double)text.getHexValue32();
+    };
+    slider_debugInput.setValue(0);
+
     button_debug.setButtonText("Debug");
     button_debug.onClick = [this]
     {
@@ -47,14 +57,17 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
       juce::String prefix = "f0 00 20 32 00 01 24 00";
       juce::String postfix = "00 f7";
 
-      this->textEdit_inputMidiMessage.setText( prefix + juce::String::formatted(" %02x ", this->currentTestNum) + postfix, false);      
-      this->currentTestNum++;
+      int currentTestNum = (int)slider_debugInput.getValue();
+
+      this->textEdit_inputMidiMessage.setText( prefix + juce::String::formatted(" %02x ", currentTestNum) + postfix, false);      
+      slider_debugInput.setValue(currentTestNum+1);
     };
 
     addAndMakeVisible(textEdit_midiMessageLog);
     addAndMakeVisible(textEdit_inputMidiMessage);
     addAndMakeVisible(button_sendMessage);
     addAndMakeVisible(button_debug);
+    addAndMakeVisible(slider_debugInput);
 
     setupMidiLogComponent(&textEdit_midiMessageLog);
 }
@@ -71,7 +84,8 @@ void AdvancedTab::resized()
     input.items = {
         juce::FlexItem(textEdit_inputMidiMessage).withFlex(1.0f),
         juce::FlexItem(button_sendMessage).withFlex(0.1f),
-        juce::FlexItem(button_debug).withFlex(0.1f)
+        juce::FlexItem(button_debug).withFlex(0.1f),
+        juce::FlexItem(slider_debugInput).withFlex(0.1f)
     };
 
     juce::FlexBox fb;
