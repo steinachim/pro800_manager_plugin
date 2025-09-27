@@ -15,24 +15,13 @@ EqualSpacingGroupComponent::EqualSpacingGroupComponent() : juce::GroupComponent(
     this->setTextLabelPosition(juce::Justification::centred);
 }
 
-EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha, juce::FlexBox::Direction boxDirection) : EqualSpacingGroupComponent()
+EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha, int rows, int cols) : EqualSpacingGroupComponent()
 {
     this->setText(text);
-    this->setDirection(boxDirection);
+    this->numRows = rows;
+    this->numCols = cols;
     
     setOutlineAlpha(outlineAlpha);
-}
-
-EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, const juce::Array<juce::Component*> components) : EqualSpacingGroupComponent()
-{
-    this->setText(text);
-    addComponents(components);
-}
-
-
-void EqualSpacingGroupComponent::setDirection(juce::FlexBox::Direction boxDirection)
-{
-    this->direction = boxDirection;
 }
 
 void EqualSpacingGroupComponent::setOutlineAlpha(uint8_t outlineAlpha)
@@ -43,69 +32,45 @@ void EqualSpacingGroupComponent::setOutlineAlpha(uint8_t outlineAlpha)
 
 void EqualSpacingGroupComponent::resized()
 {
-    auto area = getLocalBounds().reduced(15);
+    auto area = getLocalBounds().reduced(10);
+    area.removeFromTop(15);
     
-    int minWidth = area.getWidth();
-    int minHeight = area.getHeight();
-    
-    int *directionSize = &minWidth;
-    
-    if( direction == juce::FlexBox::Direction::column || direction == juce::FlexBox::Direction::columnReverse)
-    {
-        directionSize = &minHeight;
-    }
+    int fullWidth = area.getWidth();
+    int fullHeight = area.getHeight();
 
-    double numElements = children.size() - spaceFactor.size();
-    for ( double factor : spaceFactor )
-    {
-        numElements += factor;
-    }
-    if ( numElements < 1 ) {
-        numElements = 1;
-    }
-    *directionSize /= juce::roundToInt(numElements);
-    
-    
-    juce::FlexBox fb;
-    fb.flexDirection = direction;
+    int colWidth = fullWidth/numCols;
+    int rowHeight = fullHeight/numRows;
 
+    int col = 0;
+    int row = 0;
     for( auto *widget : children )
     {
-        double itemSpaceFactor = (spaceFactor.contains(widget) ? spaceFactor[widget] : 1.0);
-        int unscaledDirectionSize = *directionSize;
-        *directionSize = (int)(*directionSize * itemSpaceFactor);
-        
-        juce::FlexItem item = juce::FlexItem (*widget).withMinWidth(minWidth).withMinHeight(minHeight);
-        if ( dynamic_cast<juce::ComboBox*>(widget) != nullptr )
-        {
-            item = item.withMinHeight(25).withMaxHeight(25);
-        }
-        
-        fb.items.add(item);
-        
-        *directionSize = unscaledDirectionSize;
-    }
-    
-    fb.performLayout(area);
-    
+       int widgetHeight = (int)(fullHeight * rowSpan[widget] / numRows);
+       int widgetWidth = (int)(fullWidth * colSpan[widget] / numCols);
+       widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight));
+
+       col+= colSpan[widget];
+       if ( col == numCols )
+       {
+        col = 0;
+        row+= rowSpan[widget];
+       }
+    } 
 }
 
-void EqualSpacingGroupComponent::addComponent(juce::Component *component, double itemSpaceFactor)
+void EqualSpacingGroupComponent::addComponent(juce::Component *component, int rows, int cols)
 {
-    if ( itemSpaceFactor != 1.0 )
-    {
-        spaceFactor.set(component, itemSpaceFactor);
-    }
-    
-    addComponents( {component} );
+    addComponents( {component}, {rows}, {cols});
 }
 
-void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> components)
+void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> rows, const juce::Array<int> cols)
 {
-    for ( auto *component : components)
+    for ( int i = 0; i < components.size(); i++ )
     {
-        this->children.add(component);
-        addAndMakeVisible(component);
+        this->rowSpan.set(components[i], rows.isEmpty() ? 1 : rows[i]);
+        this->colSpan.set(components[i], cols.isEmpty() ? 1 : cols[i]);
+        this->children.add(components[i]);
+        addAndMakeVisible(components[i]);
     }
 }
 
@@ -120,6 +85,7 @@ void EqualSpacingGroupComponent::removeComponents(juce::Array<juce::Component *>
     {
         removeChildComponent(component);
         this->children.removeFirstMatchingValue(component);
-        spaceFactor.remove(component);
+        rowSpan.remove(component);
+        colSpan.remove(component);
     }
 }

@@ -14,41 +14,21 @@
 #include "UiHelpers.h"
 #include "../Pro800Constants.h"
 
-FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : Component()
+FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : MidiComponent(midiHandler, true)
 {
-    this->group_OscillatorA = new GroupOscillatorA(midiHandler);
-    this->group_OscillatorB = new GroupOscillatorB(midiHandler);    
-    this->group_PolyMod = new GroupPolyMod(midiHandler);
-    this->group_Noise = new GroupNoise(midiHandler);        
-    this->group_LfoMod = new GroupLfoMod(midiHandler);
-    this->group_Glide = new GroupGlide(midiHandler);
-    this->group_Filter = new GroupFilter(midiHandler);
-    this->group_Amplifier = new GroupAmplifier(midiHandler);
-    this->group_Master = new GroupMaster(midiHandler);
-
-    addAndMakeVisible(this->group_OscillatorA);
-    addAndMakeVisible(this->group_OscillatorB);
-    addAndMakeVisible(this->group_PolyMod);
-    addAndMakeVisible(this->group_Noise);
-    addAndMakeVisible(this->group_LfoMod);
-    addAndMakeVisible(this->group_Glide);
-    addAndMakeVisible(this->group_Filter);
-    addAndMakeVisible(this->group_Amplifier);
-    addAndMakeVisible(this->group_Master);
-
+    setupGroupOscA();
+    setupGroupOscB();
+    setupGroupPolyMod();
+    setupGroupNoise();
+    setupGroupLFO();
+    setupGroupGlide();
+    setupGroupFilter();
+    setupGroupAmplifier();
+    setupGroupMaster();
 }
 
 FrontPanelTab::~FrontPanelTab()
 {
-    delete this->group_OscillatorA;
-    delete this->group_OscillatorB;
-    delete this->group_PolyMod;
-    delete this->group_Noise;
-    delete this->group_LfoMod;
-    delete this->group_Glide;
-    delete this->group_Filter;
-    delete this->group_Amplifier;
-    delete this->group_Master;
 }
 
 void FrontPanelTab::resized()
@@ -61,317 +41,220 @@ void FrontPanelTab::resized()
     auto rightArea = area.withTrimmedLeft(groupWidth);
     
     // left column
-    this->group_OscillatorA->setBounds(leftArea.removeFromTop(groupHeight));
-    this->group_OscillatorB->setBounds(leftArea.removeFromTop(groupHeight));
+    this->group_OscillatorA.setBounds(leftArea.removeFromTop(groupHeight));
+    this->group_OscillatorB.setBounds(leftArea.removeFromTop(groupHeight));
     
-    this->group_PolyMod->setBounds(leftArea.withHeight(groupHeight).withRight(4*groupWidth/5));
-    this->group_Noise->setBounds(leftArea.withHeight(groupHeight).withLeft(4*groupWidth/5));
+    this->group_PolyMod.setBounds(leftArea.withHeight(groupHeight).withRight(4*groupWidth/5));
+    this->group_Noise.setBounds(leftArea.withHeight(groupHeight).withLeft(4*groupWidth/5));
     leftArea.removeFromTop(groupHeight);
     
-    this->group_LfoMod->setBounds(leftArea.withHeight(groupHeight).withRight(4*groupWidth/5));
-    this->group_Glide->setBounds(leftArea.withHeight(groupHeight).withLeft(4*groupWidth/5));
+    this->group_LFO.setBounds(leftArea.withHeight(groupHeight).withRight(4*groupWidth/5));
+    this->group_Glide.setBounds(leftArea.withHeight(groupHeight).withLeft(4*groupWidth/5));
     leftArea.removeFromTop(groupHeight);
     
     // right column
-    this->group_Filter->setBounds(rightArea.removeFromTop(2*groupHeight));
-    this->group_Amplifier->setBounds(rightArea.removeFromTop(groupHeight));
-    this->group_Master->setBounds(rightArea.removeFromTop(groupHeight));
+    this->group_Filter.setBounds(rightArea.removeFromTop(2*groupHeight));
+    this->group_Amplifier.setBounds(rightArea.removeFromTop(groupHeight));
+    this->group_Master.setBounds(rightArea.removeFromTop(groupHeight));
 }
 
 
 
-GroupOscillatorA::GroupOscillatorA(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
+void FrontPanelTab::setupGroupOscA()
 {
-    setText("Oscillator A");
-    setTextLabelPosition(juce::Justification::left);
+    group_OscillatorA.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_Frequency, group_Frequency);
-    UiHelpers::setupRotarySlider(slider_Level, group_Level);
-    UiHelpers::setupRotarySlider(slider_PulseWidth, group_PulseWidth);
+    UiHelpers::setupRotarySlider(slider_OscAFrequency, group_OscAFrequency);
+    UiHelpers::setupRotarySlider(slider_OscALevel, group_OscALevel);
+    UiHelpers::setupRotarySlider(slider_OscAPulseWidth, group_OscAPulseWidth);
    
-    checkBox_Sync.setButtonText("Enabled");
-    group_Sync.addComponent(&checkBox_Sync);
+    checkBox_OscASync.setButtonText("Enabled");
+    group_OscASync.addComponent(&checkBox_OscASync);
     
-    checkBox_ShapeSaw.setButtonText("Saw");
-    checkBox_ShapeTri.setButtonText("Tri");
-    checkBox_ShapeRect.setButtonText("Rect");
-    group_Shape.addComponents({&checkBox_ShapeSaw, &checkBox_ShapeTri, &checkBox_ShapeRect});
+    checkBox_OscAShapeSaw.setButtonText("Saw");
+    checkBox_OscAShapeTri.setButtonText("Tri");
+    checkBox_OscAShapeRect.setButtonText("Rect");
+    group_OscAShape.addComponents({&checkBox_OscAShapeSaw, &checkBox_OscAShapeTri, &checkBox_OscAShapeRect});
 
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_FREQ, &slider_Frequency);
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_LEVEL, &slider_Level);
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_PULSE_WIDTH, &slider_PulseWidth);
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_SYNC, &checkBox_Sync);
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_SAW, &checkBox_ShapeSaw);
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_TRI, &checkBox_ShapeTri);
-    setupMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_RECT, &checkBox_ShapeRect);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_FREQ, &slider_OscAFrequency);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_LEVEL, &slider_OscALevel);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_PULSE_WIDTH, &slider_OscAPulseWidth);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_SYNC, &checkBox_OscASync);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_SAW, &checkBox_OscAShapeSaw);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_TRI, &checkBox_OscAShapeTri);
+    setupMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_RECT, &checkBox_OscAShapeRect);
 
-    addComponents({ &group_Frequency, &group_Sync, &group_Shape, &group_PulseWidth, &group_Level });
+    group_OscillatorA.addComponents({ &group_OscAFrequency, &group_OscASync, &group_OscAShape, &group_OscAPulseWidth, &group_OscALevel });
+    addAndMakeVisible(this->group_OscillatorA);
 }
 
-GroupOscillatorA::~GroupOscillatorA()
+void FrontPanelTab::setupGroupOscB()
 {
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_FREQ, &slider_Frequency);
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_LEVEL, &slider_Level);
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_PULSE_WIDTH, &slider_PulseWidth);
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_SYNC, &checkBox_Sync);
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_SAW, &checkBox_ShapeSaw);
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_TRI, &checkBox_ShapeTri);
-    removeMidiCCComponent(Pro800CCMessages::OSC_A_SHAPE_RECT, &checkBox_ShapeRect);
+    group_OscillatorB.setTextLabelPosition(juce::Justification::left);
+    
+    UiHelpers::setupRotarySlider(slider_OscBFrequency, group_OscBFrequency);
+    UiHelpers::setupRotarySlider(slider_OscBFine, group_OscBFine);
+    UiHelpers::setupRotarySlider(slider_OscBPulseWidth, group_OscBPulseWidth);
+    UiHelpers::setupRotarySlider(slider_OscBLevel, group_OscBLevel);
+    
+    checkBox_OscBShapeSaw.setButtonText("Saw");
+    checkBox_OscBShapeTri.setButtonText("Tri");
+    checkBox_OscBShapeRect.setButtonText("Rect");
+    group_OscBShape.addComponents({&checkBox_OscBShapeSaw, &checkBox_OscBShapeTri, &checkBox_OscBShapeRect});
+
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_FREQ, &slider_OscBFrequency);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_FINE, &slider_OscBFine);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_PULSE_WIDTH, &slider_OscBPulseWidth);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_LEVEL, &slider_OscBLevel);
+    
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_SAW, &checkBox_OscBShapeSaw);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_TRI, &checkBox_OscBShapeTri);
+    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_RECT, &checkBox_OscBShapeRect);
+    
+    group_OscillatorB.addComponents({ &group_OscBFrequency, &group_OscBFine, &group_OscBShape, &group_OscBPulseWidth, &group_OscBLevel});
+    addAndMakeVisible(this->group_OscillatorB);
 }
 
-GroupOscillatorB::GroupOscillatorB(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
+void FrontPanelTab::setupGroupPolyMod()
 {
-    setText("Oscillator B");
-    setTextLabelPosition(juce::Justification::left);
+    group_PolyMod.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_Frequency, group_Frequency);
-    UiHelpers::setupRotarySlider(slider_Fine, group_Fine);
-    UiHelpers::setupRotarySlider(slider_PulseWidth, group_PulseWidth);
-    UiHelpers::setupRotarySlider(slider_Level, group_Level);
-    
-    checkBox_ShapeSaw.setButtonText("Saw");
-    checkBox_ShapeTri.setButtonText("Tri");
-    checkBox_ShapeRect.setButtonText("Rect");
-    group_Shape.addComponents({&checkBox_ShapeSaw, &checkBox_ShapeTri, &checkBox_ShapeRect});
+    UiHelpers::setupRotarySlider(slider_PolyModSourceFilterEnv, group_PolyModSourceFilterEnv);
+    UiHelpers::setupRotarySlider(slider_PolyModSourceOscB, group_PolyModSourceOscB);
+    group_PolyModSourceAmount.addComponents({&group_PolyModSourceFilterEnv, &group_PolyModSourceOscB});
 
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_FREQ, &slider_Frequency);
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_FINE, &slider_Fine);
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_PULSE_WIDTH, &slider_PulseWidth);
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_LEVEL, &slider_Level);
+    checkBox_PolyModDestFreqA.setButtonText("Freq A");
+    checkBox_PolyModDestFilter.setButtonText("Filter");
+    group_PolyModDestination.addComponents({&checkBox_PolyModDestFreqA, &checkBox_PolyModDestFilter});
     
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_SAW, &checkBox_ShapeSaw);
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_TRI, &checkBox_ShapeTri);
-    setupMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_RECT, &checkBox_ShapeRect);
+    checkBox_PolyModUnisonTrack.setButtonText("Enable");
+    group_PolyModUnisonTrack.addComponent(&checkBox_PolyModUnisonTrack);
+
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_FILTER_ENV, &slider_PolyModSourceFilterEnv);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_OSC_B, &slider_PolyModSourceOscB);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FREQ_A, &checkBox_PolyModDestFreqA);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FILTER, &checkBox_PolyModDestFilter);
+    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_UNISON_TRACK, &checkBox_PolyModUnisonTrack);
     
-    addComponents({ &group_Frequency, &group_Fine, &group_Shape, &group_PulseWidth, &group_Level});
+    group_PolyMod.addComponent(&group_PolyModSourceAmount, 1, 2);
+    group_PolyMod.addComponents({&group_PolyModDestination, &group_PolyModUnisonTrack});
+    addAndMakeVisible(this->group_PolyMod);
 }
 
-GroupOscillatorB::~GroupOscillatorB()
+void FrontPanelTab::setupGroupNoise()
 {
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_FREQ, &slider_Frequency);
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_FINE, &slider_Fine);
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_PULSE_WIDTH, &slider_PulseWidth);
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_LEVEL, &slider_Level);
-    
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_SAW, &checkBox_ShapeSaw);
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_TRI, &checkBox_ShapeTri);
-    removeMidiCCComponent(Pro800CCMessages::OSC_B_SHAPE_RECT, &checkBox_ShapeRect);
-}
-
-GroupPolyMod::GroupPolyMod(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("Poly Mod");
-    setTextLabelPosition(juce::Justification::left);
-    
-    UiHelpers::setupRotarySlider(slider_SourceFilterEnv, group_SourceFilterEnv);
-    UiHelpers::setupRotarySlider(slider_SourceOscB, group_SourceOscB);
-    group_SourceAmount.addComponents({&group_SourceFilterEnv, &group_SourceOscB});
-
-    checkBox_DestFreqA.setButtonText("Freq A");
-    checkBox_DestFilter.setButtonText("Filter");
-    group_Destination.addComponents({&checkBox_DestFreqA, &checkBox_DestFilter});
-    
-    checkBox_UnisonTrack.setButtonText("Enable");
-    group_UnisonTrack.addComponent(&checkBox_UnisonTrack);
-
-    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_FILTER_ENV, &slider_SourceFilterEnv);
-    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_OSC_B, &slider_SourceOscB);
-    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FREQ_A, &checkBox_DestFreqA);
-    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FILTER, &checkBox_DestFilter);
-    setupMidiCCComponent(Pro800CCMessages::POLY_MOD_UNISON_TRACK, &checkBox_UnisonTrack);
-    
-    addComponent(&group_SourceAmount, 2.0);
-    addComponents({&group_Destination, &group_UnisonTrack});
-}
-
-GroupPolyMod::~GroupPolyMod()
-{
-    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_FILTER_ENV, &slider_SourceFilterEnv);
-    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_SOURCE_OSC_B, &slider_SourceOscB);
-    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FREQ_A, &checkBox_DestFreqA);
-    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_DEST_FILTER, &checkBox_DestFilter);
-    removeMidiCCComponent(Pro800CCMessages::POLY_MOD_UNISON_TRACK, &checkBox_UnisonTrack);
-}
-
-GroupNoise::GroupNoise(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("Noise");
-    setTextLabelPosition(juce::Justification::left);
+    group_Noise.setTextLabelPosition(juce::Justification::left);
     
     UiHelpers::setupRotarySlider(slider_NoiseLevel, group_NoiseLevel);
 
     setupMidiCCComponent(Pro800CCMessages::NOISE_LEVEL, &slider_NoiseLevel);
-    addComponent(&group_NoiseLevel);
+    group_Noise.addComponent(&group_NoiseLevel);
+    addAndMakeVisible(this->group_Noise);
 }
 
-GroupNoise::~GroupNoise()
+void FrontPanelTab::setupGroupLFO()
 {
-    removeMidiCCComponent(Pro800CCMessages::NOISE_LEVEL, &slider_NoiseLevel);
-}
-
-GroupLfoMod::GroupLfoMod(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("LFO Mod");
-    setTextLabelPosition(juce::Justification::left);
+    group_LFO.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_Frequency, group_Frequency);
-    UiHelpers::setupRotarySlider(slider_InitialAmount, group_InitialAmount);
+    UiHelpers::setupRotarySlider(slider_LFOFrequency, group_LFOFrequency);
+    UiHelpers::setupRotarySlider(slider_LFOInitialAmount, group_LFOInitialAmount);
 
-    checkBox_DestFreqAB.setButtonText("Freq A-B");
-    checkBox_DestPulseWidthAB.setButtonText("PW A-B");
-    checkBox_DestFilter.setButtonText("Filter");
-    group_Destination.addComponents({&checkBox_DestFreqAB, &checkBox_DestPulseWidthAB, &checkBox_DestFilter});
+    checkBox_LFODestFreqAB.setButtonText("Freq A-B");
+    checkBox_LFODestPulseWidthAB.setButtonText("PW A-B");
+    checkBox_LFODestFilter.setButtonText("Filter");
+    group_LFODestination.addComponents({&checkBox_LFODestFreqAB, &checkBox_LFODestPulseWidthAB, &checkBox_LFODestFilter});
 
-    comboBox_Shape.addItem("Sine", Pro800LFOShape::LFO_SHAPE_SINE+1);
-    comboBox_Shape.addItem("Triangle", Pro800LFOShape::LFO_SHAPE_TRIANGLE+1);   
-    comboBox_Shape.addItem("Saw", Pro800LFOShape::LFO_SHAPE_SAW+1);
-    comboBox_Shape.addItem("Pulse", Pro800LFOShape::LFO_SHAPE_PULSE+1);
-    comboBox_Shape.addItem("Random", Pro800LFOShape::LFO_SHAPE_RANDOM+1);
-    comboBox_Shape.addItem("Noise", Pro800LFOShape::LFO_SHAPE_NOISE+1);
-    group_Shape.addComponent(&comboBox_Shape);
+    comboBox_LFOShape.addItem("Sine", Pro800LFOShape::LFO_SHAPE_SINE+1);
+    comboBox_LFOShape.addItem("Triangle", Pro800LFOShape::LFO_SHAPE_TRIANGLE+1);   
+    comboBox_LFOShape.addItem("Saw", Pro800LFOShape::LFO_SHAPE_SAW+1);
+    comboBox_LFOShape.addItem("Pulse", Pro800LFOShape::LFO_SHAPE_PULSE+1);
+    comboBox_LFOShape.addItem("Random", Pro800LFOShape::LFO_SHAPE_RANDOM+1);
+    comboBox_LFOShape.addItem("Noise", Pro800LFOShape::LFO_SHAPE_NOISE+1);
+    group_LFOShape.addComponent(&comboBox_LFOShape);
 
-    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_FREQ, &slider_Frequency);
-    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_INITIAL_AMOUNT, &slider_InitialAmount);
-    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_FREQ_AB, &checkBox_DestFreqAB);
-    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_PW_AB, &checkBox_DestPulseWidthAB);
-    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_FILTER, &checkBox_DestFilter);
-    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_SHAPE, &comboBox_Shape);
+    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_FREQ, &slider_LFOFrequency);
+    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_INITIAL_AMOUNT, &slider_LFOInitialAmount);
+    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_FREQ_AB, &checkBox_LFODestFreqAB);
+    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_PW_AB, &checkBox_LFODestPulseWidthAB);
+    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_FILTER, &checkBox_LFODestFilter);
+    setupMidiCCComponent(Pro800CCMessages::LFO_MOD_SHAPE, &comboBox_LFOShape);
 
-    addComponents({&group_Frequency, &group_Shape, &group_InitialAmount, &group_Destination});
+    group_LFO.addComponents({&group_LFOFrequency, &group_LFOShape, &group_LFOInitialAmount, &group_LFODestination});
+    addAndMakeVisible(this->group_LFO);
 }
 
-GroupLfoMod::~GroupLfoMod()
+void FrontPanelTab::setupGroupGlide()
 {
-    removeMidiCCComponent(Pro800CCMessages::LFO_MOD_FREQ, &slider_Frequency);
-    removeMidiCCComponent(Pro800CCMessages::LFO_MOD_INITIAL_AMOUNT, &slider_InitialAmount);
-    removeMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_FREQ_AB, &checkBox_DestFreqAB);
-    removeMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_PW_AB, &checkBox_DestPulseWidthAB);
-    removeMidiCCComponent(Pro800CCMessages::LFO_MOD_DEST_FILTER, &checkBox_DestFilter);
-    removeMidiCCComponent(Pro800CCMessages::LFO_MOD_SHAPE, &comboBox_Shape);
-}
-
-GroupGlide::GroupGlide(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("Glide");
-    setTextLabelPosition(juce::Justification::left);
+    group_Glide.setTextLabelPosition(juce::Justification::left);
     
     UiHelpers::setupRotarySlider(slider_GlideAmount, group_GlideAmount);
 
     setupMidiCCComponent(Pro800CCMessages::GLIDE_TIME, &slider_GlideAmount);
-    addComponent(&group_GlideAmount);
+    group_Glide.addComponent(&group_GlideAmount);
+
+    addAndMakeVisible(group_Glide);
 }
 
-GroupGlide::~GroupGlide()
-{
-    removeMidiCCComponent(Pro800CCMessages::GLIDE_TIME, &slider_GlideAmount);
-}
+void FrontPanelTab::setupGroupFilter()
+{    
+    group_Filter.setTextLabelPosition(juce::Justification::left);
 
-GroupFilter::GroupFilter(MidiHandler *midiHandler) : juce::GroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("Filter");
-    setTextLabelPosition(juce::Justification::left);
+    UiHelpers::setupRotarySlider(slider_FilterCutoff, group_FilterCutoff);
+    UiHelpers::setupRotarySlider(slider_FilterResonance, group_FilterResonance);
+    UiHelpers::setupRotarySlider(slider_FilterEnvAmount, group_FilterEnvAmount);
 
-    UiHelpers::setupRotarySlider(slider_Cutoff, group_Cutoff);
-    UiHelpers::setupRotarySlider(slider_Resonance, group_Resonance);
-    UiHelpers::setupRotarySlider(slider_EnvAmount, group_EnvAmount);
-
-    UiHelpers::setupRotarySlider(slider_Attack, group_Attack);
-    UiHelpers::setupRotarySlider(slider_Decay, group_Decay);
-    UiHelpers::setupRotarySlider(slider_Sustain, group_Sustain);
-    UiHelpers::setupRotarySlider(slider_Release, group_Release);
+    UiHelpers::setupRotarySlider(slider_FilterAttack, group_FilterAttack);
+    UiHelpers::setupRotarySlider(slider_FilterDecay, group_FilterDecay);
+    UiHelpers::setupRotarySlider(slider_FilterSustain, group_FilterSustain);
+    UiHelpers::setupRotarySlider(slider_FilterRelease, group_FilterRelease);
     
-    radio_TrackingFull.setButtonText("Full");
-    radio_TrackingFull.setRadioGroupId(1000);
-    radio_TrackingHalf.setButtonText("1/2");
-    radio_TrackingHalf.setRadioGroupId(1000);
-    radio_TrackingOff.setButtonText("Off");
-    radio_TrackingOff.setRadioGroupId(1000);
-    group_KeyboardTracking.addComponents({&radio_TrackingFull, &radio_TrackingHalf, &radio_TrackingOff});
+    radio_FilterTrackingFull.setButtonText("Full");
+    radio_FilterTrackingFull.setRadioGroupId(1000);
+    radio_FilterTrackingHalf.setButtonText("1/2");
+    radio_FilterTrackingHalf.setRadioGroupId(1000);
+    radio_FilterTrackingOff.setButtonText("Off");
+    radio_FilterTrackingOff.setRadioGroupId(1000);
+    group_FilterKeyboardTracking.addComponents({&radio_FilterTrackingFull, &radio_FilterTrackingHalf, &radio_FilterTrackingOff});
     
-    addAndMakeVisible(&group_Cutoff);
-    addAndMakeVisible(&group_Resonance);
-    addAndMakeVisible(&group_EnvAmount);
-    addAndMakeVisible(&group_Attack);
-    addAndMakeVisible(&group_Decay);
-    addAndMakeVisible(&group_Sustain);
-    addAndMakeVisible(&group_Release);
-    addAndMakeVisible(&group_KeyboardTracking);
+    group_Filter.addComponents({&group_FilterCutoff, &group_FilterResonance, &group_FilterEnvAmount, &group_FilterKeyboardTracking,
+                                &group_FilterAttack, &group_FilterDecay, &group_FilterSustain, &group_FilterRelease});
 
-    setupMidiCCComponent(Pro800CCMessages::FILTER_CUTOFF, &slider_Cutoff);
-    setupMidiCCComponent(Pro800CCMessages::FILTER_RESONANCE, &slider_Resonance);
-    setupMidiCCComponent(Pro800CCMessages::FILTER_ENV_AMOUNT, &slider_EnvAmount);
-    setupMidiCCComponent(Pro800CCMessages::FILTER_ATTACK, &slider_Attack);
-    setupMidiCCComponent(Pro800CCMessages::FILTER_DECAY, &slider_Decay);
-    setupMidiCCComponent(Pro800CCMessages::FILTER_SUSTAIN, &slider_Sustain);
-    setupMidiCCComponent(Pro800CCMessages::FILTER_RELEASE, &slider_Release);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_CUTOFF, &slider_FilterCutoff);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_RESONANCE, &slider_FilterResonance);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_ENV_AMOUNT, &slider_FilterEnvAmount);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_ATTACK, &slider_FilterAttack);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_DECAY, &slider_FilterDecay);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_SUSTAIN, &slider_FilterSustain);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_RELEASE, &slider_FilterRelease);
 
-    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingFull); // TODO: FIX
-    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingHalf);
-    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingOff);
+    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_FilterTrackingFull); // TODO: FIX
+    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_FilterTrackingHalf);
+    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_FilterTrackingOff);
+
+    addAndMakeVisible(group_Filter);
 }
 
-GroupFilter::~GroupFilter()
+void FrontPanelTab::setupGroupAmplifier()
 {
-    removeMidiCCComponent(Pro800CCMessages::FILTER_CUTOFF, &slider_Cutoff);
-    removeMidiCCComponent(Pro800CCMessages::FILTER_RESONANCE, &slider_Resonance);
-    removeMidiCCComponent(Pro800CCMessages::FILTER_ENV_AMOUNT, &slider_EnvAmount);
-    removeMidiCCComponent(Pro800CCMessages::FILTER_ATTACK, &slider_Attack);
-    removeMidiCCComponent(Pro800CCMessages::FILTER_DECAY, &slider_Decay);
-    removeMidiCCComponent(Pro800CCMessages::FILTER_SUSTAIN, &slider_Sustain);
-    removeMidiCCComponent(Pro800CCMessages::FILTER_RELEASE, &slider_Release);
+    group_Amplifier.setTextLabelPosition(juce::Justification::left);
+    
+    UiHelpers::setupRotarySlider(slider_AmplifierAttack, group_AmplifierAttack);
+    UiHelpers::setupRotarySlider(slider_AmplifierDecay, group_AmplifierDecay);
+    UiHelpers::setupRotarySlider(slider_AmplifierSustain, group_AmplifierSustain);
+    UiHelpers::setupRotarySlider(slider_AmplifierRelease, group_AmplifierRelease);
 
-    removeMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingFull);
-    removeMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingHalf);
-    removeMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_TrackingOff);  
+    setupMidiCCComponent(Pro800CCMessages::AMP_ATTACK, &slider_AmplifierAttack);
+    setupMidiCCComponent(Pro800CCMessages::AMP_DECAY, &slider_AmplifierDecay);
+    setupMidiCCComponent(Pro800CCMessages::AMP_SUSTAIN, &slider_AmplifierSustain);
+    setupMidiCCComponent(Pro800CCMessages::AMP_RELEASE, &slider_AmplifierRelease);
+
+    group_Amplifier.addComponents({&group_AmplifierAttack, &group_AmplifierDecay, &group_AmplifierSustain, &group_AmplifierRelease});
+    addAndMakeVisible(this->group_Amplifier);
 }
 
-void GroupFilter::resized()
+void FrontPanelTab::setupGroupMaster()
 {
-    auto area = getLocalBounds().reduced(15);
-
-    juce::Grid grid;
-    
-    using Track = juce::Grid::TrackInfo;
-    using Fr = juce::Grid::Fr;
-    grid.templateRows = { Track (Fr (1)), Track (Fr (1)) };
-    grid.templateColumns = { Track (Fr (1)), Track (Fr (1)), Track (Fr (1)), Track (Fr (1)) };
-    
-    grid.items = { juce::GridItem(group_Cutoff), juce::GridItem(group_Resonance), juce::GridItem(group_EnvAmount), juce::GridItem(group_KeyboardTracking),
-                   juce::GridItem(group_Attack), juce::GridItem(group_Decay), juce::GridItem(group_Sustain), juce::GridItem(group_Release)};
-    
-    grid.performLayout(area);
-}
-
-GroupAmplifier::GroupAmplifier(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("Amplifier");
-    setTextLabelPosition(juce::Justification::left);
-    
-    UiHelpers::setupRotarySlider(slider_Attack, group_Attack);
-    UiHelpers::setupRotarySlider(slider_Decay, group_Decay);
-    UiHelpers::setupRotarySlider(slider_Sustain, group_Sustain);
-    UiHelpers::setupRotarySlider(slider_Release, group_Release);
-
-    setupMidiCCComponent(Pro800CCMessages::AMP_ATTACK, &slider_Attack);
-    setupMidiCCComponent(Pro800CCMessages::AMP_DECAY, &slider_Decay);
-    setupMidiCCComponent(Pro800CCMessages::AMP_SUSTAIN, &slider_Sustain);
-    setupMidiCCComponent(Pro800CCMessages::AMP_RELEASE, &slider_Release);
-
-    addComponents({&group_Attack, &group_Decay, &group_Sustain, &group_Release});
-}
-
-GroupAmplifier::~GroupAmplifier()
-{
-    removeMidiCCComponent(Pro800CCMessages::AMP_ATTACK, &slider_Attack);
-    removeMidiCCComponent(Pro800CCMessages::AMP_DECAY, &slider_Decay);
-    removeMidiCCComponent(Pro800CCMessages::AMP_SUSTAIN, &slider_Sustain);
-    removeMidiCCComponent(Pro800CCMessages::AMP_RELEASE, &slider_Release);
-}
-
-GroupMaster::GroupMaster(MidiHandler *midiHandler) : EqualSpacingGroupComponent(), MidiComponent(midiHandler, true)
-{
-    setText("Master");
-    setTextLabelPosition(juce::Justification::left);
+    group_Master.setTextLabelPosition(juce::Justification::left);
     
     UiHelpers::setupRotarySlider(slider_MasterTune, group_MasterTune);
     UiHelpers::setupRotarySlider(slider_MasterVolume, group_MasterVolume);
@@ -379,11 +262,6 @@ GroupMaster::GroupMaster(MidiHandler *midiHandler) : EqualSpacingGroupComponent(
     setupMidiCCComponent(Pro800CCMessages::MASTER_VOLUME, &slider_MasterVolume);
     setupMidiCCComponent(Pro800CCMessages::MASTER_TUNE, &slider_MasterTune);
 
-    addComponents({&group_MasterTune, &group_MasterVolume});
-}
-
-GroupMaster::~GroupMaster()
-{
-    removeMidiCCComponent(Pro800CCMessages::MASTER_VOLUME, &slider_MasterVolume);
-    removeMidiCCComponent(Pro800CCMessages::MASTER_TUNE, &slider_MasterTune);
+    group_Master.addComponents({&group_MasterTune, &group_MasterVolume});
+    addAndMakeVisible(this->group_Master);
 }

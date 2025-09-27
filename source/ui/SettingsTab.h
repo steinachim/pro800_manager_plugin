@@ -65,7 +65,7 @@ private:
     TwoColumnGroupComponent group_Transpose { "2 - Transpose", 10 };
     juce::Slider spinBox_TransposeAmount { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
-    EqualSpacingGroupComponent group_PresetDump { "3 - Preset Dump", 255, juce::FlexBox::Direction::column };
+    EqualSpacingGroupComponent group_PresetDump { "3 - Preset Dump", 255 };
     juce::TextButton button_PresetDump { "Request Dump" };
 
     TwoColumnGroupComponent group_Voices { "4 - Voices", 5 };
@@ -99,7 +99,7 @@ private:
     juce::ComboBox combo_SyncSource;
     juce::ComboBox combo_SyncClockSubdivision;
 
-    EqualSpacingGroupComponent group_FactoryReset { "0 - Factory Reset", 255, juce::FlexBox::Direction::column };
+    EqualSpacingGroupComponent group_FactoryReset { "0 - Factory Reset", 255 };
     juce::TextButton button_FactoryReset { "Factory Reset" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SettingsTab)
