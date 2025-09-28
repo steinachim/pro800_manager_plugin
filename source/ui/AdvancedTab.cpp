@@ -18,6 +18,9 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     textEdit_midiMessageLog.setMultiLine(true);
     textEdit_midiMessageLog.setReturnKeyStartsNewLine(true);
 
+    juce::String fixedWidthFont = juce::Font::getDefaultMonospacedFontName();
+    textEdit_midiMessageLog.setFont( { juce::FontOptions().withName(fixedWidthFont) } );
+
     button_sendMessage.setButtonText("Send");
     button_sendMessage.onClick = [this, midiHandler] {
       juce::String message = textEdit_inputMidiMessage.getText();

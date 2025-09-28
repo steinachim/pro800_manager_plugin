@@ -25,10 +25,14 @@ MidiHandler::~MidiHandler()
 
 void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent)
 {    
-    for(auto *component : this->midiComponents.getReference(MessageType::MIDI_LOG_MESSAGE ))
+    if ( !message.isNoteOnOrOff() )
     {
-        juce::String logPrefix = (sent ? "Sent message:" : "Received message:");
-        component->handleMidiLog(message, logPrefix);
+        // don't log note messages... 
+        for(auto *component : this->midiComponents.getReference(MessageType::MIDI_LOG_MESSAGE ))
+        {
+            juce::String logPrefix = (sent ? "Sent message:" : "Received message:");
+            component->handleMidiLog(message, logPrefix);
+        }
     }
 
     if ( sent )
