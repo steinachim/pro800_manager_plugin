@@ -115,7 +115,7 @@ void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *compon
         {
             button->onClick = ([this, button, midiCC] {
                 bool buttonState = button->getToggleState();
-                uint8_t midiValue = buttonState ? Pro800SettingsOnOff::SETTINGS_ON : Pro800SettingsOnOff::SETTINGS_OFF;
+                uint8_t midiValue = buttonState ? 127 : 0;
                 midiHandler->sendMidiCCMessage (midiCC, midiValue);
             });
         }
