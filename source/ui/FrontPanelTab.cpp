@@ -64,9 +64,9 @@ void FrontPanelTab::setupGroupOscA()
 {
     group_OscillatorA.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_OscAFrequency, group_OscAFrequency);
-    UiHelpers::setupRotarySlider(slider_OscALevel, group_OscALevel);
-    UiHelpers::setupRotarySlider(slider_OscAPulseWidth, group_OscAPulseWidth);
+    setupRotarySlider(slider_OscAFrequency, group_OscAFrequency);
+    setupRotarySlider(slider_OscALevel, group_OscALevel);
+    setupRotarySlider(slider_OscAPulseWidth, group_OscAPulseWidth);
    
     checkBox_OscASync.setButtonText("Enabled");
     group_OscASync.addComponent(&checkBox_OscASync);
@@ -92,10 +92,10 @@ void FrontPanelTab::setupGroupOscB()
 {
     group_OscillatorB.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_OscBFrequency, group_OscBFrequency);
-    UiHelpers::setupRotarySlider(slider_OscBFine, group_OscBFine);
-    UiHelpers::setupRotarySlider(slider_OscBPulseWidth, group_OscBPulseWidth);
-    UiHelpers::setupRotarySlider(slider_OscBLevel, group_OscBLevel);
+    setupRotarySlider(slider_OscBFrequency, group_OscBFrequency);
+    setupRotarySlider(slider_OscBFine, group_OscBFine);
+    setupRotarySlider(slider_OscBPulseWidth, group_OscBPulseWidth);
+    setupRotarySlider(slider_OscBLevel, group_OscBLevel);
     
     checkBox_OscBShapeSaw.setButtonText("Saw");
     checkBox_OscBShapeTri.setButtonText("Tri");
@@ -119,8 +119,8 @@ void FrontPanelTab::setupGroupPolyMod()
 {
     group_PolyMod.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_PolyModSourceFilterEnv, group_PolyModSourceFilterEnv);
-    UiHelpers::setupRotarySlider(slider_PolyModSourceOscB, group_PolyModSourceOscB);
+    setupRotarySlider(slider_PolyModSourceFilterEnv, group_PolyModSourceFilterEnv);
+    setupRotarySlider(slider_PolyModSourceOscB, group_PolyModSourceOscB);
     group_PolyModSourceAmount.addComponents({&group_PolyModSourceFilterEnv, &group_PolyModSourceOscB});
 
     checkBox_PolyModDestFreqA.setButtonText("Freq A");
@@ -145,7 +145,7 @@ void FrontPanelTab::setupGroupNoise()
 {
     group_Noise.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_NoiseLevel, group_NoiseLevel);
+    setupRotarySlider(slider_NoiseLevel, group_NoiseLevel);
 
     setupMidiCCComponent(Pro800CCMessages::NOISE_LEVEL, &slider_NoiseLevel);
     group_Noise.addComponent(&group_NoiseLevel);
@@ -156,8 +156,8 @@ void FrontPanelTab::setupGroupLFO()
 {
     group_LFO.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_LFOFrequency, group_LFOFrequency);
-    UiHelpers::setupRotarySlider(slider_LFOInitialAmount, group_LFOInitialAmount);
+    setupRotarySlider(slider_LFOFrequency, group_LFOFrequency);
+    setupRotarySlider(slider_LFOInitialAmount, group_LFOInitialAmount);
 
     checkBox_LFODestFreqAB.setButtonText("Freq A-B");
     checkBox_LFODestPulseWidthAB.setButtonText("PW A-B");
@@ -187,7 +187,7 @@ void FrontPanelTab::setupGroupGlide()
 {
     group_Glide.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_GlideAmount, group_GlideAmount);
+    setupRotarySlider(slider_GlideAmount, group_GlideAmount);
 
     setupMidiCCComponent(Pro800CCMessages::GLIDE_TIME, &slider_GlideAmount);
     group_Glide.addComponent(&group_GlideAmount);
@@ -199,14 +199,14 @@ void FrontPanelTab::setupGroupFilter()
 {    
     group_Filter.setTextLabelPosition(juce::Justification::left);
 
-    UiHelpers::setupRotarySlider(slider_FilterCutoff, group_FilterCutoff);
-    UiHelpers::setupRotarySlider(slider_FilterResonance, group_FilterResonance);
-    UiHelpers::setupRotarySlider(slider_FilterEnvAmount, group_FilterEnvAmount);
+    setupRotarySlider(slider_FilterCutoff, group_FilterCutoff);
+    setupRotarySlider(slider_FilterResonance, group_FilterResonance);
+    setupRotarySlider(slider_FilterEnvAmount, group_FilterEnvAmount);
 
-    UiHelpers::setupRotarySlider(slider_FilterAttack, group_FilterAttack);
-    UiHelpers::setupRotarySlider(slider_FilterDecay, group_FilterDecay);
-    UiHelpers::setupRotarySlider(slider_FilterSustain, group_FilterSustain);
-    UiHelpers::setupRotarySlider(slider_FilterRelease, group_FilterRelease);
+    setupRotarySlider(slider_FilterAttack, group_FilterAttack);
+    setupRotarySlider(slider_FilterDecay, group_FilterDecay);
+    setupRotarySlider(slider_FilterSustain, group_FilterSustain);
+    setupRotarySlider(slider_FilterRelease, group_FilterRelease);
     
     radio_FilterTrackingFull.setButtonText("Full");
     radio_FilterTrackingFull.setRadioGroupId(1000);
@@ -238,10 +238,10 @@ void FrontPanelTab::setupGroupAmplifier()
 {
     group_Amplifier.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_AmplifierAttack, group_AmplifierAttack);
-    UiHelpers::setupRotarySlider(slider_AmplifierDecay, group_AmplifierDecay);
-    UiHelpers::setupRotarySlider(slider_AmplifierSustain, group_AmplifierSustain);
-    UiHelpers::setupRotarySlider(slider_AmplifierRelease, group_AmplifierRelease);
+    setupRotarySlider(slider_AmplifierAttack, group_AmplifierAttack);
+    setupRotarySlider(slider_AmplifierDecay, group_AmplifierDecay);
+    setupRotarySlider(slider_AmplifierSustain, group_AmplifierSustain);
+    setupRotarySlider(slider_AmplifierRelease, group_AmplifierRelease);
 
     setupMidiCCComponent(Pro800CCMessages::AMP_ATTACK, &slider_AmplifierAttack);
     setupMidiCCComponent(Pro800CCMessages::AMP_DECAY, &slider_AmplifierDecay);
@@ -256,12 +256,23 @@ void FrontPanelTab::setupGroupMaster()
 {
     group_Master.setTextLabelPosition(juce::Justification::left);
     
-    UiHelpers::setupRotarySlider(slider_MasterTune, group_MasterTune);
-    UiHelpers::setupRotarySlider(slider_MasterVolume, group_MasterVolume);
+    setupRotarySlider(slider_MasterTune, group_MasterTune);
+    setupRotarySlider(slider_MasterVolume, group_MasterVolume);
 
     setupMidiCCComponent(Pro800CCMessages::MASTER_VOLUME, &slider_MasterVolume);
     setupMidiCCComponent(Pro800CCMessages::MASTER_TUNE, &slider_MasterTune);
 
     group_Master.addComponents({&group_MasterTune, &group_MasterVolume});
     addAndMakeVisible(this->group_Master);
+}
+
+void FrontPanelTab::setupRotarySlider(juce::Slider &slider, EqualSpacingGroupComponent &parent)
+{
+    slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    slider.setRange(0.0, 127.0, 1.0);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 15);
+    slider.setPopupDisplayEnabled(false, false, &parent);
+    slider.setValue(1.0);
+    
+    parent.addComponent(&slider);
 }

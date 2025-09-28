@@ -16,7 +16,7 @@
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
 
-SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {Pro800MessageType::PRO800_SETTINGS_MESSAGE, Pro800MessageType::PRO800_VERSION_MESSAGE})
+SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_SETTINGS_MESSAGE, MessageType::PRO800_VERSION_MESSAGE})
 {
     addAndMakeVisible(label_FirmwareVersion);
 
@@ -218,7 +218,7 @@ void SettingsTab::setupGroupTranspose()
 
 void SettingsTab::setupGroupPresetDump()
 {
-  this->group_PresetDump.addComponent(&button_PresetDump, 0.1);
+  this->group_PresetDump.addComponent(&button_PresetDump);
   this->group_PresetDump.setTextLabelPosition(juce::Justification::left);
 
   this->group_PresetDump.setEnabled(false); // not implemented yet
@@ -364,7 +364,7 @@ void SettingsTab::setupGroupSync()
 
 void SettingsTab::setupGroupFactoryReset()
 {
-  this->group_FactoryReset.addComponent(&button_FactoryReset, 0.2);
+  this->group_FactoryReset.addComponent(&button_FactoryReset);
   this->group_FactoryReset.setTextLabelPosition(juce::Justification::left);
 
   button_FactoryReset.onClick = [this] {

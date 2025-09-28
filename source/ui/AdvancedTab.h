@@ -22,9 +22,10 @@ class AdvancedTab : public juce::Component, public MidiComponent
         virtual ~AdvancedTab() override;
 
         void resized() override;
+        void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix) override;
 
     private:
-        void addMidiMessage(const juce::String &newMessage);
+        void addLogMessage(const juce::String &newMessage);
 
         juce::TextEditor textEdit_inputMidiMessage;
         juce::TextEditor textEdit_midiMessageLog;

@@ -11,8 +11,9 @@
 #include "AdvancedTab.h"
 #include "UiHelpers.h"
 #include "../midi/MidiHandler.h"
+#include "../midi/Pro800MessageFactory.h"
 
-AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler)
+AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::MIDI_LOG_MESSAGE})
 {
     textEdit_midiMessageLog.setReadOnly(false);
     textEdit_midiMessageLog.setMultiLine(true);
@@ -30,7 +31,7 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
       {
         if ( byte.length() > 2 )
         {
-          addMidiMessage("Invalid input: " + message);
+          addLogMessage("Invalid input: " + message);
           return;
         }
 
@@ -63,13 +64,10 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     addAndMakeVisible(button_sendMessage);
     addAndMakeVisible(button_debug);
     addAndMakeVisible(slider_debugInput);
-
-    setupMidiLogComponent(&textEdit_midiMessageLog);
 }
 
 AdvancedTab::~AdvancedTab()
 {
-  removeMidiLogComponent(&textEdit_midiMessageLog);
 }
 
 void AdvancedTab::resized()
@@ -93,7 +91,20 @@ void AdvancedTab::resized()
     fb.performLayout(getLocalBounds().reduced(10));
 }
 
-void AdvancedTab::addMidiMessage(const juce::String &message)
+void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix)
+{
+    juce::String messageText = message.getDescription();
+    std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage (message);
+
+    if (pro800Message)
+    {
+        messageText = pro800Message->toString();
+    }
+
+    addLogMessage(logPrefix + " " + messageText);
+}
+
+void AdvancedTab::addLogMessage(const juce::String &message)
 {
     textEdit_midiMessageLog.moveCaretToEnd();
     textEdit_midiMessageLog.insertTextAtCaret(message + "\n\n");

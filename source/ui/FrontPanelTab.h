@@ -35,6 +35,8 @@ private:
     void setupGroupAmplifier();
     void setupGroupMaster();
 
+    void setupRotarySlider(juce::Slider &slider, EqualSpacingGroupComponent &parent);
+
     EqualSpacingGroupComponent group_OscillatorA { "Oscillator A", 255, 1, 5 };
     EqualSpacingGroupComponent group_OscAFrequency { "Frequency", 30 };
     EqualSpacingGroupComponent group_OscASync { "Sync", 30 };

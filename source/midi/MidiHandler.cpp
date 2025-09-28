@@ -10,7 +10,6 @@
 #include "Pro800MessageFactory.h"
 #include "SettingsMessage.h"
 
-#include "../ui/UiHelpers.h"
 #include "../ui/MidiComponent.h"
 
 
@@ -26,10 +25,10 @@ MidiHandler::~MidiHandler()
 
 void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent)
 {    
-    for(auto *component : logComponents)
+    for(auto *component : this->midiComponents.getReference(MessageType::MIDI_LOG_MESSAGE ))
     {
-        juce::String logPrefix = (sent ? "Sent message" : "Received message:");
-        UiHelpers::setComponentLogValue(component, message, logPrefix);
+        juce::String logPrefix = (sent ? "Sent message:" : "Received message:");
+        component->handleMidiLog(message, logPrefix);
     }
 
     if ( sent )
@@ -58,9 +57,9 @@ void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent
             return;
         }
 
-        Pro800MessageType type = pro800Message->getMessageType();
+        MessageType type = pro800Message->getMessageType();
 
-        for(auto *component : this->pro800Components.getReference(type) )
+        for(auto *component : this->midiComponents.getReference(type) )
         {
                 component->handlePro800Message(type, pro800Message);
         }
@@ -77,24 +76,14 @@ void MidiHandler::unregisterMidiCCComponent(MidiComponent *component)
     this->midiCCComponents.removeAllInstancesOf(component);
 }
 
-void MidiHandler::registerMidiLogComponent(juce::Component *component)
+void MidiHandler::registerMessageComponent(MessageType type, MidiComponent *component)
 {
-    this->logComponents.add(component);
+    this->midiComponents.getReference(type).add(component);
 }
 
-void MidiHandler::unregisterMidiLogComponent(juce::Component *component)
+void MidiHandler::unregisterMessageComponent(MessageType type, MidiComponent *component)
 {
-    this->logComponents.removeAllInstancesOf(component);
-}
-
-void MidiHandler::registerPro800MessageComponent(Pro800MessageType type, MidiComponent *component)
-{
-    this->pro800Components.getReference(type).add(component);
-}
-
-void MidiHandler::unregisterPro800MessageComponent(Pro800MessageType type, MidiComponent *component)
-{
-    this->pro800Components.getReference(type).removeAllInstancesOf(component);
+    this->midiComponents.getReference(type).removeAllInstancesOf(component);
 }
 
 void MidiHandler::sendMidiCCMessage (uint8_t midiCC, uint8_t value)

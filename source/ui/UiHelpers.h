@@ -19,10 +19,7 @@ class MidiHandler;
 class UiHelpers
 {
 public:
-    static void setupRotarySlider(juce::Slider &slider, EqualSpacingGroupComponent &parent);
-
     static void setComponentCCValue(juce::Component* component, uint8_t midiCC, uint8_t value);
-    static void setComponentLogValue(juce::Component* component, const juce::MidiMessage &message, const juce::String &prefix = "");
 
 private:
     UiHelpers()

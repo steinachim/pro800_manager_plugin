@@ -134,7 +134,7 @@ public:
     Pro800MidiMessage(const juce::MidiMessage &message);
     virtual ~Pro800MidiMessage();
 
-    virtual Pro800MessageType getMessageType() const { return Pro800MessageType::PRO800_UNKNOWN_MESSAGE;}
+    virtual MessageType getMessageType() const { return MessageType::PRO800_UNKNOWN_MESSAGE;}
 
     virtual juce::String toString() const;
     std::shared_ptr<juce::MidiMessage> toMidiMessage() const;

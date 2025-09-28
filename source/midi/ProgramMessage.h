@@ -118,7 +118,7 @@ public:
     static juce::MidiMessage request(int programNumber);
 
     ProgramMessage(const juce::MidiMessage &message);
-    virtual Pro800MessageType getMessageType() const override { return Pro800MessageType::PRO800_PROGRAM_MESSAGE;}
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_PROGRAM_MESSAGE;}
 
     virtual bool isValid() const override;
 

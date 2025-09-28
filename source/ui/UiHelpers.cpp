@@ -15,16 +15,7 @@
 #include "../midi/Pro800MidiMessage.h"
 #include "../midi/Pro800MessageFactory.h"
 
-void UiHelpers::setupRotarySlider(juce::Slider &slider, EqualSpacingGroupComponent &parent)
-{
-    slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    slider.setRange(0.0, 127.0, 1.0);
-    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 15);
-    slider.setPopupDisplayEnabled(false, false, &parent);
-    slider.setValue(1.0);
-    
-    parent.addComponent(&slider);
-}
+
 
 void UiHelpers::setComponentCCValue(juce::Component *component, uint8_t midiCC, uint8_t value)
 {
@@ -44,27 +35,5 @@ void UiHelpers::setComponentCCValue(juce::Component *component, uint8_t midiCC, 
     {
         textEditor->moveCaretToEnd();
         textEditor->insertTextAtCaret ("Received MIDI CC message: CC = " + juce::String ((int) midiCC) + ", value = " + juce::String ((int) value) + "\n\n");
-    }
-}
-
-void UiHelpers::setComponentLogValue(juce::Component *component, const juce::MidiMessage &midiMessage, const juce::String &prefix)
-{
-    if (juce::TextEditor* textEditor = dynamic_cast<juce::TextEditor*> (component))
-    {
-        juce::String messageText = midiMessage.getDescription();
-        std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage(midiMessage);
-
-        if ( pro800Message )
-        {
-            messageText = pro800Message->toString();
-        }
-
-        textEditor->moveCaretToEnd();
-        textEditor->insertTextAtCaret ("\n");
-        textEditor->insertTextAtCaret (prefix + " " + messageText + "\n\n");
-    }
-    else
-    {
-        std::cerr << "[WARNING] setComponentLogValue(): Unknown target component type" << std::endl;
     }
 }

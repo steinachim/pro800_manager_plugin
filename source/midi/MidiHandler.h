@@ -17,7 +17,7 @@ namespace juce
 class MidiHandler
 {
 public:
-    MidiHandler(Pro800ManagerAudioProcessor* processor);
+    MidiHandler (Pro800ManagerAudioProcessor* processor);
     ~MidiHandler();
 
 
@@ -29,8 +29,8 @@ public:
     void registerMidiLogComponent(juce::Component *component);
     void unregisterMidiLogComponent(juce::Component *component);
 
-    void registerPro800MessageComponent(Pro800MessageType type, MidiComponent *component);
-    void unregisterPro800MessageComponent(Pro800MessageType type, MidiComponent *component);
+    void registerMessageComponent(MessageType type, MidiComponent *component);
+    void unregisterMessageComponent(MessageType type, MidiComponent *component);
 
     void sendMidiCCMessage(uint8_t midiCC, uint8_t value);
     void sendMidiMessage(const juce::MidiMessage& message);
@@ -38,8 +38,7 @@ public:
 
 private:
     juce::Array<MidiComponent *> midiCCComponents;
-    juce::HashMap<Pro800MessageType, juce::Array<MidiComponent *>> pro800Components;
-    juce::Array<juce::Component*> logComponents;
+    juce::HashMap<MessageType, juce::Array<MidiComponent *>> midiComponents;
     Pro800ManagerAudioProcessor* processor = nullptr;
 
 };

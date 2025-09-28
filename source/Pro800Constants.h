@@ -1,7 +1,8 @@
 #pragma once
 
-enum Pro800MessageType
-{
+enum MessageType {
+    MIDI_CC_MESSAGE,
+    MIDI_LOG_MESSAGE,
     PRO800_UNKNOWN_MESSAGE,
     PRO800_SETTINGS_MESSAGE,
     PRO800_VERSION_MESSAGE,

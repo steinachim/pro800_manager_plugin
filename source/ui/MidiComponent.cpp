@@ -8,14 +8,14 @@
 #include "../midi/Pro800FactoryResetMessage.h"
 
 
-MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<Pro800MessageType> messageTypes)
+MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<MessageType> messageTypes)
 {
     this->registeredMessageTypes = messageTypes;
     this->midiHandler = handler;
 
     for ( auto type : this->registeredMessageTypes )
     {
-        this->midiHandler->registerPro800MessageComponent(type, this);
+        this->midiHandler->registerMessageComponent(type, this);
     }
 
     if ( registerMidiCC )
@@ -28,7 +28,7 @@ MidiComponent::~MidiComponent()
 {
     for ( auto type : this->registeredMessageTypes )
     {
-        this->midiHandler->unregisterPro800MessageComponent(type, this);
+        this->midiHandler->unregisterMessageComponent(type, this);
     }
 
     this->midiHandler->unregisterMidiCCComponent(this);
@@ -39,7 +39,7 @@ void MidiComponent::requestFactoryReset()
     this->midiHandler->sendMidiMessage(Pro800FactoryResetMessage::request());
 }
 
-void MidiComponent::handlePro800Message(Pro800MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
+void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
 {
     switch(type)
     {
@@ -85,6 +85,11 @@ void MidiComponent::handlePro800VersionUpdate()
     // do nothing by default
 }
 
+void MidiComponent::handleMidiLog(const juce::MidiMessage &/*message*/, const juce::String &/*logPrefix*/)
+{
+    // do nothing by default
+}
+
 void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *component)
 {
     this->registeredCCComponents.getReference(midiCC).add(component);
@@ -123,16 +128,6 @@ void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *compon
 void MidiComponent::removeMidiCCComponent(uint8_t midiCC, juce::Component *component)
 {
     this->registeredCCComponents.getReference(midiCC).removeAllInstancesOf(component);
-}
-
-void MidiComponent::setupMidiLogComponent(juce::Component *component)
-{
-    midiHandler->registerMidiLogComponent(component);
-}
-
-void MidiComponent::removeMidiLogComponent(juce::Component *component)
-{
-    midiHandler->unregisterMidiLogComponent(component);
 }
 
 std::shared_ptr<SettingsMessage> &MidiComponent::getCurrentSettings()
