@@ -29,7 +29,7 @@ MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedB
 
     this->getTabContentComponent(TAB_FRONTPANEL)->setEnabled(false);
     this->getTabContentComponent(TAB_PERFORMANCE)->setEnabled(false);
-    this->getTabContentComponent(TAB_SETTINGS)->setEnabled(false);
+    this->getTabContentComponent(TAB_SETTINGS)->setEnabled(true);
     this->getTabContentComponent(TAB_ADVANCED)->setEnabled(false);
 
     midiHandler->sendMidiMessage(VersionMessage::request());    

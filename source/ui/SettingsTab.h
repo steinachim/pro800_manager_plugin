@@ -48,6 +48,7 @@ private:
     juce::HashMap<Pro800Settings, juce::Component*> settingsListeners;
 
     juce::Label label_FirmwareVersion;
+    juce::TextButton button_Reconnect { "Reconnect"};
     juce::TextButton button_RefreshSettings { "Refresh Settings" };
 
     TwoColumnGroupComponent group_Connections { "1 - Connections", 10 };

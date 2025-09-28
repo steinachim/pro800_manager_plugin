@@ -20,12 +20,17 @@ SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(
 {
     addAndMakeVisible(label_FirmwareVersion);
 
+    button_Reconnect.onClick = [midiHandler] {
+        midiHandler->sendMidiMessage(VersionMessage::request());
+    };
+
     button_RefreshSettings.onClick = [midiHandler] {
         midiHandler->sendMidiMessage(SettingsMessage::request());
     };
 
+    addAndMakeVisible(button_Reconnect);
     addAndMakeVisible(button_RefreshSettings);
-
+    
     setupGroupConnections();
     setupGroupTranspose();
     setupGroupPresetDump();
@@ -105,7 +110,7 @@ void SettingsTab::resized()
     auto rightColumn = area.withLeft (2 * groupWidth);
 
     label_FirmwareVersion.setBounds(leftColumn.removeFromTop(refreshHeight));
-    middleColumn.removeFromTop(refreshHeight);
+    button_Reconnect.setBounds(middleColumn.removeFromTop(refreshHeight));
     button_RefreshSettings.setBounds(rightColumn.removeFromTop(refreshHeight));
 
     this->group_Connections.setBounds (leftColumn.removeFromTop (11*elementHeight));
