@@ -205,16 +205,17 @@ enum Pro800CCMessages
                                                                                                                                                                   
 enum Pro800Settings
 {
-    SETTINGS_RESPONSE_TYPE = 0,
-    SETTINGS_ADDRESS_LOW = 1,
-    SETTINGS_ADDRESS_HIGH = 2,
+    SETTINGS_ADDRESS_LOW = 0,
+    SETTINGS_ADDRESS_HIGH = 1,
+    SETTINGS_PRESET_OVERFLOW = 2, // bit 5
+    SETTINGS_UNKNOWN_0 = 2, // other overflow bits?
     SETTINGS_UNKNOWN_1 = 3,
     SETTINGS_UNKNOWN_2 = 4,
     SETTINGS_UNKNOWN_3 = 5,
     SETTINGS_UNKNOWN_4 = 6,
     SETTINGS_UNKNOWN_5 = 7,
-    SETTINGS_PRESET_1 = 8,
-    SETTINGS_PRESET_2 = 9,
+    SETTINGS_PRESET_LSB = 8,
+    SETTINGS_PRESET_MSB = 9,
     SETTINGS_OVERFLOW_BPM_VOICE8 = 10, // overflow for bpm and voice 8 bit 8
     SETTINGS_PRESET_MODE = 11, // see: Pro800PresetMode
     SETTINGS_MIDI_RX_CHANNEL = 12, // see: Pro800MidiReceiveChannel
@@ -257,6 +258,7 @@ enum Pro800Settings
 
     SETTINGS_EXTERNAL_CV_AMOUNT = 100, // special case for handling EXTERNAL_CV_AMOUNT_LSB, EXTERNAL_CV_AMOUNT_MSB and EXTERNAL_CV_AMOUNT_OVERFLOW together
     SETTINGS_SYNC_CLOCK_BPM = 101,     // special case for handling SYNC_CLOCK_BPM_LSB and SYNC_CLOCK_BPM_MSB together
+    SETTINGS_PRESET_NUM = 102,         // special case for handling PRESET_LSB, PRESET_MSB and PRESET_OVERFLOW together
     SETTINGS_NONE = -1
 };
 
@@ -384,6 +386,7 @@ enum Pro800OverflowBitPosition
     OVERFLOW_EXTERNAL_CV_AMOUNT_BIT8 = 1,
     OVERFLOW_EXTERNAL_CV_AMOUNT_BIT16 = 2,
     OVERFLOW_TRANSPOSE_BIT8 = 2,
+    OVERFLOW_PRESET_BIT8 = 5,
     OVERFLOW_NONE = -1
 };
 

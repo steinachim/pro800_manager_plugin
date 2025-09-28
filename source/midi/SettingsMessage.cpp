@@ -28,18 +28,18 @@ juce::String SettingsMessage::toString() const
     uint16_t extCvAmount = getExternalCVAmount();
     unsigned short extCvAmountDisplayValue = (extCvAmount * 999)/65535;
 
-    uint16_t bpmLsb = getUint8Value(SETTINGS_SYNC_CLOCK_BPM_LSB);
-    uint16_t bpmMsb = getUint8Value(SETTINGS_SYNC_CLOCK_BPM_MSB);
-    uint16_t bpmOverflow = (getUint8Value(SETTINGS_OVERFLOW_BPM_VOICE8) & 0xF0) >> 4; // upper nibble
+    uint8_t presetMode = getUint8Value(SETTINGS_PRESET_MODE);
+    std::string presetModeStr = presetMode == PRESET_MODE_MANUAL ? "MANUAL" : presetMode == PRESET_MODE_LOADED ? "LOADED" : "EDITED";
 
-    uint16_t bpm = getClockBPM();
+    uint16_t currentPreset = getCurrentPreset();
+    juce::String currentPresetBytes = juce::String::formatted(" (LSB: 0x%02x, MSB: 0x%02x)", currentPreset & 0x7F, (currentPreset >> 7));
 
     std::stringstream ss;
     ss << "Pro800 Settings Message\n"
        << "Brightness: " << (unsigned int)getUint8Value(SETTINGS_BRIGHTNESS) << "\n"
        << "External CV Amount: " << extCvAmount << " (display: " << extCvAmountDisplayValue << ")\n"
-       << "Clock BPM: " << bpm << std::hex << " - MSB: "<< (unsigned int)bpmMsb << ", LSB: " << (unsigned int)bpmLsb << ", overflow: " << (unsigned int)bpmOverflow << std::dec << "\n"
-       << "Sync In Polarity: " << (unsigned int)getUint8Value(SETTINGS_SYNC_IN_POLARITY) << "\n"
+       << "Edited: " << presetModeStr << " (" << (int)presetMode << ")\n" 
+       << "Preset: " << getCurrentPreset() << currentPresetBytes << "\n"
        << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
 
     return ss.str();
@@ -91,7 +91,15 @@ void SettingsMessage::setTranspose(int8_t value)
     setUint8Value(SETTINGS_TRANSPOSE, SETTINGS_TRANSPOSE_OVERFLOW, OVERFLOW_TRANSPOSE_BIT8, (uint8_t)value);
 }
 
+uint16_t SettingsMessage::getCurrentPreset() const
+{
+    return getUint16Value(SETTINGS_PRESET_MSB, SETTINGS_PRESET_LSB, SETTINGS_PRESET_OVERFLOW, {OVERFLOW_PRESET_BIT8});
+}
 
+void SettingsMessage::setCurrentPreset(uint16_t value)
+{    
+    setUint16Value(SETTINGS_PRESET_MSB, SETTINGS_PRESET_LSB, SETTINGS_PRESET_OVERFLOW, {OVERFLOW_PRESET_BIT8}, value);
+}
 
 uint8_t SettingsMessage::getUint8Value(Pro800Settings setting, Pro800Settings overflow, Pro800OverflowBitPosition overflowBit) const
 {
@@ -221,7 +229,11 @@ void SettingsMessage::setValue(Pro800Settings setting, int value)
             break;
 
         case SETTINGS_VOICE_KILL:
-            setVoiceStatus((uint8_t)value);
+            setVoiceStatus((uint8_t)value);            
+            break;
+
+        case SETTINGS_PRESET_NUM:
+            setCurrentPreset((uint16_t)value);
             break;
 
         default:
@@ -245,6 +257,9 @@ int SettingsMessage::getValue(Pro800Settings setting) const
 
         case SETTINGS_VOICE_KILL:
             return getVoiceStatus();
+
+        case SETTINGS_PRESET_NUM:
+            return getCurrentPreset();
 
         default:
             return (int)getUint8Value(setting);

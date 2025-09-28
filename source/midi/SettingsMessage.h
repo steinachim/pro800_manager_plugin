@@ -36,6 +36,9 @@ public:
     int8_t getTranspose() const;
     void setTranspose(int8_t value);
 
+    uint16_t getCurrentPreset() const;
+    void setCurrentPreset(uint16_t value);
+
     uint8_t getUint8Value(Pro800Settings setting, Pro800Settings overflow = SETTINGS_NONE, Pro800OverflowBitPosition overflowBit = OVERFLOW_NONE) const;
     void setUint8Value(Pro800Settings setting, Pro800Settings overflow, Pro800OverflowBitPosition overflowBit, uint8_t value);
     void setUint8Value(Pro800Settings setting, uint8_t value);

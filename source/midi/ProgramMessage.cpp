@@ -93,8 +93,9 @@ void ProgramMessage::setProgramName(const std::string &newName)
 juce::String ProgramMessage::toString() const
 {
     std::stringstream ss;
-    ss << "Pro800 Program Dump: ";
-    ss << getProgramBankNumber() << " - " << getProgramName();
+    ss << "Pro800 Program Dump: "
+       << getProgramBankNumber() << " - " << getProgramName() << "\n"
+       << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
     return ss.str();
 }
 
