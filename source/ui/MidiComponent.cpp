@@ -1,7 +1,5 @@
 #include "MidiComponent.h"
 
-#include "UiHelpers.h"
-
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
@@ -66,14 +64,13 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
     }
 }
 
-void MidiComponent::handleMidiCCMessage(uint8_t midiCC, uint8_t value)
+void MidiComponent::handleMidiCCMessage (uint8_t midiCC, uint8_t value)
 {
-    for( auto *component : this->registeredCCComponents.getReference(midiCC) )
+    for (auto* component : this->registeredCCComponents.getReference (midiCC))
     {
-        UiHelpers::setComponentCCValue(component, midiCC, value);
+        setComponentValue(component, midiCC, value, 127);
     }
 }
-
 
 void MidiComponent::handlePro800SettingsUpdate()
 {
@@ -103,13 +100,25 @@ void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *compon
             midiHandler->sendMidiCCMessage (midiCC, midiValue);
         });
     }
-    else if (juce::Button* button = dynamic_cast<juce::Button*> (component))
+    else if (juce::ToggleButton* button = dynamic_cast<juce::ToggleButton*> (component))
     {
-        button->onClick = ([this, button, midiCC] {
-            bool buttonState = button->getToggleState();
-            uint8_t midiValue = buttonState ? 127 : 0;
-            midiHandler->sendMidiCCMessage (midiCC, midiValue);
-        });
+        if ( button->getRadioGroupId() )
+        {
+            // radio button
+            button->onClick = [this, button, midiCC]
+            {
+                uint8_t midiValue = (int)button->getProperties()[RADIO_VALUE_PROPERTY];
+                midiHandler->sendMidiCCMessage(midiCC, midiValue);
+            };
+        }
+        else
+        {
+            button->onClick = ([this, button, midiCC] {
+                bool buttonState = button->getToggleState();
+                uint8_t midiValue = buttonState ? Pro800SettingsOnOff::SETTINGS_ON : Pro800SettingsOnOff::SETTINGS_OFF;
+                midiHandler->sendMidiCCMessage (midiCC, midiValue);
+            });
+        }
     }
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
@@ -150,4 +159,26 @@ void MidiComponent::updateSettings(Pro800Settings setting, int value)
 std::shared_ptr<VersionMessage> &MidiComponent::getCurrentVersion()
 {
     return this->currentVersion;
+}
+
+void MidiComponent::setComponentValue (juce::Component* component, int identifier, int value, int maxValue)
+{
+    if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
+    {
+        // scale value to slider
+        if ( maxValue != -1 )
+        {
+            value = (double) value / (double)maxValue * (slider->getMaximum() - slider->getMinimum()) + slider->getMinimum();
+        }
+
+        slider->setValue (value, juce::dontSendNotification);
+    }
+    else if (juce::Button* button = dynamic_cast<juce::Button*> (component))
+    {
+        button->setToggleState (value != 0, juce::dontSendNotification);
+    }
+    else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
+    {
+        comboBox->setSelectedId ((int) value + 1, juce::dontSendNotification); // +1 because ComboBox IDs start at 1
+    }
 }

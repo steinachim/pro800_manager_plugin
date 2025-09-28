@@ -11,7 +11,6 @@
 #include "FrontPanelTab.h"
 
 #include "../midi/MidiHandler.h"
-#include "UiHelpers.h"
 #include "../Pro800Constants.h"
 
 FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : MidiComponent(midiHandler, true)
@@ -58,6 +57,19 @@ void FrontPanelTab::resized()
     this->group_Master.setBounds(rightArea.removeFromTop(groupHeight));
 }
 
+void FrontPanelTab::setComponentValue(juce::Component *component, int midiCC, int value, int maxValue)
+{
+    if ( midiCC == Pro800CCMessages::FILTER_KEYBOARD_TRACKING )
+    {
+        this->radio_FilterTrackingFull.setToggleState(value == Pro800FilterKeyboardTracking::TRACKING_FULL, juce::NotificationType::dontSendNotification);
+        this->radio_FilterTrackingHalf.setToggleState(value == Pro800FilterKeyboardTracking::TRACKING_HALF, juce::NotificationType::dontSendNotification);
+        this->radio_FilterTrackingOff.setToggleState (value == Pro800FilterKeyboardTracking::TRACKING_OFF,  juce::NotificationType::dontSendNotification);
+    }
+    else
+    {
+        MidiComponent::setComponentValue(component, midiCC, value, maxValue);
+    }
+}
 
 
 void FrontPanelTab::setupGroupOscA()
@@ -210,10 +222,13 @@ void FrontPanelTab::setupGroupFilter()
     
     radio_FilterTrackingFull.setButtonText("Full");
     radio_FilterTrackingFull.setRadioGroupId(1000);
+    radio_FilterTrackingFull.getProperties().set(RADIO_VALUE_PROPERTY, Pro800FilterKeyboardTracking::TRACKING_FULL);
     radio_FilterTrackingHalf.setButtonText("1/2");
     radio_FilterTrackingHalf.setRadioGroupId(1000);
+    radio_FilterTrackingHalf.getProperties().set(RADIO_VALUE_PROPERTY, Pro800FilterKeyboardTracking::TRACKING_HALF);
     radio_FilterTrackingOff.setButtonText("Off");
     radio_FilterTrackingOff.setRadioGroupId(1000);
+    radio_FilterTrackingOff.getProperties().set(RADIO_VALUE_PROPERTY, Pro800FilterKeyboardTracking::TRACKING_OFF);
     group_FilterKeyboardTracking.addComponents({&radio_FilterTrackingFull, &radio_FilterTrackingHalf, &radio_FilterTrackingOff});
     
     group_Filter.addComponents({&group_FilterCutoff, &group_FilterResonance, &group_FilterEnvAmount, &group_FilterKeyboardTracking,
@@ -227,10 +242,10 @@ void FrontPanelTab::setupGroupFilter()
     setupMidiCCComponent(Pro800CCMessages::FILTER_SUSTAIN, &slider_FilterSustain);
     setupMidiCCComponent(Pro800CCMessages::FILTER_RELEASE, &slider_FilterRelease);
 
-    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_FilterTrackingFull); // TODO: FIX
-    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_FilterTrackingHalf);
-    setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &radio_FilterTrackingOff);
-
+    setupMidiCCComponent(Pro800CCMessages::FILTER_KEYBOARD_TRACKING, &radio_FilterTrackingFull); // use special handling in overridden setComponentValue()
+    setupMidiCCComponent(Pro800CCMessages::FILTER_KEYBOARD_TRACKING, &radio_FilterTrackingHalf);
+    setupMidiCCComponent(Pro800CCMessages::FILTER_KEYBOARD_TRACKING, &radio_FilterTrackingOff);
+    
     addAndMakeVisible(group_Filter);
 }
 

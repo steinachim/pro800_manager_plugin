@@ -76,28 +76,8 @@ void SettingsTab::handlePro800SettingsUpdate()
         continue;
     }
 
-    if ( juce::Slider *slider = dynamic_cast<juce::Slider*>(component))
-    {
-        slider->setValue( settingsMessage->getValue(setting) , juce::NotificationType::dontSendNotification);
-    }
-    else if ( juce::ComboBox *comboBox = dynamic_cast<juce::ComboBox*>(component))
-    {
-        comboBox->setSelectedId( settingsMessage->getValue(setting) + 1, juce::NotificationType::dontSendNotification);
-    }
-    else if ( juce::ToggleButton *button = dynamic_cast<juce::ToggleButton*>(component))
-    {
-        button->setToggleState( settingsMessage->getValue(setting) == Pro800SettingsOnOff::SETTINGS_ON, juce::NotificationType::dontSendNotification);
-    }
-    else 
-    {
-        std::cerr << "[WARNING] handlePro800SettingsUpdate(): Unknown component type for setting " << setting << std::endl;
-    }
-
+    setComponentValue(component, setting, settingsMessage->getValue(setting));
   }
-
-  combo_ConnectionsMidiCC.setSelectedId( settingsMessage->getValue(Pro800Settings::SETTINGS_MIDI_CC_MODE)+1, juce::NotificationType::dontSendNotification);
-  checkBox_ConnectionsSyncInForwardEnabled.setToggleState(settingsMessage->getValue(Pro800Settings::SETTINGS_SYNC_IN_FORWARD) == Pro800SettingsOnOff::SETTINGS_ON, juce::NotificationType::dontSendNotification);
-  spinBox_DisplayBrightness.setValue( settingsMessage->getValue(Pro800Settings::SETTINGS_BRIGHTNESS), juce::NotificationType::dontSendNotification );
 }
 
 void SettingsTab::handlePro800VersionUpdate()

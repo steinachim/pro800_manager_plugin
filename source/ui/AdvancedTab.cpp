@@ -9,7 +9,6 @@
 */
 
 #include "AdvancedTab.h"
-#include "UiHelpers.h"
 #include "../midi/MidiHandler.h"
 #include "../midi/Pro800MessageFactory.h"
 

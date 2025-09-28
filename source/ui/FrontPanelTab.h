@@ -23,6 +23,9 @@ public:
     virtual ~FrontPanelTab() override;
     
     void resized() override;
+
+protected:
+    void setComponentValue(juce::Component *component, int midiCC, int value, int maxValue = -1) override;
     
 private:
     void setupGroupOscA();

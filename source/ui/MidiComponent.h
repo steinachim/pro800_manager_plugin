@@ -12,6 +12,8 @@ class Pro800MidiMessage;
 class MidiComponent
 {
 public:
+    const juce::String RADIO_VALUE_PROPERTY {"radioValue"};
+
     MidiComponent(MidiHandler *midiHandler, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
     virtual ~MidiComponent();
 
@@ -32,6 +34,8 @@ protected:
     void updateSettings(Pro800Settings setting, int value);
 
     std::shared_ptr<VersionMessage> &getCurrentVersion();
+
+    virtual void setComponentValue(juce::Component *component, int identifier, int value, int maxValue = -1);
     
 private:
     juce::Array<MessageType> registeredMessageTypes = juce::Array<MessageType>();
