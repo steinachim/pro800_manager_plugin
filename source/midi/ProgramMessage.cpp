@@ -64,7 +64,7 @@ std::string ProgramMessage::getProgramBankNumber() const
 
     std::stringstream ss;
     ss << bankName;
-    ss << std::setfill('0') << std::setw(2) << program;
+    ss << std::setfill('0') << std::setw(2) << (int)program;
     return ss.str();
 }
 
@@ -95,66 +95,50 @@ juce::String ProgramMessage::toString() const
     std::stringstream ss;
     ss << "Pro800 Program Dump: "
        << getProgramBankNumber() << " - " << getProgramName() << "\n"
+       << "Osc A Freq: " << (int)getValue(PROGRAM_FIELD_OSC_A_FREQ) << "\n"
        << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
     return ss.str();
 }
 
-uint32_t ProgramMessage::getValue(RawDumpPosition position, size_t width)
+int ProgramMessage::getValue(Pro800ProgramField field) const
 {
-    if (!isValid())
+    switch(field)
     {
-        cerr << "Trying to read value of invalid dump report" << endl;
-        return 0;
+        case PROGRAM_FIELD_OSC_A_FREQ:
+            return (int)getUint16Value(PROGRAM_OSC_A_FREQ_MSB, PROGRAM_OSC_A_FREQ_LSB, PROGRAM_OSC_A_FREQ_OVERFLOW, {PROGRAM_OSC_A_FREQ_BIT8, PROGRAM_OSC_A_FREQ_BIT16});
+
+        default:
+            std::cerr << "ProgramMessage::getValue(): No getter for field defined: " << field << std::endl;
     }
 
-    switch (width)
+}
+
+void ProgramMessage::setValue(Pro800ProgramField field, int value)
+{
+    switch(field)
     {
-    case 1:
-        return getValue8(position);
+        case PROGRAM_FIELD_OSC_A_FREQ:
+            setUint16Value(PROGRAM_OSC_A_FREQ_MSB, PROGRAM_OSC_A_FREQ_LSB, PROGRAM_OSC_A_FREQ_OVERFLOW, {PROGRAM_OSC_A_FREQ_BIT8, PROGRAM_OSC_A_FREQ_BIT16}, (uint16_t)value);
+            break;
 
-    case 2:
-        return getValue16(position);
-
-    case 4:
-        return getValue32(position);
-
-    default:
-        cerr << "Unsupported field width requested - returning 0" << endl;
+        default:
+            std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
     }
 
-    return 0;
 }
 
-uint8_t ProgramMessage::getValue8(RawDumpPosition position)
-{
-    return this->getRawData()[position];
-}
-
-uint16_t ProgramMessage::getValue16(RawDumpPosition position)
-{
-    uint8_t msb = this->getRawData()[position];
-    uint8_t lsb = this->getRawData()[position + 1];
-
-    return (uint16_t)((msb << 8) | lsb);
-}
-
-uint32_t ProgramMessage::getValue32(RawDumpPosition position)
-{
-    uint32_t byte1 = this->getRawData()[position];
-    uint32_t byte2 = this->getRawData()[position + 1];
-    uint32_t byte3 = this->getRawData()[position + 2];
-    uint32_t byte4 = this->getRawData()[position + 3];
-
-    return (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
-}
 
 std::string ProgramMessage::getValueString(RawDumpPosition start, RawDumpPosition end)
 {
 
     std::string value = std::string(getRawData() + start, getRawData() + end);
 
-    // remove 0xf7
-    value.erase(std::remove(value.begin(), value.end(), '\xf7'), value.end());
+    // remove everything after first 0xf7
+    size_t firstF7 = value.find(0xf7);
+    if ( firstF7 != std::string::npos )
+    {
+        value.erase(firstF7);
+    }
 
     // remove 0x00
     value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());

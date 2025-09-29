@@ -3,6 +3,7 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
+#include "../midi/ProgramMessage.h"
 #include "../midi/Pro800FactoryResetMessage.h"
 
 
@@ -37,6 +38,17 @@ void MidiComponent::requestFactoryReset()
     this->midiHandler->sendMidiMessage(Pro800FactoryResetMessage::request());
 }
 
+void MidiComponent::requestProgramDump()
+{
+    // TODO: full range, threaded
+    //for ( int i = 0; i < ProgramMessage::NUM_PROGRAMS; i++ )
+    for ( int i = 0; i < 1; i++ )
+    {
+        this->midiHandler->sendMidiMessage(ProgramMessage::request(i));
+        juce::Thread::sleep(10);
+    }
+}
+
 void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
 {
     switch(type)
@@ -56,8 +68,14 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
             // do nothing
             break;
 
-        case PRO800_UNKNOWN_MESSAGE:
         case PRO800_PROGRAM_MESSAGE:
+        {
+            std::shared_ptr<ProgramMessage> programMessage = std::dynamic_pointer_cast<ProgramMessage>(message);
+            handlePro800ProgramDump(programMessage);
+            break;
+        }
+
+        case PRO800_UNKNOWN_MESSAGE:
         default:
             std::cerr << "[WARNING] handlePro800Message(): Unsupported / unknown message type" << type << std::endl;
             // do nothing
@@ -81,6 +99,12 @@ void MidiComponent::handlePro800VersionUpdate()
 {
     // do nothing by default
 }
+
+void MidiComponent::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &/*programMessage&*/)
+{
+    // do nothing by default
+}
+
 
 void MidiComponent::handleMidiLog(const juce::MidiMessage &/*message*/, const juce::String &/*logPrefix*/)
 {

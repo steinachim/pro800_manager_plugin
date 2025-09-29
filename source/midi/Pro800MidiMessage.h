@@ -131,6 +131,9 @@ public:
 
     static const uint8_t RESPONSE_UNINIT = 0xFF;
 
+    static const uint16_t OVERFLOW_BYTE_NONE = 0xFFFF;
+    static const uint8_t OVERFLOW_BIT_NONE= 0xFF;
+
     Pro800MidiMessage(const juce::MidiMessage &message);
     virtual ~Pro800MidiMessage();
 
@@ -143,6 +146,13 @@ public:
     int getRawDataSize() const;
 
     virtual bool isValid() const;
+
+    uint8_t getUint8Value(uint16_t setting, uint16_t overflow = OVERFLOW_BYTE_NONE, uint8_t overflowBit = OVERFLOW_BIT_NONE) const;
+    void setUint8Value(uint16_t setting, uint16_t overflow, uint8_t overflowBit, uint8_t value);
+    void setUint8Value(uint16_t setting, uint8_t value);
+
+    uint16_t getUint16Value(uint16_t msb, uint16_t lsb, uint16_t overflow, std::vector<uint8_t> overflowBits) const;
+    void setUint16Value(uint16_t msb, uint16_t lsb, uint16_t overflow, std::vector<uint8_t> overflowBits, uint16_t value);
 
 protected:
     bool isCorrectResponse() const;

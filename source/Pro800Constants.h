@@ -205,7 +205,7 @@ enum Pro800CCMessages
                                                                                                                                                                   
 enum Pro800Settings
 {
-    SETTINGS_ADDRESS_LOW = 0,
+    SETTINGS_ADDRESS_LOW = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
     SETTINGS_ADDRESS_HIGH = 1,
     SETTINGS_PRESET_OVERFLOW = 2, // bit 5
     SETTINGS_UNKNOWN_0 = 2, // other overflow bits?
@@ -395,4 +395,25 @@ enum Pro800PresetMode
     PRESET_MODE_MANUAL = 0,
     PRESET_MODE_LOADED = 1,
     PRESET_MODE_EDITED = 2
+};
+
+enum Pro800Program
+{
+    PROGRAM_NUM_LSB = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
+    PROGRAM_NUM_MSB = 1,
+
+    PROGRAM_OSC_A_FREQ_LSB = 8,
+    PROGRAM_OSC_A_FREQ_MSB = 9,
+    PROGRAM_OSC_A_FREQ_OVERFLOW = 2
+};
+
+enum Pro800ProgramOverflowBitPosition
+{
+    PROGRAM_OSC_A_FREQ_BIT8 = 5,
+    PROGRAM_OSC_A_FREQ_BIT16 = 6,
+};
+
+enum Pro800ProgramField
+{
+    PROGRAM_FIELD_OSC_A_FREQ = 0
 };

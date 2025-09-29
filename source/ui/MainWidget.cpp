@@ -17,6 +17,7 @@
 #include "SettingsTab.h"
 #include "AdvancedTab.h"
 #include "PerformanceTab.h"
+#include "ProgramManagementTab.h"
 
 MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop), MidiComponent(midiHandler, false, {PRO800_VERSION_MESSAGE})
 {
@@ -25,6 +26,7 @@ MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedB
     addTab("Front Panel", colour, new FrontPanelTab(midiHandler), true, TAB_FRONTPANEL);
     addTab("Performance", colour, new PerformanceTab(midiHandler), true, TAB_PERFORMANCE);
     addTab("Settings", colour, new SettingsTab(midiHandler), true, TAB_SETTINGS);
+    addTab("Program Management", colour, new ProgramManagementTab(midiHandler), true, TAB_PROGRAM);
     addTab("Advanced", colour, new AdvancedTab(midiHandler), true, TAB_ADVANCED);
 
     this->getTabContentComponent(TAB_FRONTPANEL)->setEnabled(false);

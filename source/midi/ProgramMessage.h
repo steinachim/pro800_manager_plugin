@@ -133,13 +133,11 @@ public:
 
     static juce::MidiMessage getRequestDumpMessage(unsigned short programNumber);
 
+    int getValue(Pro800ProgramField field) const;
+    void setValue(Pro800ProgramField field, int value);
+
 protected:
     unsigned char getResponseType() const override;
-
-    uint32_t getValue(RawDumpPosition position, size_t width);
-    uint8_t  getValue8(RawDumpPosition position);
-    uint16_t getValue16(RawDumpPosition position);
-    uint32_t getValue32(RawDumpPosition position);
 
     std::string getValueString(RawDumpPosition start, RawDumpPosition end);
 

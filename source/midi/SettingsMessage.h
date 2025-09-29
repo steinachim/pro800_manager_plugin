@@ -39,16 +39,9 @@ public:
     uint16_t getCurrentPreset() const;
     void setCurrentPreset(uint16_t value);
 
-    uint8_t getUint8Value(Pro800Settings setting, Pro800Settings overflow = SETTINGS_NONE, Pro800OverflowBitPosition overflowBit = OVERFLOW_NONE) const;
-    void setUint8Value(Pro800Settings setting, Pro800Settings overflow, Pro800OverflowBitPosition overflowBit, uint8_t value);
-    void setUint8Value(Pro800Settings setting, uint8_t value);
-
     void setValue(Pro800Settings setting, int value);
     int getValue(Pro800Settings) const;
 
 protected:
-    uint16_t getUint16Value(Pro800Settings msb, Pro800Settings lsb, Pro800Settings overflow, std::vector<Pro800OverflowBitPosition> overflowBits) const;
-    void setUint16Value(Pro800Settings msb, Pro800Settings lsb, Pro800Settings overflow, std::vector<Pro800OverflowBitPosition> overflowBits, uint16_t value);
-
     unsigned char getResponseType() const override;
 };

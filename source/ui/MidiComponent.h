@@ -7,6 +7,7 @@
 class MidiHandler;
 class SettingsMessage;
 class VersionMessage;
+class ProgramMessage;
 class Pro800MidiMessage;
 
 class MidiComponent
@@ -22,9 +23,11 @@ public:
 
     virtual void handlePro800SettingsUpdate();
     virtual void handlePro800VersionUpdate();
+    virtual void handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage);
     virtual void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix);
 
     void requestFactoryReset();
+    void requestProgramDump();
 
 protected:
     void setupMidiCCComponent(uint8_t midiCC, juce::Component *component);

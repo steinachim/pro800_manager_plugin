@@ -29,6 +29,7 @@ private:
       TAB_FRONTPANEL = 0,
       TAB_PERFORMANCE,
       TAB_SETTINGS,
+      TAB_PROGRAM,
       TAB_ADVANCED
     };
     
