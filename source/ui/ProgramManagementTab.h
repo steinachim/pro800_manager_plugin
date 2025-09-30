@@ -19,10 +19,12 @@ public:
 
 private:
     void compareSelectedPrograms();
-    
+
     juce::ListBox listBox_ProgramList;
+    juce::Slider spinBox_MaxProgramNumber { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
     juce::TextButton button_RefreshDump { "Refresh Dump" };
     juce::TextButton button_Compare { "Compare" };
+    juce::TextButton button_Clear { "Clear" };
 
     ProgramModel *model_ProgramList;
 };

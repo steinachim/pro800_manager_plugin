@@ -38,11 +38,17 @@ void MidiComponent::requestFactoryReset()
     this->midiHandler->sendMidiMessage(Pro800FactoryResetMessage::request());
 }
 
-void MidiComponent::requestProgramDump()
+void MidiComponent::requestProgramDump(int first, int last)
 {
+    if ( last < 0 )
+    {
+        last = first+1;
+    }
+
+    last = std::min(last, (int)ProgramMessage::NUM_PROGRAMS);
+
     // TODO: full range, threaded
-    //for ( int i = 0; i < ProgramMessage::NUM_PROGRAMS; i++ )
-    for ( int i = 0; i < 1; i++ )
+    for ( int i = first; i < last; i++ )
     {
         this->midiHandler->sendMidiMessage(ProgramMessage::request(i));
         juce::Thread::sleep(10);

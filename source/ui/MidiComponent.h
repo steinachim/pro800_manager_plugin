@@ -27,7 +27,7 @@ public:
     virtual void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix);
 
     void requestFactoryReset();
-    void requestProgramDump();
+    void requestProgramDump(int first, int last = -1);
 
 protected:
     void setupMidiCCComponent(uint8_t midiCC, juce::Component *component);

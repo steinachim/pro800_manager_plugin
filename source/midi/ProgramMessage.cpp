@@ -18,47 +18,29 @@ juce::MidiMessage ProgramMessage::request(int programNumber)
     return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
 }
 
-bool ProgramMessage::isValid() const
-{
-    return Pro800MidiMessage::isValid() && getRawDataSize() >= DUMP_POS_PROGRAM_MSB && this->valid;
-}
-
-
 ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
 {
-    extractDumpData();
+}
+
+bool ProgramMessage::isValid() const
+{
+    // TODO: add length check based on version
+    return Pro800MidiMessage::isValid() 
+        && getRawDataSize() > POS_MESSAGE_START + PROGRAM_VERSION;
 }
 
 uint16_t ProgramMessage::getProgramNumber() const
 {
-    return this->programNumber;
-}
-
-void ProgramMessage::setProgramNumber(uint16_t newProgramNumber)
-{
-    this->programNumber = newProgramNumber;
-
-    uint8_t programLSB = programNumber & 0x7F;
-    uint8_t programMSB = (programNumber >> 7) & 0x7F;
-
-    this->getRawData()[DUMP_POS_PROGRAM_LSB] = programLSB;
-    this->getRawData()[DUMP_POS_PROGRAM_MSB] = programMSB;
-}
-
-std::string ProgramMessage::getProgramName() const
-{
-    return this->programName;
+    uint8_t programLSB = getUint8Value(PROGRAM_NUM_LSB);
+    uint8_t programMSB = getUint8Value(PROGRAM_NUM_MSB);
+    return (uint16_t)((programMSB << 7) | programLSB);
 }
 
 std::string ProgramMessage::getProgramBankNumber() const
 {
-    if (this->programNumber < 0)
-    {
-        return "XXX";
-    }
-
-    uint8_t bank = (uint8_t)(this->programNumber / 100); // 0-3 = A-D
-    uint8_t program = (uint8_t)(this->programNumber % 100); // 0-99
+    uint16_t programNumber = getProgramNumber();
+    uint8_t bank = (uint8_t)(programNumber / 100); // 0-3 = A-D
+    uint8_t program = (uint8_t)(programNumber % 100); // 0-99
 
     char bankName = 'A' + bank;
 
@@ -68,14 +50,29 @@ std::string ProgramMessage::getProgramBankNumber() const
     return ss.str();
 }
 
+void ProgramMessage::setProgramNumber(uint16_t programNumber)
+{
+    uint8_t programLSB = programNumber & 0x7F;
+    uint8_t programMSB = (programNumber >> 7) & 0x7F;
+    this->setUint8Value(PROGRAM_NUM_LSB, programLSB);
+    this->setUint8Value(PROGRAM_NUM_MSB, programMSB);
+}
+
+std::string ProgramMessage::getProgramName() const
+{
+    return getValueString(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR);
+}
+
+
+
 void ProgramMessage::setProgramName(const std::string &newName)
 {
     /*
       Apparent internal format:
       - needs 0 after first 4 letters (display size-related)
       - needs 0 after further 7 letters..
-      - max name length 16 (+ fillter 0s)
-      - name structure: XX XX XX XX 00 XX XX XX XX XX XX XX 00 XX XX XX XX XX
+      - max name length 15 (+ fillter 0s)
+      - name structure: XX XX XX XX 00 XX XX XX XX XX XX XX 00 XX XX XX XX 00
      */
     std::vector<unsigned char> formattedProgramName = std::vector<unsigned char>(newName.begin(), newName.end());
     formattedProgramName.resize(MAX_PROGRAM_NAME_LENGTH, 0x00);
@@ -84,10 +81,7 @@ void ProgramMessage::setProgramName(const std::string &newName)
     formattedProgramName.insert(formattedProgramName.begin() + 12, 0x00); // account for first inserted 0
     formattedProgramName.push_back(0x00);                                 // add trailing NULL
 
-    std::copy(formattedProgramName.begin(), formattedProgramName.end(), this->getRawData() + DUMP_POS_PROGRAM_NAME_START);
-
-    // set program name from the actual message data
-    this->programName = getValueString(DUMP_POS_PROGRAM_NAME_START, DUMP_POS_PROGRAM_NAME_END);
+    std::copy(formattedProgramName.begin(), formattedProgramName.end(), this->getRawData() + POS_MESSAGE_START + PROGRAM_NAME_FIRST_CHAR);
 }
 
 juce::String ProgramMessage::toString() const
@@ -95,7 +89,9 @@ juce::String ProgramMessage::toString() const
     std::stringstream ss;
     ss << "Pro800 Program Dump: "
        << getProgramBankNumber() << " - " << getProgramName() << "\n"
-       << "Osc A Freq: " << (int)getValue(PROGRAM_FIELD_OSC_A_FREQ) << "\n"
+       << "Version:      " << getValue(PROGRAM_FIELD_VERSION) << "\n"
+       << "Osc A Freq:   " << getValue(PROGRAM_FIELD_OSC_A_FREQ) << "\n"
+       << "Osc A Level: " << getValue(PROGRAM_FIELD_OSC_A_LEVEL) << "\n"
        << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
     return ss.str();
 }
@@ -104,23 +100,47 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
 {
     switch(field)
     {
+        case PROGRAM_FIELD_NUM:
+            return (int)getProgramNumber();
+        
+        case PROGRAM_FIELD_VERSION:
+            return (int)getUint8Value(PROGRAM_VERSION);
+
         case PROGRAM_FIELD_OSC_A_FREQ:
             return (int)getUint16Value(PROGRAM_OSC_A_FREQ_MSB, PROGRAM_OSC_A_FREQ_LSB, PROGRAM_OSC_A_FREQ_OVERFLOW, {PROGRAM_OSC_A_FREQ_BIT8, PROGRAM_OSC_A_FREQ_BIT16});
 
+        case PROGRAM_FIELD_OSC_A_LEVEL:
+            return (int)getUint16Value(PROGRAM_OSC_A_LEVEL_MSB, PROGRAM_OSC_A_LEVEL_LSB, PROGRAM_OSC_A_LEVEL_OVERFLOW, {PROGRAM_OSC_A_LEVEL_BIT8, PROGRAM_OSC_A_LEVEL_BIT16});
+
+
+        case PROGRAM_FIELD_NAME:
         default:
             std::cerr << "ProgramMessage::getValue(): No getter for field defined: " << field << std::endl;
+            return 0;
     }
-
 }
 
 void ProgramMessage::setValue(Pro800ProgramField field, int value)
 {
     switch(field)
     {
+        case PROGRAM_FIELD_NUM:
+            setProgramNumber((uint16_t)value);
+            break;
+        
+        case PROGRAM_FIELD_VERSION:
+            setUint8Value(PROGRAM_VERSION, (uint8_t)value);
+            break;
+
         case PROGRAM_FIELD_OSC_A_FREQ:
             setUint16Value(PROGRAM_OSC_A_FREQ_MSB, PROGRAM_OSC_A_FREQ_LSB, PROGRAM_OSC_A_FREQ_OVERFLOW, {PROGRAM_OSC_A_FREQ_BIT8, PROGRAM_OSC_A_FREQ_BIT16}, (uint16_t)value);
             break;
 
+        case PROGRAM_FIELD_OSC_A_LEVEL:
+            setUint16Value(PROGRAM_OSC_A_LEVEL_MSB, PROGRAM_OSC_A_LEVEL_LSB, PROGRAM_OSC_A_LEVEL_OVERFLOW, {PROGRAM_OSC_A_LEVEL_BIT8, PROGRAM_OSC_A_LEVEL_BIT16}, (uint16_t)value);
+            break;
+
+        case PROGRAM_FIELD_NAME:
         default:
             std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
     }
@@ -128,54 +148,18 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
 }
 
 
-std::string ProgramMessage::getValueString(RawDumpPosition start, RawDumpPosition end)
+std::string ProgramMessage::getValueString(uint16_t firstCharPos, uint16_t lastCharPos) const
 {
+    lastCharPos = (uint16_t)std::min((int)(lastCharPos), getRawDataSize() - POS_MESSAGE_START - 2); // last character cannot be the final 0xF7
+    const char *stringStart = (char*)getRawData() + Pro800MidiMessage::POS_MESSAGE_START + firstCharPos;
+    const size_t stringLength = lastCharPos - firstCharPos + 1;
 
-    std::string value = std::string(getRawData() + start, getRawData() + end);
-
-    // remove everything after first 0xf7
-    size_t firstF7 = value.find(0xf7);
-    if ( firstF7 != std::string::npos )
-    {
-        value.erase(firstF7);
-    }
+    std::string value = std::string(stringStart, stringLength);
 
     // remove 0x00
     value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());
 
-
     return value;
-}
-
-void ProgramMessage::extractDumpData()
-{
-    if (!isValid())
-    {
-        return;
-    }
-
-    // note program LSB is 7-byte value only
-    uint8_t programLSB = getRawData()[DUMP_POS_PROGRAM_LSB];
-    uint8_t programMSB = getRawData()[DUMP_POS_PROGRAM_MSB];
-    this->programNumber = (uint16_t)((programMSB << 7) | programLSB);
-
-    if (this->programNumber == 0x1FE) // global dump
-    {
-        this->programName = "GLOBAL";
-        this->valid = true;
-        return;
-    }
-
-    if (getRawDataSize() < DUMP_POS_PROGRAM_NAME_START)
-    {
-        cout << "Dump data truncated or not program dump. No extraction.\n";
-        this->programName = "INVALID";
-        this->valid = false;
-        return;
-    }
-
-    this->programName = getValueString(DUMP_POS_PROGRAM_NAME_START, DUMP_POS_PROGRAM_NAME_END);
-    this->valid = true;
 }
 
 unsigned char ProgramMessage::getResponseType() const

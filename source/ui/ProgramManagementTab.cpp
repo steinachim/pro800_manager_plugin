@@ -9,16 +9,25 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     listBox_ProgramList.setModel(model_ProgramList);
     listBox_ProgramList.setMultipleSelectionEnabled(true);
 
+    spinBox_MaxProgramNumber.setRange(0.0, 399.0, 1.0);
+
     button_RefreshDump.onClick = [this] {
-        //model_ProgramList->clear(); 
-        requestProgramDump();
+        requestProgramDump(0, (int)this->spinBox_MaxProgramNumber.getValue()+1);
     };
 
     button_Compare.onClick = [this] { compareSelectedPrograms(); };
 
+    button_Clear.onClick = [this] {
+        model_ProgramList->clear();
+        listBox_ProgramList.updateContent();
+    };
+
     addAndMakeVisible(listBox_ProgramList);
+
+    addAndMakeVisible(spinBox_MaxProgramNumber);
     addAndMakeVisible(button_RefreshDump);
     addAndMakeVisible(button_Compare);
+    addAndMakeVisible(button_Clear);
 }
 
 ProgramManagementTab::~ProgramManagementTab()
@@ -32,8 +41,11 @@ void ProgramManagementTab::resized()
     auto area = getLocalBounds().reduced(4);
 
     listBox_ProgramList.setBounds(area.removeFromTop(area.getHeight()-30));
-    button_RefreshDump.setBounds(area.removeFromRight(100));
+    
+    button_Clear.setBounds(area.removeFromRight(100));
     button_Compare.setBounds(area.removeFromRight(100));
+    button_RefreshDump.setBounds(area.removeFromRight(100));
+    spinBox_MaxProgramNumber.setBounds(area.removeFromRight(100));
 }
 
 void ProgramManagementTab::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage)
