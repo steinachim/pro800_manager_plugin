@@ -89,15 +89,24 @@ juce::String ProgramMessage::toString() const
     std::stringstream ss;
     ss << "Pro800 Program Dump: "
        << getProgramBankNumber() << " - " << getProgramName() << "\n"
-       << "Version:      " << getValue(PROGRAM_FIELD_VERSION) << "\n"
-       << "Osc A Freq:   " << getValue(PROGRAM_FIELD_OSC_A_FREQ) << "\n"
-       << "Osc A Level: " << getValue(PROGRAM_FIELD_OSC_A_LEVEL) << "\n"
-       << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
+       << "Version:      " << getValue(PROGRAM_FIELD_VERSION) << "\n";
+
+    for ( auto param : PRO800_PROGRAM_FIELDS )
+    {
+        ss << param.second.name << ": " << getValue(param.first) << "\n";
+    }
+       
+    ss << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
     return ss.str();
 }
 
 int ProgramMessage::getValue(Pro800ProgramField field) const
 {
+    if ( PRO800_PROGRAM_FIELDS.contains(field) )
+    {
+        Parameter16Bit parameterBlock = PRO800_PROGRAM_FIELDS.at(field);
+        return (int) getUint16Value(parameterBlock);
+    }
     switch(field)
     {
         case PROGRAM_FIELD_NUM:
@@ -105,13 +114,6 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
         
         case PROGRAM_FIELD_VERSION:
             return (int)getUint8Value(PROGRAM_VERSION);
-
-        case PROGRAM_FIELD_OSC_A_FREQ:
-            return (int)getUint16Value(PROGRAM_OSC_A_FREQ_MSB, PROGRAM_OSC_A_FREQ_LSB, PROGRAM_OSC_A_FREQ_OVERFLOW, {PROGRAM_OSC_A_FREQ_BIT8, PROGRAM_OSC_A_FREQ_BIT16});
-
-        case PROGRAM_FIELD_OSC_A_LEVEL:
-            return (int)getUint16Value(PROGRAM_OSC_A_LEVEL_MSB, PROGRAM_OSC_A_LEVEL_LSB, PROGRAM_OSC_A_LEVEL_OVERFLOW, {PROGRAM_OSC_A_LEVEL_BIT8, PROGRAM_OSC_A_LEVEL_BIT16});
-
 
         case PROGRAM_FIELD_NAME:
         default:
@@ -122,6 +124,12 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
 
 void ProgramMessage::setValue(Pro800ProgramField field, int value)
 {
+    if ( PRO800_PROGRAM_FIELDS.contains(field) )
+    {
+        Parameter16Bit parameterBlock = PRO800_PROGRAM_FIELDS.at(field);
+        setUint16Value(parameterBlock, (uint16_t)value);
+    }
+
     switch(field)
     {
         case PROGRAM_FIELD_NUM:
@@ -130,14 +138,6 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
         
         case PROGRAM_FIELD_VERSION:
             setUint8Value(PROGRAM_VERSION, (uint8_t)value);
-            break;
-
-        case PROGRAM_FIELD_OSC_A_FREQ:
-            setUint16Value(PROGRAM_OSC_A_FREQ_MSB, PROGRAM_OSC_A_FREQ_LSB, PROGRAM_OSC_A_FREQ_OVERFLOW, {PROGRAM_OSC_A_FREQ_BIT8, PROGRAM_OSC_A_FREQ_BIT16}, (uint16_t)value);
-            break;
-
-        case PROGRAM_FIELD_OSC_A_LEVEL:
-            setUint16Value(PROGRAM_OSC_A_LEVEL_MSB, PROGRAM_OSC_A_LEVEL_LSB, PROGRAM_OSC_A_LEVEL_OVERFLOW, {PROGRAM_OSC_A_LEVEL_BIT8, PROGRAM_OSC_A_LEVEL_BIT16}, (uint16_t)value);
             break;
 
         case PROGRAM_FIELD_NAME:

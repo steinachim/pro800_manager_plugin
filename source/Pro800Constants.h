@@ -397,40 +397,77 @@ enum Pro800PresetMode
     PRESET_MODE_EDITED = 2
 };
 
+
+
 enum Pro800Program
 {
     PROGRAM_NUM_LSB = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
     PROGRAM_NUM_MSB = 1,
 
     PROGRAM_VERSION = 7,
-
-    PROGRAM_OSC_A_FREQ_LSB = 8,
-    PROGRAM_OSC_A_FREQ_MSB = 9,
-    PROGRAM_OSC_A_FREQ_OVERFLOW = 2,
-
-    PROGRAM_OSC_A_LEVEL_LSB = 11,
-    PROGRAM_OSC_A_LEVEL_MSB = 12,
-    PROGRAM_OSC_A_LEVEL_OVERFLOW = 10,
-
+    
     PROGRAM_NAME_FIRST_CHAR = 174,
     PROGRAM_NAME_LAST_CHAR   = PROGRAM_NAME_FIRST_CHAR + 16
-};
-
-enum Pro800ProgramOverflowBitPosition
-{
-    PROGRAM_OSC_A_FREQ_BIT8 = 5,
-    PROGRAM_OSC_A_FREQ_BIT16 = 6,
-
-    PROGRAM_OSC_A_LEVEL_BIT8 = 0,
-    PROGRAM_OSC_A_LEVEL_BIT16 = 1,
 };
 
 enum Pro800ProgramField
 {
     PROGRAM_FIELD_NUM = 0,
     PROGRAM_FIELD_VERSION,
+
     PROGRAM_FIELD_OSC_A_FREQ,
     PROGRAM_FIELD_OSC_A_LEVEL,
+    PROGRAM_FIELD_OSC_A_PULSE_WIDTH,
+
+    PROGRAM_FIELD_OSC_B_FREQ,
+    PROGRAM_FIELD_OSC_B_LEVEL,
+    PROGRAM_FIELD_OSC_B_PULSE_WIDTH,
+    PROGRAM_FIELD_OSC_B_FINE_FREQ,
+
+    PROGRAM_FIELD_FILTER_CUTOFF,
+    PROGRAM_FIELD_FILTER_RESONANCE,
+    PROGRAM_FIELD_FILTER_ENV_AMOUNT,
+    PROGRAM_FIELD_FILTER_RELEASE,
+    PROGRAM_FIELD_FILTER_SUSTAIN,
+    PROGRAM_FIELD_FILTER_DECAY,
+    PROGRAM_FIELD_FILTER_ATTACK,
+
+    PROGRAM_FIELD_AMP_RELEASE,
+    PROGRAM_FIELD_AMP_SUSTAIN,
+    PROGRAM_FIELD_AMP_DECAY,
+    PROGRAM_FIELD_AMP_ATTACK,
+
+    PROGRAM_FIELD_POLYMOD_FILTER_ENV,
+    PROGRAM_FIELD_POLYMOD_OSC_B,
+
+    PROGRAM_FIELD_LFO_FREQ,
+    PROGRAM_FIELD_LFO_AMOUNT,
+
+    PROGRAM_FIELD_GLIDE,
+
+    PROGRAM_FIELD_NOISE,
 
     PROGRAM_FIELD_NAME
+};
+
+struct Parameter16Bit
+{
+    uint16_t lsb;
+    uint16_t msb;
+    std::vector<uint16_t> overflowBytes;
+    std::vector<uint8_t> overflowBits;
+    std::string name;
+};
+
+const std::map<Pro800ProgramField, Parameter16Bit> PRO800_PROGRAM_FIELDS =
+{
+    // field, {lsb, msb, {overflow 1, overflow 2}, {bit8, bit16}}}
+    {PROGRAM_FIELD_OSC_A_FREQ,         {  8,   9,  { 2,  2}, {5, 6}, "Osc A Frequency"}},
+    {PROGRAM_FIELD_OSC_A_LEVEL,        { 11,  12,  {10, 10}, {0, 1}, "Osc A Level"}},
+    {PROGRAM_FIELD_OSC_A_PULSE_WIDTH,  { 13,  14,  {10, 10}, {2, 3}, "Osc A Pulse Width"}},
+
+    {PROGRAM_FIELD_OSC_B_FREQ,         { 15,  16,  {10, 10}, {4, 5}, "Osc B Frequency"}},
+    {PROGRAM_FIELD_OSC_B_LEVEL,        { 17,  19,  {10, 18}, {6, 0}, "Osc B Level"}},
+    {PROGRAM_FIELD_OSC_B_PULSE_WIDTH,  { 20,  21,  {18, 18}, {1, 2}, "Osc B Pulse Width"}},
+    {PROGRAM_FIELD_OSC_B_FINE_FREQ,    { 22,  23,  {18, 18}, {3, 4}, "Osc B Fine Frequency"}}
 };

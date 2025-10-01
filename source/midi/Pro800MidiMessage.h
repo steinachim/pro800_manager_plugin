@@ -151,8 +151,11 @@ public:
     void setUint8Value(uint16_t setting, uint16_t overflow, uint8_t overflowBit, uint8_t value);
     void setUint8Value(uint16_t setting, uint8_t value);
 
-    uint16_t getUint16Value(uint16_t msb, uint16_t lsb, uint16_t overflow, std::vector<uint8_t> overflowBits) const;
-    void setUint16Value(uint16_t msb, uint16_t lsb, uint16_t overflow, std::vector<uint8_t> overflowBits, uint16_t value);
+    uint16_t getUint16Value(uint16_t msb, uint16_t lsb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const;
+    void setUint16Value(uint16_t msb, uint16_t lsb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value);
+
+    uint16_t getUint16Value(const Parameter16Bit &parameterDetails) const;
+    void setUint16Value(const Parameter16Bit &parameterDetails, uint16_t value);
 
 protected:
     bool isCorrectResponse() const;
