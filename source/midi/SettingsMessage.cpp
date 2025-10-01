@@ -72,23 +72,23 @@ void SettingsMessage::setClockBPM(uint16_t value)
 
 uint8_t SettingsMessage::getVoiceStatus() const
 {
-    return getUint8Value(SETTINGS_VOICE_KILL, SETTINGS_OVERFLOW_BPM_VOICE8, OVERFLOW_VOICE8_BIT8);
+    return getUint8Value(SETTINGS_VOICE_KILL, {SETTINGS_OVERFLOW_BPM_VOICE8}, {OVERFLOW_VOICE8_BIT8});
 }
 
 void SettingsMessage::setVoiceStatus(uint8_t value)
 {
-    setUint8Value(SETTINGS_VOICE_KILL, SETTINGS_OVERFLOW_BPM_VOICE8, OVERFLOW_VOICE8_BIT8, value);
+    setUint8Value(SETTINGS_VOICE_KILL, {SETTINGS_OVERFLOW_BPM_VOICE8}, {OVERFLOW_VOICE8_BIT8}, value);
 }   
 
 int8_t SettingsMessage::getTranspose() const
 {
-    uint8_t value = getUint8Value(SETTINGS_TRANSPOSE, SETTINGS_TRANSPOSE_OVERFLOW, OVERFLOW_TRANSPOSE_BIT8);
+    uint8_t value = getUint8Value(SETTINGS_TRANSPOSE, {SETTINGS_TRANSPOSE_OVERFLOW}, {OVERFLOW_TRANSPOSE_BIT8});
     return (int8_t)value;
 }
 
 void SettingsMessage::setTranspose(int8_t value)
 {
-    setUint8Value(SETTINGS_TRANSPOSE, SETTINGS_TRANSPOSE_OVERFLOW, OVERFLOW_TRANSPOSE_BIT8, (uint8_t)value);
+    setUint8Value(SETTINGS_TRANSPOSE, {SETTINGS_TRANSPOSE_OVERFLOW}, {OVERFLOW_TRANSPOSE_BIT8}, (uint8_t)value);
 }
 
 uint16_t SettingsMessage::getCurrentPreset() const

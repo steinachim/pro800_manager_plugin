@@ -69,7 +69,7 @@ bool Pro800MidiMessage::isPro800Header() const
     return true;
 }
 
-uint8_t Pro800MidiMessage::getUint8Value(uint16_t setting, uint16_t overflow, uint8_t overflowBit) const
+uint8_t Pro800MidiMessage::getUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow, const std::vector<uint8_t> &overflowBit) const
 {
     if ( !isValid() )
     {
@@ -77,10 +77,10 @@ uint8_t Pro800MidiMessage::getUint8Value(uint16_t setting, uint16_t overflow, ui
     }
 
     uint8_t value = getRawData()[POS_MESSAGE_START + setting];
-    if ( overflow != OVERFLOW_BYTE_NONE && overflowBit != OVERFLOW_BIT_NONE )
+    if ( !overflow.empty() && !overflowBit.empty() )
     {
-        uint8_t overflowValue = getRawData()[POS_MESSAGE_START + overflow];
-        uint8_t overflowBitValue = (overflowValue & (1 << overflowBit)) ? 1 : 0;
+        uint8_t overflowValue = getRawData()[POS_MESSAGE_START + overflow[0]];
+        uint8_t overflowBitValue = (overflowValue & (1 << overflowBit[0])) ? 1 : 0;
         value |= (overflowBitValue << 7);
     }
 
@@ -89,10 +89,10 @@ uint8_t Pro800MidiMessage::getUint8Value(uint16_t setting, uint16_t overflow, ui
 
 void Pro800MidiMessage::setUint8Value(uint16_t setting, uint8_t value)
 {
-    setUint8Value(setting, OVERFLOW_BYTE_NONE, OVERFLOW_BIT_NONE, value);
+    setUint8Value(setting, {}, {}, value);
 }
 
-void Pro800MidiMessage::setUint8Value(uint16_t setting, uint16_t overflow, uint8_t overflowBit, uint8_t value)
+void Pro800MidiMessage::setUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow, const std::vector<uint8_t> &overflowBit, uint8_t value)
 {
     // TODO: implement builder pattern for setting
     if ( !isValid() )
@@ -100,15 +100,15 @@ void Pro800MidiMessage::setUint8Value(uint16_t setting, uint16_t overflow, uint8
         return;
     }
 
-    if ( overflow != OVERFLOW_BYTE_NONE && overflowBit != OVERFLOW_BIT_NONE )
+    if ( !overflow.empty() && !overflowBit.empty() )
     {
-        uint8_t overflowValue = this->getRawData()[POS_MESSAGE_START + overflow];
+        uint8_t overflowValue = this->getRawData()[POS_MESSAGE_START + overflow[0]];
         uint8_t overflowBitValue = (value & 0x80) ? 1 : 0; // bit 7 of value
         // clear bit, then set if required
-        overflowValue &= ~(1 << overflowBit);
-        overflowValue |= (overflowBitValue << overflowBit);
+        overflowValue &= ~(1 << overflowBit[0]);
+        overflowValue |= (overflowBitValue << overflowBit[0]);
 
-        this->getRawData()[POS_MESSAGE_START + overflow] = overflowValue;
+        this->getRawData()[POS_MESSAGE_START + overflow[0]] = overflowValue;
 
         // clear bit 7 of value
         value &= 0x7f;
@@ -147,7 +147,6 @@ uint16_t Pro800MidiMessage::getUint16Value(uint16_t msb, uint16_t lsb, const std
     uint8_t msbValue = getUint8Value(msb);
     uint8_t overflowByte1 = getUint8Value(overflowBytes[0]);
 
-    
     uint8_t overflowValue1 = (overflowByte1 & (1 << overflowBits.at(0))) ? 1 : 0;
 
     uint16_t resultValue = lsbValue;
@@ -206,12 +205,31 @@ void Pro800MidiMessage::setUint16Value(uint16_t msb, uint16_t lsb, const std::ve
     }
 }
 
-uint16_t Pro800MidiMessage::getUint16Value (const Parameter16Bit& param) const
+int Pro800MidiMessage::getIntValue(const Pro800Parameter& param) const
 {
-    return getUint16Value(param.msb, param.lsb, param.overflowBytes, param.overflowBits);
+    switch ( param.dataBytes.size() )
+    {
+        case 1:
+            return getUint8Value(param.dataBytes[0], param.overflowBytes, param.overflowBits);
+        case 2:
+            return getUint16Value(param.dataBytes[0], param.dataBytes[1], param.overflowBytes, param.overflowBits);
+
+        default:
+            std::cerr << "getIntValue(): number of data bytes not supported: " << param.dataBytes.size() << std::endl;
+            return 0;
+    }
 }
 
-void Pro800MidiMessage::setUint16Value (const Parameter16Bit& param, uint16_t value)
+void Pro800MidiMessage::setIntValue(const Pro800Parameter& param, int value)
 {
-    setUint16Value(param.msb, param.lsb, param.overflowBytes, param.overflowBits, value);
+    switch ( param.dataBytes.size() )
+    {
+        case 1:
+            setUint8Value(param.dataBytes[0], param.overflowBytes, param.overflowBits, (uint8_t)value);
+        case 2:
+            setUint16Value(param.dataBytes[0], param.dataBytes[1], param.overflowBytes, param.overflowBits, (uint16_t)value);
+
+        default:
+            std::cerr << "setIntValue(): number of data bytes not supported: " << param.dataBytes.size() << std::endl;
+    }
 }

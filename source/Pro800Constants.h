@@ -403,8 +403,6 @@ enum Pro800Program
 {
     PROGRAM_NUM_LSB = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
     PROGRAM_NUM_MSB = 1,
-
-    PROGRAM_VERSION = 7,
     
     PROGRAM_NAME_FIRST_CHAR = 174,
     PROGRAM_NAME_LAST_CHAR   = PROGRAM_NAME_FIRST_CHAR + 16
@@ -450,24 +448,49 @@ enum Pro800ProgramField
     PROGRAM_FIELD_NAME
 };
 
-struct Parameter16Bit
-{
-    uint16_t lsb;
-    uint16_t msb;
+struct Pro800Parameter
+{    
+    std::vector<uint16_t> dataBytes; // lsb, msb
     std::vector<uint16_t> overflowBytes;
     std::vector<uint8_t> overflowBits;
     std::string name;
 };
 
-const std::map<Pro800ProgramField, Parameter16Bit> PRO800_PROGRAM_FIELDS =
+const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
     // field, {lsb, msb, {overflow 1, overflow 2}, {bit8, bit16}}}
-    {PROGRAM_FIELD_OSC_A_FREQ,         {  8,   9,  { 2,  2}, {5, 6}, "Osc A Frequency"}},
-    {PROGRAM_FIELD_OSC_A_LEVEL,        { 11,  12,  {10, 10}, {0, 1}, "Osc A Level"}},
-    {PROGRAM_FIELD_OSC_A_PULSE_WIDTH,  { 13,  14,  {10, 10}, {2, 3}, "Osc A Pulse Width"}},
+    {PROGRAM_FIELD_VERSION,            {{ 7 },  {}, {}, "Version"}},
 
-    {PROGRAM_FIELD_OSC_B_FREQ,         { 15,  16,  {10, 10}, {4, 5}, "Osc B Frequency"}},
-    {PROGRAM_FIELD_OSC_B_LEVEL,        { 17,  19,  {10, 18}, {6, 0}, "Osc B Level"}},
-    {PROGRAM_FIELD_OSC_B_PULSE_WIDTH,  { 20,  21,  {18, 18}, {1, 2}, "Osc B Pulse Width"}},
-    {PROGRAM_FIELD_OSC_B_FINE_FREQ,    { 22,  23,  {18, 18}, {3, 4}, "Osc B Fine Frequency"}}
+    {PROGRAM_FIELD_OSC_A_FREQ,         {{  8,   9},  {  2,   2}, {5, 6}, "Osc A Frequency"}},
+    {PROGRAM_FIELD_OSC_A_LEVEL,        {{ 11,  12},  { 10,  10}, {0, 1}, "Osc A Level"}},
+    {PROGRAM_FIELD_OSC_A_PULSE_WIDTH,  {{ 13,  14},  { 10,  10}, {2, 3}, "Osc A Pulse Width"}},
+
+    {PROGRAM_FIELD_OSC_B_FREQ,         {{ 15,  16},  { 10,  10}, {4, 5}, "Osc B Frequency"}},
+    {PROGRAM_FIELD_OSC_B_LEVEL,        {{ 17,  19},  { 18,  10}, {0, 6}, "Osc B Level"}},
+    {PROGRAM_FIELD_OSC_B_PULSE_WIDTH,  {{ 20,  21},  { 18,  18}, {1, 2}, "Osc B Pulse Width"}},
+    {PROGRAM_FIELD_OSC_B_FINE_FREQ,    {{ 22,  23},  { 18,  18}, {3, 4}, "Osc B Fine Frequency"}},
+
+    {PROGRAM_FIELD_FILTER_CUTOFF,      {{ 24,  25},  { 18,  18}, {5, 6}, "Filter Cutoff"}},
+    {PROGRAM_FIELD_FILTER_RESONANCE,   {{ 27,  28},  { 26,  26}, {0, 1}, "Filter Resonance"}},
+    {PROGRAM_FIELD_FILTER_ENV_AMOUNT,  {{ 29,  30},  { 26,  26}, {2, 3}, "Filter Envelope Amount"}},
+    {PROGRAM_FIELD_FILTER_RELEASE,     {{ 31,  32},  { 26,  26}, {4, 5}, "Filter Release"}},
+    {PROGRAM_FIELD_FILTER_SUSTAIN,     {{ 33,  35},  { 34,  26}, {0, 6}, "Filter Sustain"}},
+    {PROGRAM_FIELD_FILTER_DECAY,       {{ 36,  37},  { 34,  34}, {1, 2}, "Filter Decay"}},
+    {PROGRAM_FIELD_FILTER_ATTACK,      {{ 38,  39},  { 34,  34}, {3, 4}, "Filter Attack"}},
+
+    {PROGRAM_FIELD_AMP_RELEASE,        {{ 40,  41},  { 34,  34}, {5, 6}, "Amp Release"}},
+    {PROGRAM_FIELD_AMP_SUSTAIN,        {{ 43,  44},  { 42,  42}, {0, 1}, "Amp Sustain"}},
+    {PROGRAM_FIELD_AMP_DECAY,          {{ 45,  46},  { 42,  42}, {2, 3}, "Amp Decay"}},
+    {PROGRAM_FIELD_AMP_ATTACK,         {{ 47,  48},  { 42,  42}, {4, 5}, "Amp Attack"}},
+
+    {PROGRAM_FIELD_POLYMOD_FILTER_ENV, {{ 49,  51},  { 42,  50}, {6, 0}, "Poly-Mod Filter Env"}},
+    {PROGRAM_FIELD_POLYMOD_OSC_B,      {{ 52,  53},  { 50,  50}, {1, 2}, "Poly-Mod Osc B"}},
+
+    {PROGRAM_FIELD_LFO_FREQ,           {{ 54,  55},  { 50,  50}, {3, 4}, "LFO Frequency"}},
+    {PROGRAM_FIELD_LFO_AMOUNT,         {{ 56,  57},  { 50,  50}, {5, 6}, "LFO Amount"}},
+
+    {PROGRAM_FIELD_GLIDE,              {{ 59,  60},  { 58,  58}, {0, 1}, "Glide Amount"}},
+
+    {PROGRAM_FIELD_NOISE,              {{165, 166},  {162, 162}, {2, 3}, "Noise Amount"}}
+   
 };

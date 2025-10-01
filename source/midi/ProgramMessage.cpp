@@ -26,7 +26,7 @@ bool ProgramMessage::isValid() const
 {
     // TODO: add length check based on version
     return Pro800MidiMessage::isValid() 
-        && getRawDataSize() > POS_MESSAGE_START + PROGRAM_VERSION;
+        && getRawDataSize() > POS_MESSAGE_START;
 }
 
 uint16_t ProgramMessage::getProgramNumber() const
@@ -88,8 +88,7 @@ juce::String ProgramMessage::toString() const
 {
     std::stringstream ss;
     ss << "Pro800 Program Dump: "
-       << getProgramBankNumber() << " - " << getProgramName() << "\n"
-       << "Version:      " << getValue(PROGRAM_FIELD_VERSION) << "\n";
+       << getProgramBankNumber() << " - '" << getProgramName() << "'\n";
 
     for ( auto param : PRO800_PROGRAM_FIELDS )
     {
@@ -104,47 +103,36 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
 {
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
-        Parameter16Bit parameterBlock = PRO800_PROGRAM_FIELDS.at(field);
-        return (int) getUint16Value(parameterBlock);
+        Pro800Parameter parameterBlock = PRO800_PROGRAM_FIELDS.at(field);
+        return getIntValue(parameterBlock);
     }
-    switch(field)
+    else if ( field == PROGRAM_FIELD_NUM )
     {
-        case PROGRAM_FIELD_NUM:
-            return (int)getProgramNumber();
-        
-        case PROGRAM_FIELD_VERSION:
-            return (int)getUint8Value(PROGRAM_VERSION);
-
-        case PROGRAM_FIELD_NAME:
-        default:
-            std::cerr << "ProgramMessage::getValue(): No getter for field defined: " << field << std::endl;
-            return 0;
+        return (int)getProgramNumber();
     }
+    else
+    {
+        std::cerr << "ProgramMessage::getValue(): No getter for field defined: " << field << std::endl;
+    }
+
+    return 0;
 }
 
 void ProgramMessage::setValue(Pro800ProgramField field, int value)
 {
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
-        Parameter16Bit parameterBlock = PRO800_PROGRAM_FIELDS.at(field);
-        setUint16Value(parameterBlock, (uint16_t)value);
+        Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
+        setIntValue(param, value);
     }
-
-    switch(field)
+    else if ( field == PROGRAM_FIELD_NUM )
     {
-        case PROGRAM_FIELD_NUM:
-            setProgramNumber((uint16_t)value);
-            break;
-        
-        case PROGRAM_FIELD_VERSION:
-            setUint8Value(PROGRAM_VERSION, (uint8_t)value);
-            break;
-
-        case PROGRAM_FIELD_NAME:
-        default:
-            std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
+        setProgramNumber((uint16_t)value);
     }
-
+    else
+    {
+        std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
+    }    
 }
 
 
