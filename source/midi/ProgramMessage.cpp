@@ -64,7 +64,29 @@ void ProgramMessage::setProgramNumber(uint16_t programNumber)
 
 std::string ProgramMessage::getProgramName() const
 {
-    return getValueString(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR);
+    int lastCharPos = std::min((int)PROGRAM_NAME_LAST_CHAR, getRawDataSize() - POS_MESSAGE_START - 2); // last character cannot be the final 0xF7
+    const char *stringStart = (char*)getRawData() + Pro800MidiMessage::POS_MESSAGE_START + PROGRAM_NAME_FIRST_CHAR;
+    const size_t stringLength = lastCharPos - PROGRAM_NAME_FIRST_CHAR + 1;
+
+    std::string value = std::string(stringStart, stringLength);
+
+    // remove unused overflow characters
+    const size_t unusedPos1 = PROGRAM_NAME_UNUSED_1 - PROGRAM_NAME_FIRST_CHAR;
+    if ( unusedPos1 < value.length() )
+    {
+        value.erase(unusedPos1, 1);
+    }
+
+    const size_t unusedPos2 = PROGRAM_NAME_UNUSED_2 - PROGRAM_NAME_FIRST_CHAR - 1; // moved 1 to the left because of previous deletion
+    if ( unusedPos2 < value.length() )
+    {
+        value.erase(unusedPos2, 1);
+    }
+
+    // remove potential trailing null values
+    value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());
+
+    return value;
 }
 
 
@@ -72,18 +94,18 @@ std::string ProgramMessage::getProgramName() const
 void ProgramMessage::setProgramName(const std::string &newName)
 {
     /*
-      Apparent internal format:
-      - needs 0 after first 4 letters (display size-related)
-      - needs 0 after further 7 letters..
-      - max name length 15 (+ fillter 0s)
-      - name structure: XX XX XX XX 00 XX XX XX XX XX XX XX 00 XX XX XX XX 00
+      - overflow bytes in the name must be filled with their correct values
+      - name structure: XX XX XX XX 00 XX XX XX XX XX XX XX 00 XX XX XX XX XX
      */
     std::vector<unsigned char> formattedProgramName = std::vector<unsigned char>(newName.begin(), newName.end());
-    formattedProgramName.resize(MAX_PROGRAM_NAME_LENGTH, 0x00);
+    formattedProgramName.resize(PROGRAM_NAME_LAST_CHAR-PROGRAM_NAME_FIRST_CHAR+1, 0x00);
 
-    formattedProgramName.insert(formattedProgramName.begin() + 4, 0x00);
-    formattedProgramName.insert(formattedProgramName.begin() + 12, 0x00); // account for first inserted 0
-    formattedProgramName.push_back(0x00);                                 // add trailing NULL
+    // 
+    int overflowPos1 = PROGRAM_NAME_UNUSED_1 - PROGRAM_NAME_FIRST_CHAR;
+    formattedProgramName.insert(formattedProgramName.begin() + overflowPos1, getUint8Value(PROGRAM_NAME_UNUSED_1));
+
+    int overflowPos2 = PROGRAM_NAME_UNUSED_2 - PROGRAM_NAME_FIRST_CHAR;
+    formattedProgramName.insert(formattedProgramName.begin() + overflowPos2, getUint8Value(PROGRAM_NAME_UNUSED_2));
 
     std::copy(formattedProgramName.begin(), formattedProgramName.end(), this->getRawData() + POS_MESSAGE_START + PROGRAM_NAME_FIRST_CHAR);
 }
@@ -157,26 +179,6 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
     }    
 }
 
-
-std::string ProgramMessage::getValueString(uint16_t firstCharPos, uint16_t lastCharPos) const
-{
-    lastCharPos = (uint16_t)std::min((int)(lastCharPos), getRawDataSize() - POS_MESSAGE_START - 2); // last character cannot be the final 0xF7
-    const char *stringStart = (char*)getRawData() + Pro800MidiMessage::POS_MESSAGE_START + firstCharPos;
-    const size_t stringLength = lastCharPos - firstCharPos + 1;
-
-    std::string value = std::string(stringStart, stringLength);
-
-    // remove 0x00
-    value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());
-
-    return value;
-}
-
-unsigned char ProgramMessage::getResponseType() const
-{
-    return RESPONSE_ID;
-}
-
 void ProgramMessage::exportProgram(const juce::File &exportFile) const
 {
     bool result = exportFile.appendData(this->getRawData(), this->getRawDataSize());
@@ -191,4 +193,9 @@ shared_ptr<ProgramMessage> ProgramMessage::importProgram(const juce::File &impor
     juce::MemoryBlock memBlock;
     importFile.loadFileAsData(memBlock);
     return std::shared_ptr<ProgramMessage>(new ProgramMessage((const uint8_t*)memBlock.getData(), memBlock.getSize()));
+}
+
+unsigned char ProgramMessage::getResponseType() const
+{
+    return RESPONSE_ID;
 }
