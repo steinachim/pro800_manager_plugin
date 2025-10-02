@@ -399,13 +399,20 @@ enum Pro800PresetMode
 
 
 
-enum Pro800Program
+enum Pro800ProgramSpecialParameters
 {
     PROGRAM_NUM_LSB = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
     PROGRAM_NUM_MSB = 1,
-    
+
     PROGRAM_NAME_FIRST_CHAR = 174,
-    PROGRAM_NAME_LAST_CHAR   = PROGRAM_NAME_FIRST_CHAR + 16
+    PROGRAM_NAME_LAST_CHAR  = PROGRAM_NAME_FIRST_CHAR + 16
+};
+
+enum Pro800ProgramLfoDestination
+{
+    PROGRAM_LFO_DEST_FREQ_AB = 1, // bit 0
+    PROGRAM_LFO_DEST_FILTER  = 2, // bit 1
+    PROGRAM_LFO_DEST_PW_AB   = 4, // bit 2
 };
 
 enum Pro800ProgramField
@@ -414,13 +421,35 @@ enum Pro800ProgramField
     PROGRAM_FIELD_VERSION,
 
     PROGRAM_FIELD_OSC_A_FREQ,
-    PROGRAM_FIELD_OSC_A_LEVEL,
+    PROGRAM_FIELD_OSC_A_SHAPE_SAW,
+    PROGRAM_FIELD_OSC_A_SHAPE_TRI,
+    PROGRAM_FIELD_OSC_A_SHAPE_RECT,
+    PROGRAM_FIELD_OSC_A_SYNC,
     PROGRAM_FIELD_OSC_A_PULSE_WIDTH,
+    PROGRAM_FIELD_OSC_A_LEVEL,
 
     PROGRAM_FIELD_OSC_B_FREQ,
-    PROGRAM_FIELD_OSC_B_LEVEL,
-    PROGRAM_FIELD_OSC_B_PULSE_WIDTH,
     PROGRAM_FIELD_OSC_B_FINE_FREQ,
+    PROGRAM_FIELD_OSC_B_SHAPE_SAW,
+    PROGRAM_FIELD_OSC_B_SHAPE_TRI,
+    PROGRAM_FIELD_OSC_B_SHAPE_RECT,
+    PROGRAM_FIELD_OSC_B_PULSE_WIDTH,
+    PROGRAM_FIELD_OSC_B_LEVEL,
+
+    PROGRAM_FIELD_POLYMOD_SOURCE_FILTER_ENV,
+    PROGRAM_FIELD_POLYMOD_SOURCE_OSC_B,
+    PROGRAM_FIELD_POLYMOD_DEST_FREQ_A,
+    PROGRAM_FIELD_POLYMOD_DEST_FILTER,
+    PROGRAM_FIELD_POLYMOD_UNISON_TRACK,
+
+    PROGRAM_FIELD_NOISE,
+
+    PROGRAM_FIELD_LFO_FREQ,
+    PROGRAM_FIELD_LFO_SHAPE,
+    PROGRAM_FIELD_LFO_AMOUNT,
+    PROGRAM_FIELD_LFO_DEST,
+    
+    PROGRAM_FIELD_GLIDE,
 
     PROGRAM_FIELD_FILTER_CUTOFF,
     PROGRAM_FIELD_FILTER_RESONANCE,
@@ -429,21 +458,14 @@ enum Pro800ProgramField
     PROGRAM_FIELD_FILTER_SUSTAIN,
     PROGRAM_FIELD_FILTER_DECAY,
     PROGRAM_FIELD_FILTER_ATTACK,
+    PROGRAM_FIELD_FILTER_KEY_TRACKING,
 
     PROGRAM_FIELD_AMP_RELEASE,
     PROGRAM_FIELD_AMP_SUSTAIN,
     PROGRAM_FIELD_AMP_DECAY,
     PROGRAM_FIELD_AMP_ATTACK,
 
-    PROGRAM_FIELD_POLYMOD_FILTER_ENV,
-    PROGRAM_FIELD_POLYMOD_OSC_B,
-
-    PROGRAM_FIELD_LFO_FREQ,
-    PROGRAM_FIELD_LFO_AMOUNT,
-
-    PROGRAM_FIELD_GLIDE,
-
-    PROGRAM_FIELD_NOISE,
+    PROGRAM_FIELD_OSC_A_FREQ_POT_MODE,
 
     PROGRAM_FIELD_NAME
 };
@@ -459,38 +481,61 @@ struct Pro800Parameter
 const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
     // field, {lsb, msb, {overflow 1, overflow 2}, {bit8, bit16}}}
-    {PROGRAM_FIELD_VERSION,            {{ 7 },  {}, {}, "Version"}},
+    {PROGRAM_FIELD_VERSION,                   {{ 7 },  {}, {}, "Version"}},
 
-    {PROGRAM_FIELD_OSC_A_FREQ,         {{  8,   9},  {  2,   2}, {5, 6}, "Osc A Frequency"}},
-    {PROGRAM_FIELD_OSC_A_LEVEL,        {{ 11,  12},  { 10,  10}, {0, 1}, "Osc A Level"}},
-    {PROGRAM_FIELD_OSC_A_PULSE_WIDTH,  {{ 13,  14},  { 10,  10}, {2, 3}, "Osc A Pulse Width"}},
+    {PROGRAM_FIELD_OSC_A_FREQ,                {{  8,   9},  {  2,   2}, {5, 6}, "Osc A Frequency"}},
+    {PROGRAM_FIELD_OSC_A_LEVEL,               {{ 11,  12},  { 10,  10}, {0, 1}, "Osc A Level"}},
+    {PROGRAM_FIELD_OSC_A_PULSE_WIDTH,         {{ 13,  14},  { 10,  10}, {2, 3}, "Osc A Pulse Width"}},
 
-    {PROGRAM_FIELD_OSC_B_FREQ,         {{ 15,  16},  { 10,  10}, {4, 5}, "Osc B Frequency"}},
-    {PROGRAM_FIELD_OSC_B_LEVEL,        {{ 17,  19},  { 18,  10}, {0, 6}, "Osc B Level"}},
-    {PROGRAM_FIELD_OSC_B_PULSE_WIDTH,  {{ 20,  21},  { 18,  18}, {1, 2}, "Osc B Pulse Width"}},
-    {PROGRAM_FIELD_OSC_B_FINE_FREQ,    {{ 22,  23},  { 18,  18}, {3, 4}, "Osc B Fine Frequency"}},
+    {PROGRAM_FIELD_OSC_B_FREQ,                {{ 15,  16},  { 10,  10}, {4, 5}, "Osc B Frequency"}},
+    {PROGRAM_FIELD_OSC_B_LEVEL,               {{ 17,  19},  { 10,  18}, {6, 0}, "Osc B Level"}},
+    {PROGRAM_FIELD_OSC_B_PULSE_WIDTH,         {{ 20,  21},  { 18,  18}, {1, 2}, "Osc B Pulse Width"}},
+    {PROGRAM_FIELD_OSC_B_FINE_FREQ,           {{ 22,  23},  { 18,  18}, {3, 4}, "Osc B Fine Frequency"}},
 
-    {PROGRAM_FIELD_FILTER_CUTOFF,      {{ 24,  25},  { 18,  18}, {5, 6}, "Filter Cutoff"}},
-    {PROGRAM_FIELD_FILTER_RESONANCE,   {{ 27,  28},  { 26,  26}, {0, 1}, "Filter Resonance"}},
-    {PROGRAM_FIELD_FILTER_ENV_AMOUNT,  {{ 29,  30},  { 26,  26}, {2, 3}, "Filter Envelope Amount"}},
-    {PROGRAM_FIELD_FILTER_RELEASE,     {{ 31,  32},  { 26,  26}, {4, 5}, "Filter Release"}},
-    {PROGRAM_FIELD_FILTER_SUSTAIN,     {{ 33,  35},  { 34,  26}, {0, 6}, "Filter Sustain"}},
-    {PROGRAM_FIELD_FILTER_DECAY,       {{ 36,  37},  { 34,  34}, {1, 2}, "Filter Decay"}},
-    {PROGRAM_FIELD_FILTER_ATTACK,      {{ 38,  39},  { 34,  34}, {3, 4}, "Filter Attack"}},
+    {PROGRAM_FIELD_FILTER_CUTOFF,             {{ 24,  25},  { 18,  18}, {5, 6}, "Filter Cutoff"}},
+    {PROGRAM_FIELD_FILTER_RESONANCE,          {{ 27,  28},  { 26,  26}, {0, 1}, "Filter Resonance"}},
+    {PROGRAM_FIELD_FILTER_ENV_AMOUNT,         {{ 29,  30},  { 26,  26}, {2, 3}, "Filter Envelope Amount"}},
+    {PROGRAM_FIELD_FILTER_RELEASE,            {{ 31,  32},  { 26,  26}, {4, 5}, "Filter Release"}},
+    {PROGRAM_FIELD_FILTER_SUSTAIN,            {{ 33,  35},  { 26,  34}, {6, 0}, "Filter Sustain"}},
+    {PROGRAM_FIELD_FILTER_DECAY,              {{ 36,  37},  { 34,  34}, {1, 2}, "Filter Decay"}},
+    {PROGRAM_FIELD_FILTER_ATTACK,             {{ 38,  39},  { 34,  34}, {3, 4}, "Filter Attack"}},
 
-    {PROGRAM_FIELD_AMP_RELEASE,        {{ 40,  41},  { 34,  34}, {5, 6}, "Amp Release"}},
-    {PROGRAM_FIELD_AMP_SUSTAIN,        {{ 43,  44},  { 42,  42}, {0, 1}, "Amp Sustain"}},
-    {PROGRAM_FIELD_AMP_DECAY,          {{ 45,  46},  { 42,  42}, {2, 3}, "Amp Decay"}},
-    {PROGRAM_FIELD_AMP_ATTACK,         {{ 47,  48},  { 42,  42}, {4, 5}, "Amp Attack"}},
+    {PROGRAM_FIELD_AMP_RELEASE,               {{ 40,  41},  { 34,  34}, {5, 6}, "Amp Release"}},
+    {PROGRAM_FIELD_AMP_SUSTAIN,               {{ 43,  44},  { 42,  42}, {0, 1}, "Amp Sustain"}},
+    {PROGRAM_FIELD_AMP_DECAY,                 {{ 45,  46},  { 42,  42}, {2, 3}, "Amp Decay"}},
+    {PROGRAM_FIELD_AMP_ATTACK,                {{ 47,  48},  { 42,  42}, {4, 5}, "Amp Attack"}},
 
-    {PROGRAM_FIELD_POLYMOD_FILTER_ENV, {{ 49,  51},  { 42,  50}, {6, 0}, "Poly-Mod Filter Env"}},
-    {PROGRAM_FIELD_POLYMOD_OSC_B,      {{ 52,  53},  { 50,  50}, {1, 2}, "Poly-Mod Osc B"}},
+    {PROGRAM_FIELD_POLYMOD_SOURCE_FILTER_ENV, {{ 49,  51},  { 42,  50}, {6, 0}, "Poly-Mod Source Filter Env"}},
+    {PROGRAM_FIELD_POLYMOD_SOURCE_OSC_B,      {{ 52,  53},  { 50,  50}, {1, 2}, "Poly-Mod Source Osc B"}},
 
-    {PROGRAM_FIELD_LFO_FREQ,           {{ 54,  55},  { 50,  50}, {3, 4}, "LFO Frequency"}},
-    {PROGRAM_FIELD_LFO_AMOUNT,         {{ 56,  57},  { 50,  50}, {5, 6}, "LFO Amount"}},
+    {PROGRAM_FIELD_LFO_FREQ,                  {{ 54,  55},  { 50,  50}, {3, 4}, "LFO Frequency"}},
+    {PROGRAM_FIELD_LFO_AMOUNT,                {{ 56,  57},  { 50,  50}, {5, 6}, "LFO Amount"}},
 
-    {PROGRAM_FIELD_GLIDE,              {{ 59,  60},  { 58,  58}, {0, 1}, "Glide Amount"}},
+    {PROGRAM_FIELD_GLIDE,                     {{ 59,  60},  { 58,  58}, {0, 1}, "Glide Amount"}},
 
-    {PROGRAM_FIELD_NOISE,              {{165, 166},  {162, 162}, {2, 3}, "Noise Amount"}}
+    {PROGRAM_FIELD_OSC_A_SHAPE_SAW,           {{ 65 }, {}, {}, "Osc A Shape Saw"}},
+    {PROGRAM_FIELD_OSC_A_SHAPE_TRI,           {{ 67 }, {}, {}, "Osc A Shape Tri"}},
+    {PROGRAM_FIELD_OSC_A_SHAPE_RECT,          {{ 68 }, {}, {}, "Osc A Shape Rect"}},
+
+    {PROGRAM_FIELD_OSC_B_SHAPE_SAW,           {{ 69 }, {}, {}, "Osc B Shape Saw"}},
+    {PROGRAM_FIELD_OSC_B_SHAPE_TRI,           {{ 70 }, {}, {}, "Osc B Shape Tri"}},
+    {PROGRAM_FIELD_OSC_B_SHAPE_RECT,          {{ 71 }, {}, {}, "Osc B Shape Rect"}},
+
+    {PROGRAM_FIELD_OSC_A_SYNC,                {{ 72 }, {}, {}, "Osc A Sync"}},
+
+    {PROGRAM_FIELD_POLYMOD_DEST_FREQ_A,       {{ 73 }, {}, {}, "Poly-Mod Dest Freq A"}},
+    {PROGRAM_FIELD_POLYMOD_DEST_FILTER,       {{ 75 }, {}, {}, "Poly-Mod Dest Filter"}},
+
+    {PROGRAM_FIELD_LFO_SHAPE,                 {{ 76 }, {}, {}, "LFO Shape"}}, 
+
+    {PROGRAM_FIELD_LFO_DEST,                  {{ 78 }, {}, {}, "LFO Destination"}},
+
+    {PROGRAM_FIELD_FILTER_KEY_TRACKING,       {{ 79 }, {}, {}, "Filter Keyboard Tracking"}},
+
+    {PROGRAM_FIELD_POLYMOD_UNISON_TRACK,      {{ 84 }, {}, {}, "Poly-Mod Unison Track"}},
+
+    {PROGRAM_FIELD_OSC_A_FREQ_POT_MODE,       {{ 87 }, {}, {}, "Osc A Freq Pot Mode"}},
+
+    {PROGRAM_FIELD_NOISE,                     {{165, 166},  {162, 162}, {2, 3}, "Noise Amount"}}
    
 };

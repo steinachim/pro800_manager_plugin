@@ -30,6 +30,9 @@ public:
 
     virtual juce::String toString() const override;
 
+    bool isLfoDestinationEnabled(Pro800ProgramLfoDestination destination) const;
+    void setLfoDestinationEnabled(Pro800ProgramLfoDestination destination, bool enabled);
+
     int getValue(Pro800ProgramField field) const;
     void setValue(Pro800ProgramField field, int value);
 

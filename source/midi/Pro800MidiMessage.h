@@ -155,8 +155,8 @@ protected:
     void setUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow, const std::vector<uint8_t> &overflowBit, uint8_t value);
     void setUint8Value(uint16_t setting, uint8_t value);
 
-    uint16_t getUint16Value(uint16_t msb, uint16_t lsb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const;
-    void setUint16Value(uint16_t msb, uint16_t lsb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value);
+    uint16_t getUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const;
+    void setUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value);
 
     bool isCorrectResponse() const;
     virtual unsigned char getResponseType() const;

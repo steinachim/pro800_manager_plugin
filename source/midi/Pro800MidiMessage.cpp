@@ -117,7 +117,7 @@ void Pro800MidiMessage::setUint8Value(uint16_t setting, const std::vector<uint16
     this->getRawData()[POS_MESSAGE_START + setting] = value;
 }
 
-uint16_t Pro800MidiMessage::getUint16Value(uint16_t msb, uint16_t lsb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const
+uint16_t Pro800MidiMessage::getUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const
 {
     if ( !isValid() )
     {  
@@ -155,7 +155,7 @@ uint16_t Pro800MidiMessage::getUint16Value(uint16_t msb, uint16_t lsb, const std
 
     if ( overflowBits.size() > 1)
     {
-        uint8_t overflowByte2 = getUint8Value(overflowBytes[0]);
+        uint8_t overflowByte2 = getUint8Value(overflowBytes[1]);
         uint8_t overflowValue2 = (overflowByte2 & (1 << overflowBits.at(1))) ? 1 : 0;
         
         resultValue |= ((uint16_t)overflowValue2 << 15);
@@ -165,7 +165,7 @@ uint16_t Pro800MidiMessage::getUint16Value(uint16_t msb, uint16_t lsb, const std
    
 }
 
-void Pro800MidiMessage::setUint16Value(uint16_t msb, uint16_t lsb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value)
+void Pro800MidiMessage::setUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value)
 {
     if ( !isValid() )
     {

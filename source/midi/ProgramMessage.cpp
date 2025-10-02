@@ -84,6 +84,21 @@ void ProgramMessage::setProgramName(const std::string &newName)
     std::copy(formattedProgramName.begin(), formattedProgramName.end(), this->getRawData() + POS_MESSAGE_START + PROGRAM_NAME_FIRST_CHAR);
 }
 
+bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestination destination) const
+{
+    const uint8_t lfoDestinations = (uint8_t)getValue(PROGRAM_FIELD_LFO_DEST);
+    return lfoDestinations & destination;
+}
+
+void ProgramMessage::setLfoDestinationEnabled(Pro800ProgramLfoDestination destination, bool enabled)
+{
+    uint8_t lfoDestinations = (uint8_t)getValue(PROGRAM_FIELD_LFO_DEST);
+    uint8_t targetValue = (enabled ? destination : 0);
+
+    lfoDestinations = (lfoDestinations & ~destination) | targetValue;
+    setValue(PROGRAM_FIELD_LFO_DEST, lfoDestinations);
+}
+
 juce::String ProgramMessage::toString() const
 {
     std::stringstream ss;
@@ -92,7 +107,10 @@ juce::String ProgramMessage::toString() const
 
     for ( auto param : PRO800_PROGRAM_FIELDS )
     {
-        ss << param.second.name << ": " << getValue(param.first) << "\n";
+        int value = getValue(param.first);
+        int maxValue = ( param.second.dataBytes.size() == 2 ? 65535 : 127 );
+
+        ss << param.second.name << ": " << getValue(param.first) << " (display: " << value * 999 / maxValue << ")\n";
     }
        
     ss << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
