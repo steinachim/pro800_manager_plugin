@@ -135,6 +135,7 @@ public:
     static const uint8_t OVERFLOW_BIT_NONE= 0xFF;
 
     Pro800MidiMessage(const juce::MidiMessage &message);
+    Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize);
     virtual ~Pro800MidiMessage();
 
     virtual MessageType getMessageType() const { return MessageType::PRO800_UNKNOWN_MESSAGE;}

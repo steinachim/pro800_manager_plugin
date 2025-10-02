@@ -25,6 +25,10 @@ private:
     juce::TextButton button_RefreshDump { "Refresh Dump" };
     juce::TextButton button_Compare { "Compare" };
     juce::TextButton button_Clear { "Clear" };
+    juce::TextButton button_Export { "Export" };
+    juce::TextButton button_Import { "Import" };
 
     ProgramModel *model_ProgramList;
+
+    std::unique_ptr<juce::FileChooser> fileChooser;
 };

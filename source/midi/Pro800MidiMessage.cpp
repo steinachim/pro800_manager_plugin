@@ -2,14 +2,18 @@
 
 #include <cstring>
 
-Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message)
+Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message.getRawData(), message.getRawDataSize())
 {
-    const int numBytes = message.getRawDataSize();
-    
-    this->rawData = new uint8_t[(size_t)numBytes];
-    std::memcpy(rawData, message.getRawData(), (size_t)numBytes);
-    this->rawDataSize = numBytes;
 }
+
+Pro800MidiMessage::Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize)
+{
+    this->rawDataSize = newRawDataSize;
+    
+    this->rawData = new uint8_t[(size_t)rawDataSize];
+    std::memcpy(rawData, newRawData, (size_t)rawDataSize);
+}
+
 
 Pro800MidiMessage::~Pro800MidiMessage()
 {

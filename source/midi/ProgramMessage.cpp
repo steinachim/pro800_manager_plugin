@@ -22,6 +22,10 @@ ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : Pro800MidiMes
 {
 }
 
+ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800MidiMessage(newRawData, newRawDataSize)
+{
+}
+
 bool ProgramMessage::isValid() const
 {
     // TODO: add length check based on version
@@ -171,4 +175,20 @@ std::string ProgramMessage::getValueString(uint16_t firstCharPos, uint16_t lastC
 unsigned char ProgramMessage::getResponseType() const
 {
     return RESPONSE_ID;
+}
+
+void ProgramMessage::exportProgram(const juce::File &exportFile) const
+{
+    bool result = exportFile.appendData(this->getRawData(), this->getRawDataSize());
+    if ( !result )
+    {
+        std::cerr << "exportProgram: Unable to write file." << std::endl;
+    }
+}
+
+shared_ptr<ProgramMessage> ProgramMessage::importProgram(const juce::File &importFile)
+{
+    juce::MemoryBlock memBlock;
+    importFile.loadFileAsData(memBlock);
+    return std::shared_ptr<ProgramMessage>(new ProgramMessage((const uint8_t*)memBlock.getData(), memBlock.getSize()));
 }

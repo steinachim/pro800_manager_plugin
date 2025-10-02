@@ -15,11 +15,50 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
         requestProgramDump(0, (int)this->spinBox_MaxProgramNumber.getValue()+1);
     };
 
-    button_Compare.onClick = [this] { compareSelectedPrograms(); };
+    button_Compare.onClick = [this] { 
+        compareSelectedPrograms(); 
+    };
 
     button_Clear.onClick = [this] {
         model_ProgramList->clear();
         listBox_ProgramList.updateContent();
+    };
+
+    button_Export.onClick = [this] {
+        auto selectedRows = listBox_ProgramList.getSelectedRows();
+        if (selectedRows.size() != 1)
+        {
+            return;
+        }
+
+        fileChooser = std::make_unique<juce::FileChooser> ("Please select the filename to export...",
+            juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+            "*.syx");
+
+        fileChooser->launchAsync (juce::FileBrowserComponent::saveMode, [this, selectedRows] (const juce::FileChooser& chooser) {
+            juce::File exportFile (chooser.getResult());
+
+            auto programMessage = model_ProgramList->getProgramForRow (selectedRows[0]);
+            programMessage->exportProgram (exportFile);
+        });
+    };
+
+    button_Import.onClick = [this] {
+        fileChooser = std::make_unique<juce::FileChooser> ("Please select the file to import...",
+            juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+            "*.syx");
+
+        fileChooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles, [this] (const juce::FileChooser& chooser) {
+            juce::File importFile (chooser.getResult());
+
+            if ( !importFile.exists() )
+            {
+                return;
+            }
+
+            std::shared_ptr<ProgramMessage> programMessage = ProgramMessage::importProgram(importFile);
+            this->handlePro800ProgramDump(programMessage);
+        });
     };
 
     addAndMakeVisible(listBox_ProgramList);
@@ -28,6 +67,8 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     addAndMakeVisible(button_RefreshDump);
     addAndMakeVisible(button_Compare);
     addAndMakeVisible(button_Clear);
+    addAndMakeVisible(button_Export);
+    addAndMakeVisible(button_Import);
 }
 
 ProgramManagementTab::~ProgramManagementTab()
@@ -46,6 +87,8 @@ void ProgramManagementTab::resized()
     button_Compare.setBounds(area.removeFromRight(100));
     button_RefreshDump.setBounds(area.removeFromRight(100));
     spinBox_MaxProgramNumber.setBounds(area.removeFromRight(100));
+    button_Export.setBounds(area.removeFromRight(100));
+    button_Import.setBounds(area.removeFromRight(100));
 }
 
 void ProgramManagementTab::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage)

@@ -17,6 +17,7 @@ public:
     static juce::MidiMessage request(int programNumber);
 
     ProgramMessage(const juce::MidiMessage &message);
+    ProgramMessage(const uint8_t *newRawData, int newRawDataSize);
     virtual MessageType getMessageType() const override { return MessageType::PRO800_PROGRAM_MESSAGE;}
 
     virtual bool isValid() const override;
@@ -35,6 +36,9 @@ public:
 
     int getValue(Pro800ProgramField field) const;
     void setValue(Pro800ProgramField field, int value);
+
+    void exportProgram(const juce::File &exportFile) const;
+    static std::shared_ptr<ProgramMessage> importProgram(const juce::File &importFile);
 
 protected:
     unsigned char getResponseType() const override;
