@@ -9,11 +9,12 @@
 class ProgramMessage : public Pro800MidiMessage
 {
 public:
-    static const unsigned short NUM_PROGRAMS = 400;
-    static const unsigned char REQUEST_ID = 0x77;
-    static const unsigned char RESPONSE_ID = 0x78;
+    static const uint16_t NUM_PROGRAMS = 400;
+    static const uint8_t REQUEST_ID = 0x77;
+    static const uint8_t RESPONSE_ID = 0x78;
 
-    static const unsigned short MESSAGE_SIZE_VERSION_111 = 210;
+    static const uint8_t SUPPORTED_PRESET_VERSION = 111;
+    static const int PROGRAM_MESSAGE_SIZE = 210;
 
     static juce::MidiMessage request(int programNumber);
 

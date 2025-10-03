@@ -20,7 +20,17 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     };
 
     button_Clear.onClick = [this] {
-        model_ProgramList->clear();
+        //model_ProgramList->clear();
+
+        auto selectedRows = listBox_ProgramList.getSelectedRows();
+        if (selectedRows.size() != 1)
+        {
+            return;
+        }
+
+        auto program = model_ProgramList->getProgramForRow(selectedRows[0]);
+        program->setProgramName("ABCDEFGHIJKLMNOPQ");
+
         listBox_ProgramList.updateContent();
     };
 
@@ -39,7 +49,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
             juce::File exportFile (chooser.getResult());
 
             auto programMessage = model_ProgramList->getProgramForRow (selectedRows[0]);
-            exportFile.replaceWithData(programMessage->getRawData(), programMessage->getRawDataSize());
+            exportFile.replaceWithData(programMessage->getRawData()->data(), programMessage->getRawData()->size());
         });
     };
 
@@ -58,7 +68,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
             juce::MemoryBlock memBlock;
             importFile.loadFileAsData(memBlock);
-            std::shared_ptr<ProgramMessage> programMessage(new ProgramMessage((const uint8_t*)memBlock.getData(), memBlock.getSize()));            
+            std::shared_ptr<ProgramMessage> programMessage(new ProgramMessage((const uint8_t*)memBlock.getData(), (int)memBlock.getSize()));            
             this->handlePro800ProgramDump(programMessage);
         });
     };
@@ -111,17 +121,17 @@ void ProgramManagementTab::compareSelectedPrograms()
     auto firstProgram = model_ProgramList->getProgramForRow(selectedRows[0]);
     auto secondProgram = model_ProgramList->getProgramForRow(selectedRows[1]);
 
-    int firstSize = firstProgram->getRawDataSize();
-    int secondSize = secondProgram->getRawDataSize();
-    int minNumBytes = std::min(firstSize, secondSize);
+    size_t firstSize = firstProgram->getRawData()->size();
+    size_t secondSize = secondProgram->getRawData()->size();
+    size_t minNumBytes = std::min(firstSize, secondSize);
 
     juce::String diffs;
-    for( int i = 0; i < minNumBytes; i++ )
+    for( size_t i = 0; i < minNumBytes; i++ )
     {
-        uint8_t firstByte = firstProgram->getRawData()[i];
-        uint8_t secondByte = secondProgram->getRawData()[i];
+        uint8_t firstByte = firstProgram->getRawData()->at(i);
+        uint8_t secondByte = secondProgram->getRawData()->at(i);
 
-        if (firstProgram->getRawData()[i] != secondProgram->getRawData()[i])
+        if (firstByte != secondByte)
         {
             diffs += juce::String::formatted("byte: %3d (offset: %3d) - 0x%02x (%3d)  <=>   0x%02x (%3d)\n", i, i - Pro800MidiMessage::POS_MESSAGE_START, firstByte, firstByte, secondByte, secondByte);
         }

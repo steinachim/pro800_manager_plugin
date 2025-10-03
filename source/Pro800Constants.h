@@ -426,8 +426,6 @@ enum Pro800ProgramSpecialParameters
     PROGRAM_NUM_MSB = 1,
 
     PROGRAM_NAME_FIRST_CHAR = 174,
-    PROGRAM_NAME_UNUSED_1   = 178,
-    PROGRAM_NAME_UNUSED_2   = 186,
     PROGRAM_NAME_LAST_CHAR  = 191,
 };
 
@@ -445,6 +443,7 @@ enum Pro800ProgramLfoDestination
 enum Pro800ProgramField
 {
     PROGRAM_FIELD_NUM = 0,
+    PROGRAM_FIELD_STORAGE_CODE,
     PROGRAM_FIELD_VERSION,
 
     PROGRAM_FIELD_OSC_A_FREQ,
@@ -522,12 +521,36 @@ enum Pro800ProgramField
     PROGRAM_FIELD_VOICE_SPREAD_ENABLE,
     PROGRAM_FIELD_KEY_TRACKING_REF_NOTE,
 
-    PROGRAM_FIELD_NAME
+    PROGRAM_FIELD_NAME,
+
+    PROGRAM_FIELD_VOICE1_OFFSET,
+    PROGRAM_FIELD_VOICE2_OFFSET,
+    PROGRAM_FIELD_VOICE3_OFFSET,
+    PROGRAM_FIELD_VOICE4_OFFSET,
+    PROGRAM_FIELD_VOICE5_OFFSET,
+    PROGRAM_FIELD_VOICE6_OFFSET,
+    PROGRAM_FIELD_VOICE7_OFFSET,
+    PROGRAM_FIELD_VOICE8_OFFSET,
+
+    PROGRAM_FIELD_TUNING_C,
+    PROGRAM_FIELD_TUNING_C_SHARP,
+    PROGRAM_FIELD_TUNING_D,
+    PROGRAM_FIELD_TUNING_D_SHARP,
+    PROGRAM_FIELD_TUNING_E,
+    PROGRAM_FIELD_TUNING_F,
+    PROGRAM_FIELD_TUNING_F_SHARP,
+    PROGRAM_FIELD_TUNING_G,
+    PROGRAM_FIELD_TUNING_G_SHARP,
+    PROGRAM_FIELD_TUNING_A,
+    PROGRAM_FIELD_TUNING_A_SHARP,
+    PROGRAM_FIELD_TUNING_B
+    
 };
 
 const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
-    // field, {lsb, msb, {overflow 1, overflow 2}, {bit8, bit16}}}
+    // field, {first byte, num bytes, name, isSigned}
+    {PROGRAM_FIELD_STORAGE_CODE,              {3, 4, "Storage Code"}},
     {PROGRAM_FIELD_VERSION,                   {7, 1, "Version"}},
 
     {PROGRAM_FIELD_OSC_A_FREQ,                {8, 2, "Osc A Frequency"}},
@@ -615,36 +638,35 @@ const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
     {PROGRAM_FIELD_MODWHEEL_TARGET,           {99, 1, "Mod Wheel Target"}},
 
     // 100 = reserved
-    // 101 = Voice 1 Offset to root
-    // 102 = Voice 2 Offset to root
-    // 103 = Voice 3 Offset to root
-    // 104 = Voice 4 Offset to root
-    // 105 = Voice 5 Offset to root    
+    {PROGRAM_FIELD_VOICE1_OFFSET,             {101, 1, "Voice 1 Offset"}},
+    {PROGRAM_FIELD_VOICE2_OFFSET,             {102, 1, "Voice 2 Offset"}},
+    {PROGRAM_FIELD_VOICE3_OFFSET,             {103, 1, "Voice 3 Offset"}},
+    {PROGRAM_FIELD_VOICE4_OFFSET,             {104, 1, "Voice 4 Offset"}},
+    {PROGRAM_FIELD_VOICE5_OFFSET,             {105, 1, "Voice 5 Offset"}},
     // 106 = overflow
-    // 107 = Voice 6 Offset to root
-    // 108 = Voice 7 Offset to root
-    // 109 = Voice 8 Offset to root
+    {PROGRAM_FIELD_VOICE6_OFFSET,             {107, 1, "Voice 6 Offset"}},
+    {PROGRAM_FIELD_VOICE7_OFFSET,             {108, 1, "Voice 7 Offset"}},
+    {PROGRAM_FIELD_VOICE8_OFFSET,             {109, 1, "Voice 8 Offset"}},
 
-    // 110 - 113 = Tune per note: C
+    {PROGRAM_FIELD_TUNING_C,                  {110, 4, "Tune Per Note - C"}},
     // 114 = overflow
-    // 115 - 118 = Tune per note: C#
-    // 119 - 123 = Tune per note: D
+    {PROGRAM_FIELD_TUNING_C_SHARP,            {115, 4, "Tune Per Note - C#"}},
+    {PROGRAM_FIELD_TUNING_D,                  {119, 4, "Tune Per Note - D"}},
     // 122 = overflow
-    // 124 - 127 = Tune per note: D#
-    // 128 - 132 = Tune per note: E
+    {PROGRAM_FIELD_TUNING_D_SHARP,            {124, 4, "Tune Per Note - D#"}},
+    {PROGRAM_FIELD_TUNING_E,                  {128, 4, "Tune Per Note - E"}},
     // 130 = overflow
-    // 133 - 136 = Tune per note: F
-    // 137 - 141 = Tune per note: F#
+    {PROGRAM_FIELD_TUNING_F,                  {133, 4, "Tune Per Note - F"}},
+    {PROGRAM_FIELD_TUNING_F_SHARP,            {137, 4, "Tune Per Note - F#"}},
     // 138 = overflow
-    // 142 - 145 = Tune per note: G
+    {PROGRAM_FIELD_TUNING_G,                  {142, 4, "Tune Per Note - G"}},
     // 146 = overflow
-    // 147 - 150 = Tune per note: G#
-    // 151 - 155 = Tune per note: A
+    {PROGRAM_FIELD_TUNING_G_SHARP,            {147, 4, "Tune Per Note - G#"}},
+    {PROGRAM_FIELD_TUNING_A,                  {151, 4, "Tune Per Note - A"}},
     // 154 = overflow
-    // 156 - 159 = Tune per note: A#
-    // 160 - 164 = Tune per note: B
+    {PROGRAM_FIELD_TUNING_A_SHARP,            {156, 4, "Tune Per Note - A#"}},
+    {PROGRAM_FIELD_TUNING_B,                  {160, 4, "Tune Per Note - B"}},
     // 162 = overflow
-
 
     {PROGRAM_FIELD_NOISE,                     {165, 2, "Noise Amount"}},
     {PROGRAM_FIELD_AMP_AFTERTOUCH_AMOUNT,     {167, 2, "Amp Aftertouch Amount"}},

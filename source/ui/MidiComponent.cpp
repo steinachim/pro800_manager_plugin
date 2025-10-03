@@ -81,10 +81,12 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
             break;
         }
 
+        case MIDI_CC_MESSAGE:
+        case MIDI_LOG_MESSAGE:
         case PRO800_UNKNOWN_MESSAGE:
         default:
+            // should never be reached
             std::cerr << "[WARNING] handlePro800Message(): Unsupported / unknown message type" << type << std::endl;
-            // do nothing
     }
 }
 
@@ -137,8 +139,8 @@ void MidiComponent::setupMidiCCComponent(uint8_t midiCC, juce::Component *compon
             // radio button
             button->onClick = [this, button, midiCC]
             {
-                uint8_t midiValue = (int)button->getProperties()[RADIO_VALUE_PROPERTY];
-                midiHandler->sendMidiCCMessage(midiCC, midiValue);
+                int midiValue = button->getProperties()[RADIO_VALUE_PROPERTY];
+                midiHandler->sendMidiCCMessage(midiCC, (uint8_t)midiValue);
             };
         }
         else
@@ -191,14 +193,14 @@ std::shared_ptr<VersionMessage> &MidiComponent::getCurrentVersion()
     return this->currentVersion;
 }
 
-void MidiComponent::setComponentValue (juce::Component* component, int identifier, int value, int maxValue)
+void MidiComponent::setComponentValue (juce::Component* component, int /*identifier*/, int value, int maxValue)
 {
     if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
         // scale value to slider
         if ( maxValue != -1 )
         {
-            value = (double) value / (double)maxValue * (slider->getMaximum() - slider->getMinimum()) + slider->getMinimum();
+            value = (int)((double) value / (double)maxValue * (slider->getMaximum() - slider->getMinimum()) + slider->getMinimum());
         }
 
         slider->setValue (value, juce::dontSendNotification);

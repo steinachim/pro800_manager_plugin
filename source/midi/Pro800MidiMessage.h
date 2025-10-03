@@ -81,46 +81,14 @@
  * 78 [00-7F] [00-03] [...] - Set program dump (param1 = program lsb, param2 = program msb), following bytes = program data (may be empty -> set to "uninitialized")
  * 7D - Factory Reset (no confirmation!)
  * 
- * 
- * 
- * Message dump formats:
- * old format: 
- * 00000000: f000 2032 0001 2400 7802 0001 2516 6100  .. 2..$.x...%.a.
- * 00000010: 6d00 7521 7f7f 4434 0005 0047 006f 2e00  m.u!..D4...G.o..
- * 00000020: 1866 4e08 0000 0000 0050 0025 7000 4000  .fN......P.%p.@.
- * 00000030: 4000 7112 0070 0000 004d 0031 0000 0000  @.q..p...M.1....
- * 00000040: 2900 4700 0000 0000 0000 0000 0001 0000  ).G.............
- * 00000050: 0100 0000 0001 0104 0100 0000 0100 0103  ................
- * 00000060: 0202 0000 0000 0000 0000 0000 0000 0000  ................
- * 00000070: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 00000080: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 00000090: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 000000a0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 000000b0: 0000 0000 0001 0053 7472 6900 6e67 7300  .......Stri.ngs.
- * 000000c0: f7                                       .
- * 
- * same message, new format:
- * 00000000: f000 2032 0001 2400 7802 0001 2516 6100  .. 2..$.x...%.a.
- * 00000010: 6f00 7521 7f7f 4434 0005 0047 006f 2e00  o.u!..D4...G.o..
- * 00000020: 1866 4e08 0000 0000 0050 0025 7000 4000  .fN......P.%p.@.
- * 00000030: 4000 7112 0070 0000 004d 0031 0000 0000  @.q..p...M.1....
- * 00000040: 2900 4700 0000 0000 0000 0000 0001 0000  ).G.............
- * 00000050: 0100 0000 0001 0104 0100 0000 0100 0103  ................
- * 00000060: 0202 0000 0000 0000 0000 0000 0000 0000  ................
- * 00000070: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 00000080: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 00000090: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 000000a0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
- * 000000b0: 0000 0000 0001 0053 7472 6900 6e67 7300  .......Stri.ngs.
- * 000000c0: 7f00 0000 0000 0000 0000 0000 0003 0000  ................
- * 000000d0: 60f7                                     `.
  */
 
 class Pro800MidiMessage
 {
 public:
-    static constexpr uint8_t PRO800_HEADER[] =
-    {
+    const uint8_t POS_OFFSET = 10; // TODO: cleanup and remove
+
+    const static inline std::vector<uint8_t> PRO800_HEADER = {
         0x00, 0x20, 0x32,      // Brand ID (Behringer)
         0x00, 0x01, 0x24,      // Product ID (Pro-800)
         0x00                   // CPU ID
@@ -131,9 +99,6 @@ public:
 
     static const uint8_t RESPONSE_UNINIT = 0xFF;
 
-    static const uint16_t OVERFLOW_BYTE_NONE = 0xFFFF;
-    static const uint8_t OVERFLOW_BIT_NONE= 0xFF;
-
     Pro800MidiMessage(const juce::MidiMessage &message);
     Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize);
     virtual ~Pro800MidiMessage();
@@ -143,25 +108,23 @@ public:
     virtual juce::String toString() const;
     std::shared_ptr<juce::MidiMessage> toMidiMessage() const;
 
-    uint8_t *getRawData() const;
-    int getRawDataSize() const;
-
     virtual bool isValid() const;
 
+    std::shared_ptr<std::vector<uint8_t>> &getRawData();
+
 protected:
-    int getValue(uint16_t firstByte, uint8_t numBytes, bool isSigned) const;
-    void setValue(uint16_t firstByte, uint8_t numBytes, int value);
+    int getValue(int firstByte, int numBytes, bool isSigned) const;
+    void setValue(int firstByte, int numBytes, int value);
+
+    std::string getStringValue(int firstByte, int lastByte) const;
+    void setStringValue(int firstByte, int lastByte, const std::string &newValue);
 
     bool isCorrectResponse() const;
     virtual unsigned char getResponseType() const;
 
 protected:
-    uint8_t getUint8Value(uint16_t setting) const;
-    void setUint8Value(uint16_t setting, uint8_t value);
+    uint8_t getUint8Value(size_t position) const;
+    void setUint8Value(size_t position, uint8_t value);
 
-    std::unique_ptr<std::vector<uint8_t>> rawData;
-
-private:
-    bool isPro800Header() const;
-
+    std::shared_ptr<std::vector<uint8_t>> rawData;
 };

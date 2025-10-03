@@ -25,25 +25,25 @@ ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : ProgramMessag
 ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800MidiMessage(newRawData, newRawDataSize)
 {
     // if this message is an older version (pre 111), then update version to 111 and reserve memory accordingly
-    if ( newRawDataSize < MESSAGE_SIZE_VERSION_111 )
+    if ( newRawDataSize < PROGRAM_MESSAGE_SIZE )
     {   
         // resize data array to new size     
-        this->rawData->resize(MESSAGE_SIZE_VERSION_111, 0);
+        this->rawData->resize(PROGRAM_MESSAGE_SIZE, 0);
 
         // move 0xF7 from previous last position to new last position
-        this->rawData->at(newRawDataSize-1) = 0x00;
+        this->rawData->at((size_t)(newRawDataSize-1)) = 0x00;
         this->rawData->at(this->rawData->size()-1 ) = 0xF0;
 
         // update program version info
-        this->setValue(PROGRAM_FIELD_VERSION, 111);
+        this->setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
     }
 }
 
 bool ProgramMessage::isValid() const
 {
-    // TODO: add length check based on version
+    // length is handled in the constructor. Check version (should always be 111).
     return Pro800MidiMessage::isValid() 
-        && getRawDataSize() > POS_MESSAGE_START;
+        && getValue( PROGRAM_FIELD_VERSION ) == 111;
 }
 
 uint16_t ProgramMessage::getProgramNumber() const
@@ -77,50 +77,12 @@ void ProgramMessage::setProgramNumber(uint16_t programNumber)
 
 std::string ProgramMessage::getProgramName() const
 {
-    int lastCharPos = std::min((int)PROGRAM_NAME_LAST_CHAR, getRawDataSize() - POS_MESSAGE_START - 2); // last character cannot be the final 0xF7
-    const char *stringStart = (char*)getRawData() + Pro800MidiMessage::POS_MESSAGE_START + PROGRAM_NAME_FIRST_CHAR;
-    const size_t stringLength = lastCharPos - PROGRAM_NAME_FIRST_CHAR + 1;
-
-    std::string value = std::string(stringStart, stringLength);
-
-    // remove unused overflow characters
-    const size_t unusedPos1 = PROGRAM_NAME_UNUSED_1 - PROGRAM_NAME_FIRST_CHAR;
-    if ( unusedPos1 < value.length() )
-    {
-        value.erase(unusedPos1, 1);
-    }
-
-    const size_t unusedPos2 = PROGRAM_NAME_UNUSED_2 - PROGRAM_NAME_FIRST_CHAR - 1; // moved 1 to the left because of previous deletion
-    if ( unusedPos2 < value.length() )
-    {
-        value.erase(unusedPos2, 1);
-    }
-
-    // remove potential trailing null values
-    value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());
-
-    return value;
+    return getStringValue(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR);
 }
-
-
 
 void ProgramMessage::setProgramName(const std::string &newName)
 {
-    /*
-      - overflow bytes in the name must be filled with their correct values
-      - name structure: XX XX XX XX 00 XX XX XX XX XX XX XX 00 XX XX XX XX XX
-     */
-    std::vector<unsigned char> formattedProgramName = std::vector<unsigned char>(newName.begin(), newName.end());
-    formattedProgramName.resize(PROGRAM_NAME_LAST_CHAR-PROGRAM_NAME_FIRST_CHAR+1, 0x00);
-
-    // 
-    int overflowPos1 = PROGRAM_NAME_UNUSED_1 - PROGRAM_NAME_FIRST_CHAR;
-    formattedProgramName.insert(formattedProgramName.begin() + overflowPos1, getUint8Value(PROGRAM_NAME_UNUSED_1));
-
-    int overflowPos2 = PROGRAM_NAME_UNUSED_2 - PROGRAM_NAME_FIRST_CHAR;
-    formattedProgramName.insert(formattedProgramName.begin() + overflowPos2, getUint8Value(PROGRAM_NAME_UNUSED_2));
-
-    std::copy(formattedProgramName.begin(), formattedProgramName.end(), this->getRawData() + POS_MESSAGE_START + PROGRAM_NAME_FIRST_CHAR);
+    setStringValue(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR, newName);
 }
 
 bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestination destination) const
@@ -152,7 +114,6 @@ juce::String ProgramMessage::toString() const
         ss << param.second.name << ": " << getValue(param.first) << " (display: " << value * 999 / maxValue << ")\n";
     }
        
-    ss << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
     return ss.str();
 }
 

@@ -20,7 +20,7 @@ SettingsMessage::SettingsMessage(const juce::MidiMessage &message) : Pro800MidiM
 
 bool SettingsMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && (getRawDataSize() == SETTINGS_MESSAGE_SIZE);
+    return Pro800MidiMessage::isValid() && (rawData->size() == SETTINGS_MESSAGE_SIZE);
 }
 
 juce::String SettingsMessage::toString() const
@@ -36,7 +36,6 @@ juce::String SettingsMessage::toString() const
         ss << param.second.name << ": " << getValue(param.first) << " (display: " << value * 999 / maxValue << ")\n";
     }
        
-    ss << "raw: " << juce::String::toHexString(getRawData(), getRawDataSize());
     return ss.str();
 }
 
