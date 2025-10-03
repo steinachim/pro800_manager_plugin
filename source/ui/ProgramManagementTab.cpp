@@ -39,7 +39,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
             juce::File exportFile (chooser.getResult());
 
             auto programMessage = model_ProgramList->getProgramForRow (selectedRows[0]);
-            programMessage->exportProgram (exportFile);
+            exportFile.replaceWithData(programMessage->getRawData(), programMessage->getRawDataSize());
         });
     };
 
@@ -56,7 +56,9 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
                 return;
             }
 
-            std::shared_ptr<ProgramMessage> programMessage = ProgramMessage::importProgram(importFile);
+            juce::MemoryBlock memBlock;
+            importFile.loadFileAsData(memBlock);
+            std::shared_ptr<ProgramMessage> programMessage(new ProgramMessage((const uint8_t*)memBlock.getData(), memBlock.getSize()));            
             this->handlePro800ProgramDump(programMessage);
         });
     };
@@ -93,9 +95,6 @@ void ProgramManagementTab::resized()
 
 void ProgramManagementTab::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage)
 {
-    std::cout << "ProgramManagementTab::handlePro800ProgramDump():\n"
-              << programMessage->toString() << std::endl;
-
     model_ProgramList->addElement( programMessage );
     listBox_ProgramList.updateContent();
 }

@@ -13,6 +13,8 @@ public:
     static const unsigned char REQUEST_ID = 0x77;
     static const unsigned char RESPONSE_ID = 0x78;
 
+    static const unsigned short MESSAGE_SIZE_VERSION_111 = 210;
+
     static juce::MidiMessage request(int programNumber);
 
     ProgramMessage(const juce::MidiMessage &message);
@@ -35,9 +37,6 @@ public:
 
     int getValue(Pro800ProgramField field) const;
     void setValue(Pro800ProgramField field, int value);
-
-    void exportProgram(const juce::File &exportFile) const;
-    static std::shared_ptr<ProgramMessage> importProgram(const juce::File &importFile);
 
 protected:
     unsigned char getResponseType() const override;

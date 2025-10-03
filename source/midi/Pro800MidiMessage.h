@@ -148,9 +148,6 @@ public:
 
     virtual bool isValid() const;
 
-    int getIntValue(const Pro800Parameter &param) const;
-    void setIntValue(const Pro800Parameter &param, int value);
-
 protected:
     uint8_t getUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow = {}, const std::vector<uint8_t> &overflowBit = {}) const;
     void setUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow, const std::vector<uint8_t> &overflowBit, uint8_t value);
@@ -159,12 +156,14 @@ protected:
     uint16_t getUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const;
     void setUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value);
 
+    int getValue(uint16_t firstByte, uint8_t numBytes) const;
+    void setValue(uint16_t firstByte, uint8_t numBytes, int value);
+
     bool isCorrectResponse() const;
     virtual unsigned char getResponseType() const;
 
-private:
+protected:
     bool isPro800Header() const;
 
-    uint8_t *rawData;
-    int rawDataSize;
+    std::unique_ptr<std::vector<uint8_t>> rawData;
 };

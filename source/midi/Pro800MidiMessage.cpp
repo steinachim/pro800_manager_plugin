@@ -8,36 +8,34 @@ Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message) : Pro800M
 
 Pro800MidiMessage::Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize)
 {
-    this->rawDataSize = newRawDataSize;
-    
-    this->rawData = new uint8_t[(size_t)rawDataSize];
-    std::memcpy(rawData, newRawData, (size_t)rawDataSize);
+    this->rawData = std::make_unique<std::vector<uint8_t>>();
+    this->rawData->insert(this->rawData->end(), &newRawData[0], &newRawData[newRawDataSize]);  
 }
 
 
 Pro800MidiMessage::~Pro800MidiMessage()
 {
-    delete this->rawData;
+
 }
 
 juce::String Pro800MidiMessage::toString() const
 {
-    return "Pro800 SysEx Message: " + juce::String::toHexString(rawData, rawDataSize);
+    return "Pro800 SysEx Message: " + juce::String::toHexString(rawData->data(), rawData->size());
 }
 
 std::shared_ptr<juce::MidiMessage> Pro800MidiMessage::toMidiMessage() const
 {
-    return std::shared_ptr<juce::MidiMessage>(new juce::MidiMessage(rawData, rawDataSize));
+    return std::shared_ptr<juce::MidiMessage>(new juce::MidiMessage(rawData->data(), rawData->size()));
 }
 
 uint8_t *Pro800MidiMessage::getRawData() const
 {
-    return this->rawData;
+    return this->rawData->data();
 }
 
 int Pro800MidiMessage::getRawDataSize() const
 {
-    return this->rawDataSize;
+    return this->rawData->size();
 }
 
 bool Pro800MidiMessage::isValid() const
@@ -47,7 +45,7 @@ bool Pro800MidiMessage::isValid() const
 
 bool Pro800MidiMessage::isCorrectResponse() const
 {
-    return (this->rawDataSize > POS_MESSAGE_TYPE && this->rawData[POS_MESSAGE_TYPE] == getResponseType()) || getResponseType() == RESPONSE_UNINIT;
+    return (this->getRawDataSize() > POS_MESSAGE_TYPE && this->rawData->at(POS_MESSAGE_TYPE) == getResponseType()) || getResponseType() == RESPONSE_UNINIT;
 }
 
 unsigned char Pro800MidiMessage::getResponseType() const
@@ -57,16 +55,16 @@ unsigned char Pro800MidiMessage::getResponseType() const
 
 bool Pro800MidiMessage::isPro800Header() const
 {
-    if (this->rawDataSize < POS_MESSAGE_TYPE)
+    if (this->getRawDataSize() < POS_MESSAGE_TYPE)
         return false;
 
     // is it sysex?
-    if ( this->rawData[0] != 0xF0 ) 
+    if ( this->rawData->at(0) != 0xF0 ) 
         return false;
     
     for( int i = 1; i < 7; i++ )
     {
-        if ( this->rawData[i] != PRO800_HEADER[i-1] )
+        if ( this->rawData->at(i) != PRO800_HEADER[i-1] )
             return false;
     }
 
@@ -123,6 +121,7 @@ void Pro800MidiMessage::setUint8Value(uint16_t setting, const std::vector<uint16
 
 uint16_t Pro800MidiMessage::getUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const
 {
+
     if ( !isValid() )
     {  
         std::cerr << "ERROR: Trying to get value from invalid message!" << std::endl;      
@@ -147,6 +146,31 @@ uint16_t Pro800MidiMessage::getUint16Value(uint16_t lsb, uint16_t msb, const std
         return 0;
     }
 
+
+    /*std::cout << "getUint16Value(lsb = " << lsb << ", msb = " << msb << ", ";
+    for ( size_t i = 0; i < overflowBytes.size(); i++ )
+    {
+        std::cout << "overflowByte[" << i << "] = " << (int)overflowBytes[i] << ", overflowBit[" << i << "] = " << (int)overflowBits[i] << ", ";
+    }
+    std::cout << ")\n";
+    
+    uint8_t num_bytes = 2;
+    uint8_t pos_offset = 10;
+    int bytes[] = {lsb, lsb + num_bytes -1 };
+    
+    std::cout << "--> calculated(lsb = " << bytes[0] << ", msb = " << bytes[1] << ", ";
+    for ( int i = 0; i < num_bytes; i++ )
+    {
+        uint8_t offset_byte = bytes[i] - pos_offset;
+        uint8_t overflowByte = (offset_byte / 8) * 8 + pos_offset;
+        uint8_t overflowBit = (offset_byte % 8) - 1;
+
+        std::cout << "overflowByte[" << i << "] = " << (int)overflowByte << ", overflowBit[" << i << "] = " << (int)overflowBit << ", ";
+    }
+    std::cout << ")\n";*/
+
+
+
     uint8_t lsbValue = getUint8Value(lsb);
     uint8_t msbValue = getUint8Value(msb);
     uint8_t overflowByte1 = getUint8Value(overflowBytes[0]);
@@ -167,6 +191,82 @@ uint16_t Pro800MidiMessage::getUint16Value(uint16_t lsb, uint16_t msb, const std
 
     return resultValue;
    
+}
+
+int Pro800MidiMessage::getValue(uint16_t firstByte, uint8_t numBytes) const
+{
+    if ( numBytes > 4 )
+    {
+        std::cerr << "Pro800MidiMessage::getValue() only implemented for maximum of 4 byte values" << std::endl;
+        return 0;
+    }
+    const uint8_t pos_offset = 10;
+
+    int value = 0;
+    int skippedBytes = 0;
+    for ( int i = 0; i < numBytes; i++ )
+    {
+        uint16_t offset_byte = firstByte + i - pos_offset;
+        if ( offset_byte % 8 == 0 )
+        {
+            // this is an overflow byte - skip to next
+            skippedBytes++;
+        }
+
+        offset_byte += skippedBytes;
+        uint8_t byteValue = this->getUint8Value(offset_byte + pos_offset);
+
+        
+        uint16_t overflowByte = (offset_byte / 8) * 8 + pos_offset;
+        uint8_t overflowBit = (offset_byte % 8) - 1;
+
+        uint8_t overflowValue = this->getUint8Value(overflowByte);
+        overflowValue = (overflowValue & (1 << overflowBit)) ? 1 : 0;
+
+        byteValue = byteValue | (overflowValue << 7);
+
+        value = value | (byteValue << i*8);
+    }
+
+    return value;
+}
+
+void Pro800MidiMessage::setValue(uint16_t firstByte, uint8_t numBytes, int value)
+{
+    if ( numBytes > 4 )
+    {
+        std::cerr << "Pro800MidiMessage::setValue() only implemented for maximum of 4 byte values" << std::endl;
+        return;
+    }
+    const uint8_t pos_offset = 10;
+
+    int skippedBytes = 0;
+    for ( int i = 0; i < numBytes; i++ )
+    {
+        uint8_t byteValue = (value >> i*8) & 0xFF;
+        uint8_t overflowBitValue = (byteValue & 0x80) >> 7;
+
+        uint16_t offset_byte = firstByte + i - pos_offset;
+        if ( offset_byte % 8 == 0 )
+        {
+            // this is an overflow byte - skip to next
+            skippedBytes++;
+        }
+
+        offset_byte += skippedBytes;
+        this->setUint8Value(offset_byte + pos_offset, byteValue);
+
+        uint16_t overflowByte = (offset_byte / 8) * 8 + pos_offset;
+        uint8_t overflowBit = (offset_byte % 8) - 1;
+
+        uint8_t overflowValue = this->getUint8Value(overflowByte);
+
+        // clear bit, then set if required
+        overflowValue &= ~(1 << overflowBit);
+        overflowValue |= (overflowBitValue << overflowBit);
+
+        setUint8Value(overflowByte, overflowValue);
+    }
 }
 
 void Pro800MidiMessage::setUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value)
@@ -206,34 +306,5 @@ void Pro800MidiMessage::setUint16Value(uint16_t lsb, uint16_t msb, const std::ve
         overflowValue |= (bitValue << overflowBitPosition);
 
         setUint8Value(overflowBytes.at(i), overflowValue);
-    }
-}
-
-int Pro800MidiMessage::getIntValue(const Pro800Parameter& param) const
-{
-    switch ( param.dataBytes.size() )
-    {
-        case 1:
-            return getUint8Value(param.dataBytes[0], param.overflowBytes, param.overflowBits);
-        case 2:
-            return getUint16Value(param.dataBytes[0], param.dataBytes[1], param.overflowBytes, param.overflowBits);
-
-        default:
-            std::cerr << "getIntValue(): number of data bytes not supported: " << param.dataBytes.size() << std::endl;
-            return 0;
-    }
-}
-
-void Pro800MidiMessage::setIntValue(const Pro800Parameter& param, int value)
-{
-    switch ( param.dataBytes.size() )
-    {
-        case 1:
-            setUint8Value(param.dataBytes[0], param.overflowBytes, param.overflowBits, (uint8_t)value);
-        case 2:
-            setUint16Value(param.dataBytes[0], param.dataBytes[1], param.overflowBytes, param.overflowBits, (uint16_t)value);
-
-        default:
-            std::cerr << "setIntValue(): number of data bytes not supported: " << param.dataBytes.size() << std::endl;
     }
 }

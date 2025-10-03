@@ -18,12 +18,25 @@ juce::MidiMessage ProgramMessage::request(int programNumber)
     return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
 }
 
-ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
+ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : ProgramMessage(message.getRawData(), message.getRawDataSize())
 {
 }
 
 ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800MidiMessage(newRawData, newRawDataSize)
 {
+    // if this message is an older version (pre 111), then update version to 111 and reserve memory accordingly
+    if ( newRawDataSize < MESSAGE_SIZE_VERSION_111 )
+    {   
+        // resize data array to new size     
+        this->rawData->resize(MESSAGE_SIZE_VERSION_111, 0);
+
+        // move 0xF7 from previous last position to new last position
+        this->rawData->at(newRawDataSize-1) = 0x00;
+        this->rawData->at(this->rawData->size()-1 ) = 0xF0;
+
+        // update program version info
+        this->setValue(PROGRAM_FIELD_VERSION, 111);
+    }
 }
 
 bool ProgramMessage::isValid() const
@@ -134,7 +147,7 @@ juce::String ProgramMessage::toString() const
     for ( auto param : PRO800_PROGRAM_FIELDS )
     {
         int value = getValue(param.first);
-        int maxValue = ( param.second.dataBytes.size() == 2 ? 65535 : 127 );
+        int maxValue = (1 << param.second.numBytes*8) - 1;
 
         ss << param.second.name << ": " << getValue(param.first) << " (display: " << value * 999 / maxValue << ")\n";
     }
@@ -147,8 +160,8 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
 {
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
-        Pro800Parameter parameterBlock = PRO800_PROGRAM_FIELDS.at(field);
-        return getIntValue(parameterBlock);
+        Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
+        return Pro800MidiMessage::getValue(param.firstByte, param.numBytes);
     }
     else if ( field == PROGRAM_FIELD_NUM )
     {
@@ -167,7 +180,7 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
         Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
-        setIntValue(param, value);
+        Pro800MidiMessage::setValue(param.firstByte, param.numBytes, value);
     }
     else if ( field == PROGRAM_FIELD_NUM )
     {
@@ -177,22 +190,6 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
     {
         std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
     }    
-}
-
-void ProgramMessage::exportProgram(const juce::File &exportFile) const
-{
-    bool result = exportFile.appendData(this->getRawData(), this->getRawDataSize());
-    if ( !result )
-    {
-        std::cerr << "exportProgram: Unable to write file." << std::endl;
-    }
-}
-
-shared_ptr<ProgramMessage> ProgramMessage::importProgram(const juce::File &importFile)
-{
-    juce::MemoryBlock memBlock;
-    importFile.loadFileAsData(memBlock);
-    return std::shared_ptr<ProgramMessage>(new ProgramMessage((const uint8_t*)memBlock.getData(), memBlock.getSize()));
 }
 
 unsigned char ProgramMessage::getResponseType() const
