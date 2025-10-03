@@ -71,129 +71,27 @@ bool Pro800MidiMessage::isPro800Header() const
     return true;
 }
 
-uint8_t Pro800MidiMessage::getUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow, const std::vector<uint8_t> &overflowBit) const
+uint8_t Pro800MidiMessage::getUint8Value(uint16_t setting) const
 {
     if ( !isValid() )
     {
         return 0;
     }
 
-    uint8_t value = getRawData()[POS_MESSAGE_START + setting];
-    if ( !overflow.empty() && !overflowBit.empty() )
-    {
-        uint8_t overflowValue = getRawData()[POS_MESSAGE_START + overflow[0]];
-        uint8_t overflowBitValue = (overflowValue & (1 << overflowBit[0])) ? 1 : 0;
-        value |= (overflowBitValue << 7);
-    }
-
-    return value;
+    return getRawData()[POS_MESSAGE_START + setting];
 }
 
 void Pro800MidiMessage::setUint8Value(uint16_t setting, uint8_t value)
 {
-    setUint8Value(setting, {}, {}, value);
-}
-
-void Pro800MidiMessage::setUint8Value(uint16_t setting, const std::vector<uint16_t> &overflow, const std::vector<uint8_t> &overflowBit, uint8_t value)
-{
-    // TODO: implement builder pattern for setting
     if ( !isValid() )
     {
         return;
     }
 
-    if ( !overflow.empty() && !overflowBit.empty() )
-    {
-        uint8_t overflowValue = this->getRawData()[POS_MESSAGE_START + overflow[0]];
-        uint8_t overflowBitValue = (value & 0x80) ? 1 : 0; // bit 7 of value
-        // clear bit, then set if required
-        overflowValue &= ~(1 << overflowBit[0]);
-        overflowValue |= (overflowBitValue << overflowBit[0]);
-
-        this->getRawData()[POS_MESSAGE_START + overflow[0]] = overflowValue;
-
-        // clear bit 7 of value
-        value &= 0x7f;
-    }
-
     this->getRawData()[POS_MESSAGE_START + setting] = value;
 }
 
-uint16_t Pro800MidiMessage::getUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits) const
-{
-
-    if ( !isValid() )
-    {  
-        std::cerr << "ERROR: Trying to get value from invalid message!" << std::endl;      
-        return 0;
-    }
-
-    if ( overflowBits.size() < 1 )
-    {
-        std::cerr << "ERROR: To few overflow bits selected!" << std::endl;
-        return 0;
-    }
-
-    if ( overflowBytes.size() < 1 )
-    {
-        std::cerr << "ERROR: To few overflow bytes selected!" << std::endl;
-        return 0;
-    }
-
-    if ( overflowBytes.size() != overflowBits.size() )
-    {
-        std::cerr << "ERROR: Mismatch between overflow bytes and bits vectors" << std::endl;
-        return 0;
-    }
-
-
-    /*std::cout << "getUint16Value(lsb = " << lsb << ", msb = " << msb << ", ";
-    for ( size_t i = 0; i < overflowBytes.size(); i++ )
-    {
-        std::cout << "overflowByte[" << i << "] = " << (int)overflowBytes[i] << ", overflowBit[" << i << "] = " << (int)overflowBits[i] << ", ";
-    }
-    std::cout << ")\n";
-    
-    uint8_t num_bytes = 2;
-    uint8_t pos_offset = 10;
-    int bytes[] = {lsb, lsb + num_bytes -1 };
-    
-    std::cout << "--> calculated(lsb = " << bytes[0] << ", msb = " << bytes[1] << ", ";
-    for ( int i = 0; i < num_bytes; i++ )
-    {
-        uint8_t offset_byte = bytes[i] - pos_offset;
-        uint8_t overflowByte = (offset_byte / 8) * 8 + pos_offset;
-        uint8_t overflowBit = (offset_byte % 8) - 1;
-
-        std::cout << "overflowByte[" << i << "] = " << (int)overflowByte << ", overflowBit[" << i << "] = " << (int)overflowBit << ", ";
-    }
-    std::cout << ")\n";*/
-
-
-
-    uint8_t lsbValue = getUint8Value(lsb);
-    uint8_t msbValue = getUint8Value(msb);
-    uint8_t overflowByte1 = getUint8Value(overflowBytes[0]);
-
-    uint8_t overflowValue1 = (overflowByte1 & (1 << overflowBits.at(0))) ? 1 : 0;
-
-    uint16_t resultValue = lsbValue;
-    resultValue |= (overflowValue1 << 7);
-    resultValue |= ((uint16_t)msbValue << 8);
-
-    if ( overflowBits.size() > 1)
-    {
-        uint8_t overflowByte2 = getUint8Value(overflowBytes[1]);
-        uint8_t overflowValue2 = (overflowByte2 & (1 << overflowBits.at(1))) ? 1 : 0;
-        
-        resultValue |= ((uint16_t)overflowValue2 << 15);
-    }
-
-    return resultValue;
-   
-}
-
-int Pro800MidiMessage::getValue(uint16_t firstByte, uint8_t numBytes) const
+int Pro800MidiMessage::getValue(uint16_t firstByte, uint8_t numBytes, bool isSigned) const
 {
     if ( numBytes > 4 )
     {
@@ -226,6 +124,15 @@ int Pro800MidiMessage::getValue(uint16_t firstByte, uint8_t numBytes) const
         byteValue = byteValue | (overflowValue << 7);
 
         value = value | (byteValue << i*8);
+
+        if( isSigned && overflowValue == 1 )
+        {
+            // propagate highest bit to top bytes           
+            for ( int j = i+1; j < 4; j++ )
+            {
+                value = value | (0xFF << j*8);
+            }
+        }
     }
 
     return value;
@@ -245,6 +152,7 @@ void Pro800MidiMessage::setValue(uint16_t firstByte, uint8_t numBytes, int value
     {
         uint8_t byteValue = (value >> i*8) & 0xFF;
         uint8_t overflowBitValue = (byteValue & 0x80) >> 7;
+        byteValue &= 0x7F; // limit to 127, highest byte can never be set in sysex and is covered by overflowBitValue
 
         uint16_t offset_byte = firstByte + i - pos_offset;
         if ( offset_byte % 8 == 0 )
@@ -266,45 +174,5 @@ void Pro800MidiMessage::setValue(uint16_t firstByte, uint8_t numBytes, int value
         overflowValue |= (overflowBitValue << overflowBit);
 
         setUint8Value(overflowByte, overflowValue);
-    }
-}
-
-void Pro800MidiMessage::setUint16Value(uint16_t lsb, uint16_t msb, const std::vector<uint16_t> &overflowBytes, const std::vector<uint8_t> &overflowBits, uint16_t value)
-{
-    if ( !isValid() )
-    {
-        return;
-    }
-
-    if ( overflowBytes.size() < 1 )
-    {
-        std::cerr << "ERROR: To few overflow bytes selected!" << std::endl;
-        return;
-    }
-
-    if ( overflowBytes.size() != overflowBits.size() )
-    {
-        std::cerr << "ERROR: Mismatch between overflow bytes and bits vectors" << std::endl;
-        return;
-    }
-
-    uint8_t lsbValue = value & 0x007f;
-    uint8_t msbValue = ((value & 0x7f00) >> 8);
-
-    setUint8Value(lsb, lsbValue);
-    setUint8Value(msb, msbValue);
-
-    for ( uint8_t i = 0; i < (uint8_t)overflowBits.size(); i++)
-    {
-        uint8_t overflowValue = getUint8Value(overflowBytes.at(i));
-        uint8_t overflowBitPosition = overflowBits.at(i);
-        uint8_t valueBitPosition = 8*(i+1)-1; // (e.g. 0x80 -> 7; or 0x8000 -> 15)
-        uint8_t bitValue = (value & (1 << valueBitPosition)) ? 1 : 0;
-        
-        // clear bit, then set if required
-        overflowValue &= ~(1 << overflowBitPosition);
-        overflowValue |= (bitValue << overflowBitPosition);
-
-        setUint8Value(overflowBytes.at(i), overflowValue);
     }
 }

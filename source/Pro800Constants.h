@@ -1,5 +1,13 @@
 #pragma once
 
+struct Pro800Parameter
+{    
+    uint16_t firstByte;
+    uint8_t numBytes;
+    std::string name;
+    bool isSigned = false;
+};
+
 enum MessageType {
     MIDI_CC_MESSAGE,
     MIDI_LOG_MESSAGE,
@@ -202,64 +210,77 @@ enum Pro800CCMessages
     // Menu: Performance 0
     GLIDE_MODE = 79 // see: Pro800GlideMode
 };
-                                                                                                                                                                  
+         
 enum Pro800Settings
 {
-    SETTINGS_ADDRESS_LOW = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
-    SETTINGS_ADDRESS_HIGH = 1,
-    SETTINGS_PRESET_OVERFLOW = 2, // bit 5
-    SETTINGS_UNKNOWN_0 = 2, // other overflow bits?
-    SETTINGS_UNKNOWN_1 = 3,
-    SETTINGS_UNKNOWN_2 = 4,
-    SETTINGS_UNKNOWN_3 = 5,
-    SETTINGS_UNKNOWN_4 = 6,
-    SETTINGS_UNKNOWN_5 = 7,
-    SETTINGS_PRESET_LSB = 8,
-    SETTINGS_PRESET_MSB = 9,
-    SETTINGS_OVERFLOW_BPM_VOICE8 = 10, // overflow for bpm and voice 8 bit 8
-    SETTINGS_PRESET_MODE = 11, // see: Pro800PresetMode
-    SETTINGS_MIDI_RX_CHANNEL = 12, // see: Pro800MidiReceiveChannel
-    SETTINGS_VOICE_KILL = 13, // voices 1-7, bitwise // 14
-    SETTINGS_MIDI_TX_CHANNEL = 14, // see: Pro800MidiTransmitChannel
-    SETTINGS_SYNC_SOURCE = 15, // see: Pro800SyncSource
-    SETTINGS_UNKNOWN_7 = 16,
-    SETTINGS_SYNC_CLOCK_BPM_LSB = 17,
-    SETTINGS_UNKNOWN_8 = 18,
-    SETTINGS_SYNC_CLOCK_BPM_MSB = 19,
-    SETTINGS_UNKNOWN_9 = 20,
-    SETTINGS_BRIGHTNESS = 21, // 0-16
-    SETTINGS_DISPLAY_PARAMETER_TIME = 22, // 0-100
-    SETTINGS_MIDI_CC_MODE = 23, // see: Pro800MidiMode
-    SETTINGS_MIDI_PC_MODE = 24, // see: Pro800MidiMode
-    SETTINGS_UNKNOWN_11 = 25,
-    SETTINGS_EXTERNAL_CV_AMOUNT_OVERFLOW = 26, // 0-65535
-    SETTINGS_SYNC_IN_FORWARD = 27, // see: Pro800SettingsOnOff
-    SETTINGS_EXTERNAL_CV_AMOUNT_LSB = 28,
-    SETTINGS_EXTERNAL_CV_AMOUNT_MSB = 29,
-    SETTINGS_UNKNOWN_12 = 30,
-    SETTINGS_SYNC_CLOCK_SUBDIVISION = 31, // see: Pro800SyncSubdivision
-    SETTINGS_VOICE_PRIORITY = 32, //see: Pro800VoicePriority
-    SETTINGS_SHOW_PRESET_NAME = 33, // see: Pro800SettingsOnOff
-    SETTINGS_UNKNOWN_13 = 34,
-    SETTINGS_SYNC_IN_POLARITY = 35, // see: Pro800SettingsPolarity
-    SETTINGS_UNKNOWN_14 = 36,
-    SETTINGS_TUNER_PRECISION = 37, // see: Pro800TunerPrecision
-    SETTINGS_SYNC_IN_START_STOP = 38, // see: Pro800SettingsOnOff
-    SETTINGS_SYNC_IN_PPQN = 39, // see: Pro800SettingsSyncInPPQN
-    SETTINGS_SYNC_CLOCK_NOTE_LENGTH = 40, // 5-100
-    SETTINGS_SYNC_CLOCK_SWING = 41, // 5-95
-    SETTINGS_TRANSPOSE_OVERFLOW = 42, // 0 = positive, 4 = negative
-    SETTINGS_AFTERTOUCH_VCA_POLARITY = 43, // see: Pro800SettingsPolarity
-    SETTINGS_AFTERTOUCH_VCF_POLARITY = 44, // see: Pro800SettingsPolarity
-    SETTINGS_TRANSPOSE = 45, // (-12 - +12; -1 = 0x7f, +1 = 0x01)
-    SETTINGS_LOCAL_ENABLE = 46, // see: Pro800SettingsOnOff
-    SETTINGS_SOFT_THRU = 47, // see: Pro800SettingsOnOff
-    SETTINGS_LENGTH=48,
+    SETTINGS_PRESET_NUM,
+    SETTINGS_PRESET_MODE,
+    SETTINGS_MIDI_RX_CHANNEL,
+    SETTINGS_VOICE_KILL,
+    SETTINGS_MIDI_TX_CHANNEL,
+    SETTINGS_SYNC_SOURCE,
+    SETTINGS_SYNC_CLOCK_BPM,
+    SETTINGS_BRIGHTNESS,
+    SETTINGS_DISPLAY_PARAMETER_TIME,
+    SETTINGS_MIDI_CC_MODE,
+    SETTINGS_MIDI_PC_MODE,
+    SETTINGS_SYNC_IN_FORWARD,
+    SETTINGS_EXTERNAL_CV_AMOUNT,
+    SETTINGS_SYNC_CLOCK_SUBDIVISION,
+    SETTINGS_VOICE_PRIORITY,
+    SETTINGS_SHOW_PRESET_NAME,
+    SETTINGS_SYNC_IN_POLARITY,
+    SETTINGS_TUNER_PRECISION,
+    SETTINGS_SYNC_IN_START_STOP,
+    SETTINGS_SYNC_IN_PPQN,
+    SETTINGS_SYNC_CLOCK_NOTE_LENGTH,
+    SETTINGS_SYNC_CLOCK_SWING,
+    SETTINGS_AFTERTOUCH_VCA_POLARITY,
+    SETTINGS_AFTERTOUCH_VCF_POLARITY,
+    SETTINGS_TRANSPOSE,
+    SETTINGS_LOCAL_ENABLE,
+    SETTINGS_SOFT_THRU,
+};
 
-    SETTINGS_EXTERNAL_CV_AMOUNT = 100, // special case for handling EXTERNAL_CV_AMOUNT_LSB, EXTERNAL_CV_AMOUNT_MSB and EXTERNAL_CV_AMOUNT_OVERFLOW together
-    SETTINGS_SYNC_CLOCK_BPM = 101,     // special case for handling SYNC_CLOCK_BPM_LSB and SYNC_CLOCK_BPM_MSB together
-    SETTINGS_PRESET_NUM = 102,         // special case for handling PRESET_LSB, PRESET_MSB and PRESET_OVERFLOW together
-    SETTINGS_NONE = -1
+const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
+{
+    {SETTINGS_PRESET_NUM,              {8, 2, "Preset Number"}},
+
+    {SETTINGS_PRESET_MODE,             {11, 1, "Preset Mode"}}, // see: Pro800PresetMode
+    {SETTINGS_MIDI_RX_CHANNEL,         {12, 1, "MIDI RX Channel"}}, // see: Pro800MidiReceiveChannel
+    {SETTINGS_VOICE_KILL,              {13, 1, "Voice Kill"}}, // voices 1-7, bitwise // 14
+    {SETTINGS_MIDI_TX_CHANNEL,         {14, 1, "MIDI TC Channel"}}, // see: Pro800MidiTransmitChannel
+    {SETTINGS_SYNC_SOURCE,             {15, 1, "Sync Source"}}, // see: Pro800SyncSource
+    // 16 = unknown
+    {SETTINGS_SYNC_CLOCK_BPM,          {17, 2, "Sync Clock BPM"}}, 
+    // 18 = overflow
+    // 20 = unknown
+    {SETTINGS_BRIGHTNESS,              {21, 1, "Display Brightness"}}, // 0-16
+    {SETTINGS_DISPLAY_PARAMETER_TIME,  {22, 1, "Display Parameter Time"}}, // 0-100
+    {SETTINGS_MIDI_CC_MODE,            {23, 1, "MIDI CC Mode"}}, // see: Pro800MidiMode
+    {SETTINGS_MIDI_PC_MODE,            {24, 1, "MIDI PC Mode"}}, // see: Pro800MidiMode
+    // 25 = unknown
+    // 26 = overflow
+    {SETTINGS_SYNC_IN_FORWARD,         {27, 1, "Sync In Forward Enable"}}, // see: Pro800SettingsOnOff
+    {SETTINGS_EXTERNAL_CV_AMOUNT,      {28, 2, "External CV Amount"}}, 
+    // 30 = unknown
+    {SETTINGS_SYNC_CLOCK_SUBDIVISION,  {31, 1, "Sync Clock Subdivision"}}, // see: Pro800SyncSubdivision
+    {SETTINGS_VOICE_PRIORITY,          {32, 1, "Voice Priority"}}, //see: Pro800VoicePriority
+    {SETTINGS_SHOW_PRESET_NAME,        {33, 1, "Show Preset Name"}}, // see: Pro800SettingsOnOff
+    // 34 = overflow
+    {SETTINGS_SYNC_IN_POLARITY,        {35, 1, "Sync In Polarity"}}, // see: Pro800SettingsPolarity
+    // 36 = unknown
+    {SETTINGS_TUNER_PRECISION,         {37, 1, "Tuner Precision"}}, // see: Pro800TunerPrecision
+    {SETTINGS_SYNC_IN_START_STOP,      {38, 1, "Sync In Start-Stop"}}, // see: Pro800SettingsOnOff
+    {SETTINGS_SYNC_IN_PPQN,            {39, 1, "Sync In PPQN"}}, // see: Pro800SettingsSyncInPPQN
+    {SETTINGS_SYNC_CLOCK_NOTE_LENGTH,  {40, 1, "Sync Clock Note Length"}}, // 5-100
+    {SETTINGS_SYNC_CLOCK_SWING,        {41, 1, "Sync Clock Swing"}}, // 5-95
+    // 42 = overflow
+    {SETTINGS_AFTERTOUCH_VCA_POLARITY, {43, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity
+    {SETTINGS_AFTERTOUCH_VCF_POLARITY, {44, 1, "Aftertouch VCF Polarity"}}, // see: Pro800SettingsPolarity
+    {SETTINGS_TRANSPOSE,               {45, 1, "Transpose", true}}, // (-12 - +12; -1 = 0x7f, +1 = 0x01)
+    {SETTINGS_LOCAL_ENABLE,            {46, 1, "Local Enable"}}, // see: Pro800SettingsOnOff
+    {SETTINGS_SOFT_THRU,               {47, 1, "Soft Thru"}}, // see: Pro800SettingsOnOff
 };
 
 enum Pro800MidiReceiveChannel
@@ -502,13 +523,6 @@ enum Pro800ProgramField
     PROGRAM_FIELD_KEY_TRACKING_REF_NOTE,
 
     PROGRAM_FIELD_NAME
-};
-
-struct Pro800Parameter
-{    
-    uint16_t firstByte;
-    uint8_t numBytes;
-    std::string name;
 };
 
 const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =

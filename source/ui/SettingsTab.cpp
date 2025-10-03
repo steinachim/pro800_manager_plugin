@@ -70,7 +70,7 @@ void SettingsTab::handlePro800SettingsUpdate()
     // special case handling for weird UI cases
     if ( setting == Pro800Settings::SETTINGS_VOICE_KILL )
     {
-        uint8_t value = settingsMessage->getVoiceStatus();
+        uint8_t value = settingsMessage->getValue(SETTINGS_VOICE_KILL);
 
         for ( int i = 0; i < 8; i++ )
         {

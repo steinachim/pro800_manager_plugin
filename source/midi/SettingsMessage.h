@@ -7,6 +7,8 @@
 
 class SettingsMessage : public Pro800MidiMessage
 {
+    static const unsigned short SETTINGS_MESSAGE_SIZE = 58;
+
 public:
     static const unsigned char REQUEST_ID = 0x77;
     static const unsigned char RESPONSE_ID = 0x78;
@@ -19,25 +21,9 @@ public:
     SettingsMessage(const juce::MidiMessage &message);
     virtual MessageType getMessageType() const override { return MessageType::PRO800_SETTINGS_MESSAGE;}
 
-
     virtual bool isValid() const override;
     
     virtual juce::String toString() const override;
-
-    uint16_t getExternalCVAmount() const;
-    void setExternalCVAmount(uint16_t value);
-
-    uint16_t getClockBPM() const;
-    void setClockBPM(uint16_t value);
-
-    uint8_t getVoiceStatus() const;
-    void setVoiceStatus(uint8_t value);
-
-    int8_t getTranspose() const;
-    void setTranspose(int8_t value);
-
-    uint16_t getCurrentPreset() const;
-    void setCurrentPreset(uint16_t value);
 
     void setValue(Pro800Settings setting, int value);
     int getValue(Pro800Settings) const;

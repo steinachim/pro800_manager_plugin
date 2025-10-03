@@ -161,7 +161,7 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
         Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
-        return Pro800MidiMessage::getValue(param.firstByte, param.numBytes);
+        return Pro800MidiMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
     }
     else if ( field == PROGRAM_FIELD_NUM )
     {
