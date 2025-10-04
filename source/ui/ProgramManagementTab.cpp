@@ -5,9 +5,13 @@
 
 ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM_MESSAGE})
 {
-    model_ProgramList = new ProgramModel();
-    listBox_ProgramList.setModel(model_ProgramList);
-    listBox_ProgramList.setMultipleSelectionEnabled(true);
+    model_ProgramListSynth = new ProgramModel();
+    model_ProgramListLocal = new ProgramModel();
+    listBox_ProgramListSynth.setModel(model_ProgramListSynth);
+    listBox_ProgramListSynth.setMultipleSelectionEnabled(true);
+
+    listBox_ProgramListLocal.setModel(model_ProgramListLocal);
+    listBox_ProgramListLocal.setMultipleSelectionEnabled(true);
 
     spinBox_MaxProgramNumber.setRange(0.0, 399.0, 1.0);
 
@@ -20,22 +24,15 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     };
 
     button_Clear.onClick = [this] {
-        //model_ProgramList->clear();
+        model_ProgramListSynth->clear();
+        listBox_ProgramListSynth.updateContent();
 
-        auto selectedRows = listBox_ProgramList.getSelectedRows();
-        if (selectedRows.size() != 1)
-        {
-            return;
-        }
-
-        auto program = model_ProgramList->getProgramForRow(selectedRows[0]);
-        program->setProgramName("ABCDEFGHIJKLMNOPQ");
-
-        listBox_ProgramList.updateContent();
+        model_ProgramListLocal->clear();
+        listBox_ProgramListLocal.updateContent();
     };
 
     button_Export.onClick = [this] {
-        auto selectedRows = listBox_ProgramList.getSelectedRows();
+        auto selectedRows = listBox_ProgramListLocal.getSelectedRows();
         if (selectedRows.size() != 1)
         {
             return;
@@ -48,7 +45,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
         fileChooser->launchAsync (juce::FileBrowserComponent::saveMode, [this, selectedRows] (const juce::FileChooser& chooser) {
             juce::File exportFile (chooser.getResult());
 
-            auto programMessage = model_ProgramList->getProgramForRow (selectedRows[0]);
+            auto programMessage = model_ProgramListLocal->getProgramForRow (selectedRows[0]);
             exportFile.replaceWithData(programMessage->getRawData()->data(), programMessage->getRawData()->size());
         });
     };
@@ -73,11 +70,19 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
         });
     };
 
-    addAndMakeVisible(listBox_ProgramList);
+    addAndMakeVisible(label_Synth);
+    addAndMakeVisible(label_Local);
+    addAndMakeVisible(listBox_ProgramListSynth);
+    addAndMakeVisible(listBox_ProgramListLocal);
 
-    addAndMakeVisible(spinBox_MaxProgramNumber);
-    addAndMakeVisible(button_RefreshDump);
-    addAndMakeVisible(button_Compare);
+    addAndMakeVisible (button_SynthToLocal);
+    addAndMakeVisible (button_SynthToLocalAll);
+    addAndMakeVisible (button_LocalToSynth);
+    addAndMakeVisible (button_LocalToSynthAll);
+
+    addAndMakeVisible (spinBox_MaxProgramNumber);
+    addAndMakeVisible (button_RefreshDump);
+    addAndMakeVisible (button_Compare);
     addAndMakeVisible(button_Clear);
     addAndMakeVisible(button_Export);
     addAndMakeVisible(button_Import);
@@ -85,41 +90,62 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
 ProgramManagementTab::~ProgramManagementTab()
 {
-    delete model_ProgramList;
+    delete model_ProgramListLocal;
+    delete model_ProgramListSynth;
 }
 
 
 void ProgramManagementTab::resized()
 {
+    const int buttonWidth = 120;
+    const int buttonHeight = 30;
     auto area = getLocalBounds().reduced(4);
 
-    listBox_ProgramList.setBounds(area.removeFromTop(area.getHeight()-30));
+    auto listArea = area.removeFromTop(area.getHeight()-buttonHeight).reduced(0, 4);
+    int listBoxWidth = (listArea.getWidth() - buttonWidth)/2; // two lists, buttons in the middle
+
+    label_Synth.setBounds(listArea.withBottom(buttonHeight).withTrimmedRight(listBoxWidth + buttonWidth));
+    label_Local.setBounds(listArea.withBottom(buttonHeight).withTrimmedLeft(listBoxWidth + buttonWidth));
+    listArea.removeFromTop(buttonHeight);
+
+    listBox_ProgramListSynth.setBounds(listArea.removeFromLeft( listBoxWidth ));
     
-    button_Clear.setBounds(area.removeFromRight(100));
-    button_Compare.setBounds(area.removeFromRight(100));
-    button_RefreshDump.setBounds(area.removeFromRight(100));
-    spinBox_MaxProgramNumber.setBounds(area.removeFromRight(100));
-    button_Export.setBounds(area.removeFromRight(100));
-    button_Import.setBounds(area.removeFromRight(100));
+    auto moveButtonArea = listArea.removeFromLeft(buttonWidth).reduced(4);
+    moveButtonArea.removeFromTop((moveButtonArea.getHeight() - 5*buttonHeight)/2);
+    button_SynthToLocal.setBounds(moveButtonArea.removeFromTop(buttonHeight).reduced(0, 4));
+    button_SynthToLocalAll.setBounds(moveButtonArea.removeFromTop(buttonHeight).reduced(0, 4));
+    moveButtonArea.removeFromTop(buttonHeight);
+    button_LocalToSynth.setBounds(moveButtonArea.removeFromTop(buttonHeight).reduced(0, 4));
+    button_LocalToSynthAll.setBounds(moveButtonArea.removeFromTop(buttonHeight).reduced(0, 4));
+
+    listBox_ProgramListLocal.setBounds(listArea);
+
+    
+    button_Clear.setBounds(area.removeFromRight(120).reduced(4, 0));
+    button_Compare.setBounds(area.removeFromRight(120).reduced(4, 0));
+    button_RefreshDump.setBounds(area.removeFromRight(120).reduced(4, 0));
+    spinBox_MaxProgramNumber.setBounds(area.removeFromRight(120).reduced(4, 0));
+    button_Export.setBounds(area.removeFromRight(120).reduced(4, 0));
+    button_Import.setBounds(area.removeFromRight(120).reduced(4, 0));
 }
 
 void ProgramManagementTab::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage)
 {
-    model_ProgramList->addElement( programMessage );
-    listBox_ProgramList.updateContent();
+    model_ProgramListSynth->addElement( programMessage );
+    listBox_ProgramListSynth.updateContent();
 }
 
 void ProgramManagementTab::compareSelectedPrograms()
 {
-    auto selectedRows = listBox_ProgramList.getSelectedRows();
+    auto selectedRows = listBox_ProgramListSynth.getSelectedRows();
     
     if ( selectedRows.size() != 2)
     {
         return;
     }
 
-    auto firstProgram = model_ProgramList->getProgramForRow(selectedRows[0]);
-    auto secondProgram = model_ProgramList->getProgramForRow(selectedRows[1]);
+    auto firstProgram = model_ProgramListSynth->getProgramForRow(selectedRows[0]);
+    auto secondProgram = model_ProgramListSynth->getProgramForRow(selectedRows[1]);
 
     size_t firstSize = firstProgram->getRawData()->size();
     size_t secondSize = secondProgram->getRawData()->size();
