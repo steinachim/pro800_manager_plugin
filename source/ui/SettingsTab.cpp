@@ -167,12 +167,18 @@ void SettingsTab::setupGroupConnections()
   combo_ConnectionsSyncInPPQN.addItem("24PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_24PPQN+1);
   combo_ConnectionsSyncInPPQN.addItem("48PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_48PPQN+1);
 
-  this->group_Connections.addLabelledComponents(
-    { "MIDI Input Channel:", "MIDI Output Channel:", "MIDI CC: ", "MIDI PC:", "Sync In Forward:", 
-      "Sync In Polarity:", "Sync In Start-Stop:", "Sync In PPQN:", "Local Enable:", "Soft Thru" },
-    { &combo_ConnectionsMidiInputChannel, &combo_ConnectionsMidiOutputChannel, &combo_ConnectionsMidiCC, &combo_ConnectionsMidiPC, &checkBox_ConnectionsSyncInForwardEnabled,
-      &combo_ConnectionsSyncInPolarity, &checkBox_ConnectionsSyncInStartStopEnabled, &combo_ConnectionsSyncInPPQN, &checkBox_ConnectionsLocalEnable, &checkBox_ConnectionsSoftThru }
-  );
+  this->group_Connections.addComponents( {
+    &label_ConnectionsMidiInputChannel,       &combo_ConnectionsMidiInputChannel,
+    &label_ConnectionsMidiOutputChannel,      &combo_ConnectionsMidiOutputChannel,
+    &label_ConnectionsMidiCC,                 &combo_ConnectionsMidiCC,
+    &label_ConnectionsMidiPC,                 &combo_ConnectionsMidiPC,
+    &label_ConnectionsSyncItForwardEnabled,   &checkBox_ConnectionsSyncInForwardEnabled,
+    &label_ConnectionsSyncInPolarity,         &combo_ConnectionsSyncInPolarity,
+    &label_ConnectionsSyncInStartStopEnabled, &checkBox_ConnectionsSyncInStartStopEnabled,
+    &label_ConnectionsSyncInPPQN,             &combo_ConnectionsSyncInPPQN,
+    &label_ConnectionsLocalEnable,            &checkBox_ConnectionsLocalEnable,
+    &label_ConnectionsSoftThru,               &checkBox_ConnectionsSoftThru
+  });
 
   this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_RX_CHANNEL, &combo_ConnectionsMidiInputChannel);
   this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_TX_CHANNEL, &combo_ConnectionsMidiOutputChannel);
@@ -191,10 +197,9 @@ void SettingsTab::setupGroupConnections()
 void SettingsTab::setupGroupTranspose()
 {
   spinBox_TransposeAmount.setRange(-35.0, 35.0, 1.0);
-  this->group_Transpose.addLabelledComponents(
-    { "Transpose Amount:" },
-    { &spinBox_TransposeAmount }
-  );
+  this->group_Transpose.addComponents( {
+    &label_TransposeAmount, &spinBox_TransposeAmount
+  });
 
   this->setupSettingsComponent(Pro800Settings::SETTINGS_TRANSPOSE, &spinBox_TransposeAmount);
 
@@ -218,10 +223,13 @@ void SettingsTab::setupGroupVoices()
     checkBox_Voice[i].setButtonText("Voice " + juce::String::formatted("%d", (i+1)));
   }
 
-  this->group_Voices.addComponentPairs(
-    { &label_VoiceKill, &checkBox_Voice[0], &checkBox_Voice[1], &checkBox_Voice[2], &checkBox_Voice[3]},
-    { nullptr,          &checkBox_Voice[4], &checkBox_Voice[5], &checkBox_Voice[6], &checkBox_Voice[7]}
-  );
+  this->group_Voices.addComponents( {
+    &label_VoiceKill,
+    &checkBox_Voice[0], &checkBox_Voice[4],
+    &checkBox_Voice[1], &checkBox_Voice[5],
+    &checkBox_Voice[2], &checkBox_Voice[6],
+    &checkBox_Voice[3], &checkBox_Voice[7],
+  }, {}, {2, 1, 1, 1, 1, 1, 1, 1, 1});
 
   for ( int i = 0; i < 8; i++ )
   {
@@ -233,10 +241,10 @@ void SettingsTab::setupGroupVoices()
 
 void SettingsTab::setupGroupTuning()
 {
-  this->group_Tuning.addLabelledComponents(
-    { "Retune Element",           "Retune Octave" },
-    { &combo_TuningRetuneElement, &combo_TuningRetuneOctave }
-  );
+  this->group_Tuning.addComponents( {
+    &label_TuningRetuneElement, &combo_TuningRetuneElement,
+    &label_TuningRetuneOctave,  &combo_TuningRetuneOctave
+  });
 
   this->group_Tuning.setEnabled(false); // not implemented yet
 
@@ -245,10 +253,9 @@ void SettingsTab::setupGroupTuning()
 
 void SettingsTab::setupGroupRetuneEncoder()
 {
-  this->group_RetuneEncoder.addLabelledComponents(
-    { "Tuning" },
-    { &spinBox_RetuneTuning }
-  );
+  this->group_RetuneEncoder.addComponents( {
+    &label_RetuneTuning, &spinBox_RetuneTuning
+  });
 
   this->group_RetuneEncoder.setEnabled(false); // not implemented yet
 
@@ -261,10 +268,11 @@ void SettingsTab::setupGroupDisplay()
 
   spinBox_DisplayParameterTime.setRange(0.0, 100, 1.0);
 
-  this->group_Display.addLabelledComponents(
-    { "Brightness:",              "Display Parameter Time:",     "Show Preset Names:" },
-    { &spinBox_DisplayBrightness, &spinBox_DisplayParameterTime, &checkBox_DisplayPresetNameEnabled }
-  );
+  this->group_Display.addComponents( {
+    &label_DisplayBrightness, &spinBox_DisplayBrightness,
+    &label_DisplayParameterTime, &spinBox_DisplayParameterTime,
+    &label_DisplayPresetNameEnabled, &checkBox_DisplayPresetNameEnabled
+  });
 
   setupSettingsComponent(Pro800Settings::SETTINGS_BRIGHTNESS, &spinBox_DisplayBrightness);
   setupSettingsComponent(Pro800Settings::SETTINGS_DISPLAY_PARAMETER_TIME, &spinBox_DisplayParameterTime);
@@ -280,10 +288,9 @@ void SettingsTab::setupGroupAutoTune()
   combo_AutoTunePrecision.addItem("1.5 cent", Pro800TunerPrecision::TUNER_PRECISION_1_5CT+1);
   combo_AutoTunePrecision.addItem("2.0 cent", Pro800TunerPrecision::TUNER_PRECISION_2CT+1);
 
-  this->group_AutoTune.addLabelledComponents(
-    { "Precision" },
-    { &combo_AutoTunePrecision }
-  );
+  this->group_AutoTune.addComponents( {
+    &label_AutoTunePrecision, &combo_AutoTunePrecision
+  });
 
   setupSettingsComponent(Pro800Settings::SETTINGS_TUNER_PRECISION, &combo_AutoTunePrecision);
 
@@ -299,10 +306,11 @@ void SettingsTab::setupGroupMiscellaneous()
 
   combo_MiscPedalPriority.setEnabled(false); // not implemented yet (not in standard settings message)
 
-  this->group_Miscellaneous.addLabelledComponents(
-    { "External Filter Mod Amount:",         "Voice Priority",         "Pedal Priority" },
-    {  &spinBox_MiscExternalFilterModAmount, &combo_MiscVoicePriority, &combo_MiscPedalPriority }
-  );
+  this->group_Miscellaneous.addComponents( {
+    &label_MiscExternalFilterModAmount, &spinBox_MiscExternalFilterModAmount,
+    &label_MiscVoicePriority,           &combo_MiscVoicePriority,
+    &label_MiscPedalPriority,           &combo_MiscPedalPriority
+  });
 
   setupSettingsComponent(Pro800Settings::SETTINGS_EXTERNAL_CV_AMOUNT, &spinBox_MiscExternalFilterModAmount);
   setupSettingsComponent(Pro800Settings::SETTINGS_VOICE_PRIORITY, &combo_MiscVoicePriority);
@@ -333,10 +341,13 @@ void SettingsTab::setupGroupSync()
   spinBox_SyncClockSwing.setRange(50.0, 95.0, 1.0);
   spinBox_SyncClockNoteLength.setRange(1.0, 100.0, 1.0);
 
-  this->group_Sync.addLabelledComponents(
-    { "Sync Source:",    "Sync Clock BPM:",     "Sync Clock Subdivision:",   "Sync Clock Swing:",     "Sync Clock Note Length:" },
-    { &combo_SyncSource, &spinBox_SyncClockBPM, &combo_SyncClockSubdivision, &spinBox_SyncClockSwing, &spinBox_SyncClockNoteLength }
-  );
+  this->group_Sync.addComponents( {
+    &label_SyncSource,           &combo_SyncSource,
+    &label_SyncClockBPM,         &spinBox_SyncClockBPM,
+    &label_SyncClockSubdivision, &combo_SyncClockSubdivision,
+    &label_SyncClockSwing,       &spinBox_SyncClockSwing,
+    &label_SyncClockNoteLength,  &spinBox_SyncClockNoteLength
+  });
 
   setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_SOURCE, &combo_SyncSource);
   setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_CLOCK_BPM, &spinBox_SyncClockBPM);

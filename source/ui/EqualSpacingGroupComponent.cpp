@@ -30,6 +30,11 @@ void EqualSpacingGroupComponent::setOutlineAlpha(uint8_t outlineAlpha)
     this->setColour(outlineColourId, outlineColour.withAlpha(outlineAlpha));
 }
 
+void EqualSpacingGroupComponent::setInnerMargin(int margin)
+{
+    this->innerMargin = margin;
+}
+
 void EqualSpacingGroupComponent::resized()
 {
     auto area = getLocalBounds().reduced(10);
@@ -47,7 +52,7 @@ void EqualSpacingGroupComponent::resized()
     {
        int widgetHeight = (int)(fullHeight * rowSpan[widget] / numRows);
        int widgetWidth = (int)(fullWidth * colSpan[widget] / numCols);
-       widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight));
+       widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight).reduced(innerMargin));
 
        col+= colSpan[widget];
        if ( col == numCols )

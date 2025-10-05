@@ -134,6 +134,7 @@ void FrontPanelTab::setupGroupPolyMod()
     setupRotarySlider(slider_PolyModSourceFilterEnv, group_PolyModSourceFilterEnv);
     setupRotarySlider(slider_PolyModSourceOscB, group_PolyModSourceOscB);
     group_PolyModSourceAmount.addComponents({&group_PolyModSourceFilterEnv, &group_PolyModSourceOscB});
+    group_PolyModSourceAmount.setInnerMargin(0);
 
     checkBox_PolyModDestFreqA.setButtonText("Freq A");
     checkBox_PolyModDestFilter.setButtonText("Filter");
@@ -290,4 +291,5 @@ void FrontPanelTab::setupRotarySlider(juce::Slider &slider, EqualSpacingGroupCom
     slider.setValue(1.0);
     
     parent.addComponent(&slider);
+    parent.setInnerMargin(0);
 }

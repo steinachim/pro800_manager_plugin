@@ -20,6 +20,7 @@ public:
     EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha = 255, int numRows = 1, int numCols = 1);
     
     void setOutlineAlpha(uint8_t outlineAlpha);
+    void setInnerMargin(int margin);
     
     void resized() override;
     
@@ -31,6 +32,7 @@ public:
 private:
     int numRows;
     int numCols;
+    int innerMargin = 2;
 
     juce::Array<juce::Component*> children;
     juce::HashMap<juce::Component*, int> rowSpan;

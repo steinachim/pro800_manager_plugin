@@ -30,7 +30,7 @@ PerformanceTab::~PerformanceTab()
 
 void PerformanceTab::resized()
 {
-    const int numVerticalElements = 15; // number of elements *including* groups
+    const int numVerticalElements = 17; // number of elements *including* groups
 
     auto area = getLocalBounds().reduced (10);
     int elementHeight = area.getHeight() / numVerticalElements;
@@ -52,7 +52,7 @@ void PerformanceTab::resized()
     this->group_Aftertouch.setBounds (middleColumn.removeFromTop (4*elementHeight));
     this->group_Spread.setBounds (rightColumn.removeFromTop (4*elementHeight));
 
-    this->group_Glide.setBounds (middleColumn.removeFromTop (2*elementHeight));
+    this->group_Glide.setBounds (middleColumn.removeFromTop (4*elementHeight));
 }
 
 
@@ -66,10 +66,10 @@ void PerformanceTab::setupGroupLFO()
     this->combo_LFOspeed.addItem("Fast", Pro800LFOSpeed::LFO_SPEED_FAST+1);
     this->combo_LFOspeed.addItem("Slow", Pro800LFOSpeed::LFO_SPEED_SLOW+1);
 
-    this->group_LFO.addLabelledComponents(
-        { "Target:",        "Speed:" },
-        { &combo_LFOtarget, &combo_LFOspeed }
-    );
+    this->group_LFO.addComponents( { 
+        &label_LFOtarget, &combo_LFOtarget,
+        &label_LFOspeed,  &combo_LFOspeed
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::LFO_TARGET, &combo_LFOtarget);
     this->setupMidiCCComponent(Pro800CCMessages::LFO_SPEED, &combo_LFOspeed);
@@ -83,10 +83,10 @@ void PerformanceTab::setupGroupVibrato()
     this->slider_VibratoSpeed.setRange(0.0, 127.0, 1.0);
     this->slider_VibratoAmount.setRange(0.0, 127.0, 1.0);
 
-    this->group_Vibrato.addLabelledComponents(
-        { "Speed:",             "Amount:" },
-        { &slider_VibratoSpeed, &slider_VibratoAmount }
-    );
+    this->group_Vibrato.addComponents( {
+        &label_VibratoSpeed,  &slider_VibratoSpeed,
+        &label_VibratoAmount, &label_VibratoAmount
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_SPEED, &slider_VibratoSpeed);
     this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_AMOUNT, &slider_VibratoAmount);
@@ -105,10 +105,11 @@ void PerformanceTab::setupGroupModulation()
     this->combo_ModulationWheelTarget.addItem("Vibrato", Pro800ModWheelTarget::MOD_WHEEL_TARGET_VIBRATO+1);
     this->slider_ModulationDelay.setRange(0.0, 127.0, 1.0);
 
-    this->group_Modulation.addLabelledComponents(
-        { "Wheel Amount:",              "Wheel Target:",              "Modulation Delay:" },
-        { &combo_ModulationWheelAmount, &combo_ModulationWheelTarget, &slider_ModulationDelay }
-    );
+    this->group_Modulation.addComponents( {
+        &label_ModulationWheelAmount, &combo_ModulationWheelAmount,
+        &label_ModulationWheelTarget, &combo_ModulationWheelTarget,
+        &label_ModulationDelay,       &slider_ModulationDelay
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::MOD_WHEEL_AMOUNT, &combo_ModulationWheelAmount);
     this->setupMidiCCComponent(Pro800CCMessages::MOD_WHEEL_TARGET, &combo_ModulationWheelTarget);
@@ -130,10 +131,12 @@ void PerformanceTab::setupGroupEnvelopes()
     this->combo_EnvShapeVCF.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
     this->combo_EnvShapeVCF.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
 
-    this->group_Envelopes.addLabelledComponents(
-        { "VCA Envelope Speed:", "VCA Envelope Shape:", "VCF Envelope Speed:", "VCF Envelope Shape:" },
-        { &combo_EnvSpeedVCA,    &combo_EnvShapeVCA,    &combo_EnvSpeedVCF,    &combo_EnvShapeVCF }
-    );
+    this->group_Envelopes.addComponents( {
+        &label_EnvSpeedVCA, &combo_EnvSpeedVCA,
+        &label_EnvShapeVCA, &combo_EnvShapeVCA,
+        &label_EnvSpeedVCF, &combo_EnvSpeedVCF,
+        &label_EnvShapeVCF, &combo_EnvShapeVCF,        
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SPEED, &combo_EnvSpeedVCA);
     this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SHAPE, &combo_EnvShapeVCA);
@@ -153,10 +156,10 @@ void PerformanceTab::setupGroupPitchBend()
     this->combo_PitchBendTarget.addItem("Volume", Pro800PitchBendTarget::PITCH_BEND_TARGET_VOLUME+1);
     this->slider_PitchBendRange.setRange(0.0, 31.0, 1.0);
 
-    this->group_PitchBend.addLabelledComponents(
-        { "Target:",              "Range:" },
-        { &combo_PitchBendTarget, &slider_PitchBendRange }
-    );
+    this->group_PitchBend.addComponents( {
+        &label_PitchBendTarget, &combo_PitchBendTarget,
+        &label_PitchBendRange,  &slider_PitchBendRange
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::PITCH_BEND_TARGET, &combo_PitchBendTarget);
     this->setupMidiCCComponent(Pro800CCMessages::PITCH_BEND_RANGE, &slider_PitchBendRange);
@@ -180,10 +183,11 @@ void PerformanceTab::setupGroupOscillators()
     this->combo_OscKeyboardTracking.addItem("C3", Pro800KeyboardTracking::KEYBOARD_TRACKING_C3+1); 
     this->combo_OscKeyboardTracking.addItem("C4", Pro800KeyboardTracking::KEYBOARD_TRACKING_C4+1); 
 
-    this->group_Oscillators.addLabelledComponents(
-        { "OSC A Freq Pot Mode:", "OSC B Freq Pot Mode:", "Keyboard Tracking:" },
-        { &combo_OscAFreqPotMode, &combo_OscBFreqPotMode, &combo_OscKeyboardTracking }
-    );
+    this->group_Oscillators.addComponents( {
+        &label_OscAFreqPotMode,     &combo_OscAFreqPotMode,
+        &label_OscBFreqPotMode,     &combo_OscBFreqPotMode,
+        &label_OscKeyboardTracking, &combo_OscKeyboardTracking
+    });
     
     this->setupMidiCCComponent(Pro800CCMessages::OSC_A_FREQ_POT_MODE, &combo_OscAFreqPotMode);
     this->setupMidiCCComponent(Pro800CCMessages::OSC_B_FREQ_POT_MODE, &combo_OscBFreqPotMode);
@@ -198,10 +202,10 @@ void PerformanceTab::setupGroupVelocity()
     this->slider_VelocityAmountVCA.setRange(0.0, 127.0, 1.0);
     this->slider_VelocityAmountVCF.setRange(0.0, 127.0, 1.0);
     
-    this->group_Velocity.addLabelledComponents(
-        { "VCA Velocity Amount: ",   "VCF Velocity Amount: " },
-        { &slider_VelocityAmountVCA, &slider_VelocityAmountVCF }
-    );
+    this->group_Velocity.addComponents( {
+        &label_VelocityAmountVCA, &slider_VelocityAmountVCA,
+        &label_VelocityAmountVCF, &slider_VelocityAmountVCF
+    });
     
     this->setupMidiCCComponent(Pro800CCMessages::VCA_VELOCITY_AMOUNT, &slider_VelocityAmountVCA);
     this->setupMidiCCComponent(Pro800CCMessages::VCF_VELOCITY_AMOUNT, &slider_VelocityAmountVCF);
@@ -216,10 +220,11 @@ void PerformanceTab::setupGroupAftertouch()
     this->slider_AfterTouchAmountVCF.setRange(0.0, 127.0, 1.0);
     this->slider_AfterTouchAmountLFO.setRange(0.0, 127.0, 1.0);
 
-    this->group_Aftertouch.addLabelledComponents(
-        { "VCA Amount: ",              "VCF Amount: ",              "LFO Amount: " },
-        { &slider_AfterTouchAmountVCA, &slider_AfterTouchAmountVCF, &slider_AfterTouchAmountLFO }
-    );
+    this->group_Aftertouch.addComponents( {
+        &label_AfterTouchAmountVCA, &slider_AfterTouchAmountVCA,
+        &label_AfterTouchAmountVCF, &slider_AfterTouchAmountVCF,
+        &label_AfterTouchAmountLFO, &slider_AfterTouchAmountLFO
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::VCA_AFTERTOUCH_AMOUNT, &slider_AfterTouchAmountVCA);
     this->setupMidiCCComponent(Pro800CCMessages::VCF_AFTERTOUCH_AMOUNT, &slider_AfterTouchAmountVCF);
@@ -234,10 +239,10 @@ void PerformanceTab::setupGroupSpread()
     this->checkBox_SpreadVoiceEnable.setButtonText("Enable");
     this->slider_SpreadUnisonDetune.setRange(0.0, 127.0, 1.0);
 
-    this->group_Spread.addLabelledComponents(
-        { "Unison Spread Detune: ",   "Voice Spread: " },
-        { &slider_SpreadUnisonDetune, &checkBox_SpreadVoiceEnable }
-    );
+    this->group_Spread.addComponents( {
+        &label_SpreadUnisonDetune, &slider_SpreadUnisonDetune,
+        &label_SpreadVoiceEnable,  &checkBox_SpreadVoiceEnable
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::VOICE_SPREAD_ENABLE, &checkBox_SpreadVoiceEnable);
     this->setupMidiCCComponent(Pro800CCMessages::UNISON_SPREAD_DETUNE, &slider_SpreadUnisonDetune);
@@ -251,10 +256,9 @@ void PerformanceTab::setupGroupGlide()
     this->combo_GlideMode.addItem("Speed", Pro800GlideMode::GLIDE_MODE_SPEED+1);
     this->combo_GlideMode.addItem("Time", Pro800GlideMode::GLIDE_MODE_TIME+1);
 
-    this->group_Glide.addLabelledComponents(
-        { "Glide Mode: " },
-        { &combo_GlideMode }
-    );
+    this->group_Glide.addComponents( {
+        &label_GlideMode, &combo_GlideMode
+    });
 
     this->setupMidiCCComponent(Pro800CCMessages::GLIDE_MODE, &combo_GlideMode);
 
