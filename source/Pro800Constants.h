@@ -425,6 +425,8 @@ enum Pro800ProgramSpecialParameters
     PROGRAM_NUM_LSB = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
     PROGRAM_NUM_MSB = 1,
 
+    PROGRAM_VERSION_POS = 7,
+
     PROGRAM_NAME_FIRST_CHAR = 174,
     PROGRAM_NAME_LAST_CHAR  = 191,
 };
@@ -551,7 +553,7 @@ const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
     // field, {first byte, num bytes, name, isSigned}
     {PROGRAM_FIELD_STORAGE_CODE,              {3, 4, "Storage Code"}},
-    {PROGRAM_FIELD_VERSION,                   {7, 1, "Version"}},
+    {PROGRAM_FIELD_VERSION,                   {PROGRAM_VERSION_POS, 1, "Version"}},
 
     {PROGRAM_FIELD_OSC_A_FREQ,                {8, 2, "Osc A Frequency"}},
     // 10 = overflow

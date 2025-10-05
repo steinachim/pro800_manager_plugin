@@ -33,13 +33,27 @@ std::shared_ptr<std::vector<uint8_t>> &Pro800MidiMessage::getRawData()
     return this->rawData;
 }
 
+size_t Pro800MidiMessage::getRawDataSize() const
+{
+    return this->rawData->size();
+}
+
 bool Pro800MidiMessage::isValid() const
 {
-    return this->rawData->size() > POS_MESSAGE_TYPE // long enough to at least have a response type?
-           && this->rawData->at(0) == 0xF0                       // valid sysex start
-           && this->rawData->at(this->rawData->size()-1) == 0xF7 // valid sysex end
-           && std::equal(PRO800_HEADER.begin(), PRO800_HEADER.end(), this->rawData->begin()+1) // valid Pro800 header
-           && this->isCorrectResponse(); // valid response to query
+    if( this->rawData->size() <= POS_MESSAGE_TYPE )// long enough to at least have a response type?
+        return false;
+
+    if( this->rawData->at(0) != 0xF0                       // valid sysex start
+           && this->rawData->at(this->rawData->size()-1) != 0xF7 )// valid sysex end
+        return false;
+
+    if ( !std::equal(PRO800_HEADER.begin(), PRO800_HEADER.end(), this->rawData->begin()+1) ) // valid Pro800 header
+        return false;
+
+    if ( !this->isCorrectResponse()) // valid response to query
+        return false;
+
+    return true;
 }
 
 bool Pro800MidiMessage::isCorrectResponse() const
@@ -54,16 +68,34 @@ unsigned char Pro800MidiMessage::getResponseType() const
 
 uint8_t Pro800MidiMessage::getUint8Value(size_t position) const
 {
+    // low-level function: ignore validity check
+    if ( POS_MESSAGE_START + position >= getRawDataSize() )
+    {
+        return 0;
+    }
+
     return this->rawData->at(POS_MESSAGE_START + position);
 }
 
 void Pro800MidiMessage::setUint8Value(size_t position, uint8_t value)
 {
+    // low-level function: ignore validity check
+    if ( POS_MESSAGE_START + position >= getRawDataSize() ) 
+    {
+        std::cerr << "Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!" << std::endl;
+        return;
+    }
+
     this->rawData->at(POS_MESSAGE_START + position) = value;
 }
 
 int Pro800MidiMessage::getValue(int firstByte, int numBytes, bool isSigned) const
 {
+    if ( !isValid() )
+    {
+        return 0;
+    }
+
     if ( numBytes > 4 )
     {
         std::cerr << "Pro800MidiMessage::getValue() only implemented for maximum of 4 byte values" << std::endl;
@@ -110,6 +142,12 @@ int Pro800MidiMessage::getValue(int firstByte, int numBytes, bool isSigned) cons
 
 void Pro800MidiMessage::setValue(int firstByte, int numBytes, int value)
 {
+    if ( !isValid() )
+    {
+        std::cerr << "Pro800MidiMessage::setValue() - cannot set value on invalid message!" << std::endl;
+        return;
+    }
+
     if ( numBytes > 4 )
     {
         std::cerr << "Pro800MidiMessage::setValue() only implemented for maximum of 4 byte values" << std::endl;
@@ -148,6 +186,11 @@ void Pro800MidiMessage::setValue(int firstByte, int numBytes, int value)
 
 std::string Pro800MidiMessage::getStringValue(int firstByte, int lastByte) const
 {
+    if ( !isValid() )
+    {
+        return std::string();
+    }
+
     std::string value = "";
     for ( int pos = firstByte; pos <= lastByte; pos++)
     {
@@ -169,6 +212,12 @@ std::string Pro800MidiMessage::getStringValue(int firstByte, int lastByte) const
 
 void Pro800MidiMessage::setStringValue(int firstByte, int lastByte, const std::string &newValue)
 {
+    if ( !isValid() )
+    {
+        std::cerr << "Pro800MidiMessage::setStringValue() - cannot set value on invalid message!" << std::endl;
+        return;
+    }
+
     // resize new value to full range
     std::string resizedValue = newValue;
     resizedValue.resize((size_t)(lastByte - firstByte + 1), 0x00);

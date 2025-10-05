@@ -28,6 +28,7 @@ public:
 
     void requestFactoryReset();
     void requestProgramDump(int first, int last = -1);
+    void sendProgram(std::shared_ptr<ProgramMessage> &message);
 
 protected:
     void setupMidiCCComponent(uint8_t midiCC, juce::Component *component);

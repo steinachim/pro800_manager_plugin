@@ -17,7 +17,7 @@ VersionMessage::VersionMessage(const juce::MidiMessage &message) : Pro800MidiMes
 
 bool VersionMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && (rawData->size() >= VERSION_FIELD_3);
+    return Pro800MidiMessage::isValid() && (getRawDataSize() >= VERSION_FIELD_3);
 }
 
 juce::String VersionMessage::toString() const
@@ -45,9 +45,9 @@ std::string VersionMessage::getVersionString() const
     else
     {
         std::stringstream ss;
-        ss << (int)rawData->at(VERSION_FIELD_1) << "." 
-           << (int)rawData->at(VERSION_FIELD_2) << "." 
-           << (int)rawData->at(VERSION_FIELD_3);
+        ss << (int)getUint8Value(VERSION_FIELD_1) << "." 
+           << (int)getUint8Value(VERSION_FIELD_2) << "." 
+           << (int)getUint8Value(VERSION_FIELD_3);
         return ss.str();
     }
 }

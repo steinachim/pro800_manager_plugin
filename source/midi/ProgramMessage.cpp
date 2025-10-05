@@ -18,6 +18,10 @@ juce::MidiMessage ProgramMessage::request(int programNumber)
     return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
 }
 
+ProgramMessage::ProgramMessage() : Pro800MidiMessage(EMPTY_PROGRAM.data(), (int)EMPTY_PROGRAM.size())
+{
+}
+
 ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : ProgramMessage(message.getRawData(), message.getRawDataSize())
 {
 }
@@ -28,22 +32,36 @@ ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : 
     if ( newRawDataSize < PROGRAM_MESSAGE_SIZE )
     {   
         // resize data array to new size     
-        this->rawData->resize(PROGRAM_MESSAGE_SIZE, 0);
+        this->getRawData()->resize(PROGRAM_MESSAGE_SIZE, 0);
 
         // move 0xF7 from previous last position to new last position
-        this->rawData->at((size_t)(newRawDataSize-1)) = 0x00;
-        this->rawData->at(this->rawData->size()-1 ) = 0xF0;
+        this->getRawData()->at((size_t)(newRawDataSize-1)) = 0x00;
+        this->getRawData()->at(getRawDataSize()-1) = 0xF0;
 
         // update program version info
-        this->setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
+        this->setUint8Value(PROGRAM_VERSION_POS, SUPPORTED_PRESET_VERSION);
     }
+
+    isInitialized = true;
 }
 
 bool ProgramMessage::isValid() const
 {
     // length is handled in the constructor. Check version (should always be 111).
-    return Pro800MidiMessage::isValid() 
-        && getValue( PROGRAM_FIELD_VERSION ) == 111;
+
+    if ( !isInitialized )
+        return false;
+
+    if ( !Pro800MidiMessage::isValid() )
+        return false;
+
+    if ( getRawDataSize() <= POS_MESSAGE_START + PROGRAM_FIELD_VERSION )
+        return false;
+
+    if ( getUint8Value( PROGRAM_VERSION_POS ) != 111 )
+        return false;
+
+    return true;
 }
 
 uint16_t ProgramMessage::getProgramNumber() const
@@ -77,6 +95,11 @@ void ProgramMessage::setProgramNumber(uint16_t programNumber)
 
 std::string ProgramMessage::getProgramName() const
 {
+    if ( !isValid() )
+    {
+        return "--- Uninitialized ---";
+    }
+
     return getStringValue(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR);
 }
 

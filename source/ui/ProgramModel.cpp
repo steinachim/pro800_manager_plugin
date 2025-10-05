@@ -2,8 +2,10 @@
 
 #include "../midi/ProgramMessage.h"
 
-ProgramModel::ProgramModel() : juce::ListBoxModel()
+ProgramModel::ProgramModel(ModelType type) : juce::ListBoxModel()
 {
+    this->modelType = type;
+    reset();
 }
 
 ProgramModel::~ProgramModel()
@@ -42,30 +44,75 @@ void ProgramModel::paintListBoxItem (int rowNumber, juce::Graphics& g, int width
         g.fillAll (juce::Colours::lightblue);
     }
 
+    auto program = getProgramForRow(rowNumber);
+    juce::Colour textColor = juce::Colours::white;
+    if ( !program || !program->isValid() )
+    {
+        textColor = juce::Colours::grey;
+    }
+
     juce::AttributedString s;
     s.setWordWrap (juce::AttributedString::none);
     s.setJustification (juce::Justification::centredLeft);
-    s.append (getNameForRow (rowNumber), juce::Colours::white);
+    s.append (getNameForRow (rowNumber), textColor);
     s.draw (g, juce::Rectangle<int> (width, height).expanded (-4, 50).toFloat());
 }
 
 void ProgramModel::listBoxItemDoubleClicked (int row, const juce::MouseEvent &/*event*/)
 {
+    if (modelType == SYNTH )
+    {
+        return;
+    }
+    
     if (rows.size() <= row)
     {
         return;
     }
 
     auto programMessage = rows[row];
-    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Program Details", programMessage->toString());
+
+    if ( !programMessage->isValid() )
+    {
+        return;
+    }
+
+    this->nameChangeMessageBox = std::make_unique<juce::AlertWindow>("Preset Name Change", "Please enter the new preset name", juce::MessageBoxIconType::NoIcon);
+    this->nameChangeMessageBox->addTextEditor(NAME_CHANGE_INPUT, programMessage->getProgramName());
+    this->nameChangeMessageBox->addButton("OK", NameChangeResult::OK);
+    this->nameChangeMessageBox->addButton("Cancel", NameChangeResult::CANCEL);
+
+    this->nameChangeMessageBox->enterModalState(true, juce::ModalCallbackFunction::create([this, programMessage] (int modalResult) {
+        this->nameChangeMessageBox->setVisible(false);
+
+        if ( modalResult != NameChangeResult::OK)
+            return;
+
+        juce::String resultString = this->nameChangeMessageBox->getTextEditorContents(NAME_CHANGE_INPUT);
+        programMessage->setProgramName(resultString.toStdString());
+    }));
 }
 
-void ProgramModel::clear()
+void ProgramModel::reset()
 {
     rows.clear();
+    for ( uint16_t i = 0; i < ProgramMessage::NUM_PROGRAMS; i++ )
+    {
+        auto emptyMessage = std::make_shared<ProgramMessage>();
+        emptyMessage->setProgramNumber(i);
+        rows.add( emptyMessage );        
+    } 
 }
 
-void ProgramModel::addElement (std::shared_ptr<ProgramMessage> message)
+void ProgramModel::updateElement(std::shared_ptr<ProgramMessage> message)
 {
-    rows.add (message);
+    int programNumber = message->getProgramNumber();
+
+    if ( programNumber >= rows.size() )
+    {
+        std::cerr << "ProgramModel::updateElement() - received program out of range" << std::endl;
+        return;
+    }
+
+    rows.set(message->getProgramNumber(), message);
 }

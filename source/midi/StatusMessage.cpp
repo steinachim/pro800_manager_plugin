@@ -14,7 +14,7 @@ StatusMessage::StatusMessage(const juce::MidiMessage &message) : Pro800MidiMessa
 
 bool StatusMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && (rawData->size() >= POS_STATUS_BYTE);
+    return Pro800MidiMessage::isValid() && (getRawDataSize() >= POS_STATUS_BYTE);
 }
 
 juce::String StatusMessage::toString() const
@@ -29,7 +29,7 @@ StatusMessage::Status StatusMessage::getStatus() const
 {
     if (isValid())
     {
-        return (Status)this->rawData->at(POS_STATUS_BYTE);
+        return (Status)this->getUint8Value(POS_STATUS_BYTE);
     }
     else
     {

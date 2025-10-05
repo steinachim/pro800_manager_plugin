@@ -31,5 +31,5 @@ protected:
 private:
     static const std::map<Status, const char *> STATUS_STRING;
 
-    static const int POS_STATUS_BYTE = 0x0A;
+    static const int POS_STATUS_BYTE = 0x01; // relative to POS_MESSAGE_START
 };

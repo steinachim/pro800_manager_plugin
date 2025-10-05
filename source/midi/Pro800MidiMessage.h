@@ -111,20 +111,22 @@ public:
     virtual bool isValid() const;
 
     std::shared_ptr<std::vector<uint8_t>> &getRawData();
+    size_t getRawDataSize() const;
 
 protected:
+    uint8_t getUint8Value(size_t position) const;
+    void setUint8Value(size_t position, uint8_t value);
+
     int getValue(int firstByte, int numBytes, bool isSigned) const;
     void setValue(int firstByte, int numBytes, int value);
 
     std::string getStringValue(int firstByte, int lastByte) const;
     void setStringValue(int firstByte, int lastByte, const std::string &newValue);
 
-    bool isCorrectResponse() const;
     virtual unsigned char getResponseType() const;
 
-protected:
-    uint8_t getUint8Value(size_t position) const;
-    void setUint8Value(size_t position, uint8_t value);
+private:
+    bool isCorrectResponse() const;
 
     std::shared_ptr<std::vector<uint8_t>> rawData;
 };

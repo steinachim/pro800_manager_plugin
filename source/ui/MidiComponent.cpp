@@ -38,6 +38,12 @@ void MidiComponent::requestFactoryReset()
     this->midiHandler->sendMidiMessage(Pro800FactoryResetMessage::request());
 }
 
+void MidiComponent::sendProgram(std::shared_ptr<ProgramMessage> &message)
+{
+    juce::MidiMessage midiMessage(message->getRawData()->data(), message->getRawDataSize());
+    this->midiHandler->sendMidiMessage(midiMessage);
+}
+
 void MidiComponent::requestProgramDump(int first, int last)
 {
     if ( last < 0 )
