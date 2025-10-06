@@ -66,6 +66,7 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     addAndMakeVisible(button_sendMessage);
     addAndMakeVisible(button_debug);
     addAndMakeVisible(slider_debugInput);
+    addAndMakeVisible(checkBox_enableLogging);
 }
 
 AdvancedTab::~AdvancedTab()
@@ -74,27 +75,22 @@ AdvancedTab::~AdvancedTab()
 
 void AdvancedTab::resized()
 {
-    juce::FlexBox input;
-    input.flexDirection = juce::FlexBox::Direction::row;
-    input.items = {
-        juce::FlexItem(textEdit_inputMidiMessage).withFlex(1.0f),
-        juce::FlexItem(button_sendMessage).withFlex(0.1f),
-        juce::FlexItem(button_debug).withFlex(0.1f),
-        juce::FlexItem(slider_debugInput).withFlex(0.1f)
-    };
-
-    juce::FlexBox fb;
-    fb.flexDirection = juce::FlexBox::Direction::column;
-    fb.items = {
-        juce::FlexItem(textEdit_midiMessageLog).withFlex(1.0f),
-        juce::FlexItem(input).withFlex(0.0f).withMinHeight(30)
-    };
+    const int buttonHeight = 30;
+    auto area = getLocalBounds().reduced(4);
+    checkBox_enableLogging.setBounds(area.removeFromTop(buttonHeight).reduced(4));
+    textEdit_midiMessageLog.setBounds(area.removeFromTop(area.getHeight()-buttonHeight).reduced(4));
     
-    fb.performLayout(getLocalBounds().reduced(10));
+    slider_debugInput.setBounds(area.removeFromRight(150).reduced(4));
+    button_debug.setBounds(area.removeFromRight(100).reduced(4));
+    button_sendMessage.setBounds(area.removeFromRight(100).reduced(4));
+    textEdit_inputMidiMessage.setBounds(area.reduced(4));
 }
 
 void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix)
 {
+    if ( !checkBox_enableLogging.getToggleState() )
+        return;
+
     juce::String messageText = message.getDescription();
     std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage (message);
 

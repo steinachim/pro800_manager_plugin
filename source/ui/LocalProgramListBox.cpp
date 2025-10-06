@@ -26,6 +26,9 @@ void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
     juce::StringArray sourceRows;
     sourceRows.addTokens (dragSourceDetails.description.toString().substring (ProgramModel::DRAG_SOURCE_DESCRIPTION.length() + 1), ",", "");
 
+    if ( sourceRows.isEmpty() )
+        return;
+
     auto sourceListBox = dynamic_cast<juce::ListBox*> (dragSourceDetails.sourceComponent.get());
     if (!sourceListBox)
         return;
@@ -38,13 +41,18 @@ void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
     if (!localModel)
         return;
 
+    int firstSourceIndex = sourceRows[0].getIntValue() - 1;
     for (int i = 0; i < sourceRows.size(); ++i)
     {
         int rowIndex = sourceRows[i].getIntValue() - 1;
         if (rowIndex < 0)
             continue;
 
+        int indexDelta = rowIndex - firstSourceIndex;
+
         int targetRow = this->getRowContainingPosition (dragSourceDetails.localPosition.getX(), dragSourceDetails.localPosition.getY());
+        targetRow += indexDelta; // for multiple inserts
+
         if (targetRow < 0 || targetRow >= localModel->getNumRows())
             continue;
 
@@ -84,14 +92,14 @@ void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
     sourceListBox->deselectAllRows();
 }
 
-void LocalProgramListBox::itemDragEnter (const SourceDetails& dragSourceDetails) 
+void LocalProgramListBox::itemDragEnter(const SourceDetails& /*dragSourceDetails*/) 
 {
     // nothing to be done
 }
 
-void LocalProgramListBox::itemDragMove (const SourceDetails& dragSourceDetails) 
+void LocalProgramListBox::itemDragMove(const SourceDetails& dragSourceDetails) 
 {
-    if (! isInterestedInDragSource(dragSourceDetails))
+    if (!isInterestedInDragSource(dragSourceDetails))
         return; 
 
     int targetRow = this->getRowContainingPosition(dragSourceDetails.localPosition.getX(), dragSourceDetails.localPosition.getY());
@@ -107,7 +115,9 @@ void LocalProgramListBox::itemDragMove (const SourceDetails& dragSourceDetails)
 
 void LocalProgramListBox::itemDragExit (const SourceDetails& dragSourceDetails) 
 {
-    
+    if (!isInterestedInDragSource(dragSourceDetails))
+        return; 
+
     auto localModel = dynamic_cast<ProgramModel*>(getListBoxModel());
     if ( !localModel )
          return;

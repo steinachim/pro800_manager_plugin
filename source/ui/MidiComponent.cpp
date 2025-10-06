@@ -9,6 +9,8 @@
 
 MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<MessageType> messageTypes)
 {
+    this->midiDumpRequestThread = std::make_unique<MidiDumpRequestThread>(handler);
+
     this->registeredMessageTypes = messageTypes;
     this->midiHandler = handler;
 
@@ -44,21 +46,9 @@ void MidiComponent::sendProgram(std::shared_ptr<ProgramMessage> &message)
     this->midiHandler->sendMidiMessage(midiMessage);
 }
 
-void MidiComponent::requestProgramDump(int first, int last)
+void MidiComponent::requestProgramDump()
 {
-    if ( last < 0 )
-    {
-        last = first+1;
-    }
-
-    last = std::min(last, (int)ProgramMessage::NUM_PROGRAMS);
-
-    // TODO: full range, threaded
-    for ( int i = first; i < last; i++ )
-    {
-        this->midiHandler->sendMidiMessage(ProgramMessage::request(i));
-        juce::Thread::sleep(10);
-    }
+    this->midiDumpRequestThread->startThread();
 }
 
 void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
@@ -218,5 +208,18 @@ void MidiComponent::setComponentValue (juce::Component* component, int /*identif
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
         comboBox->setSelectedId ((int) value + 1, juce::dontSendNotification); // +1 because ComboBox IDs start at 1
+    }
+}
+
+void MidiComponent::MidiDumpRequestThread::run()
+{
+    if (!midiHandler)
+        return;
+
+    // request all programs
+    for (int i = 0; i < ProgramMessage::NUM_PROGRAMS; i++)
+    {
+        this->midiHandler->sendMidiMessage (ProgramMessage::request (i));
+        juce::Thread::sleep (10);
     }
 }

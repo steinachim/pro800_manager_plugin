@@ -16,7 +16,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     spinBox_MaxProgramNumber.setRange(0.0, 399.0, 1.0);
 
     button_RefreshDump.onClick = [this] {
-        requestProgramDump(0, (int)this->spinBox_MaxProgramNumber.getValue()+1);
+        requestProgramDump();
     };
 
     button_Compare.onClick = [this] { 
@@ -30,20 +30,27 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
     button_Export.onClick = [this] {
         auto selectedRows = listBox_ProgramListLocal.getSelectedRows();
-        if (selectedRows.size() != 1)
+        juce::String exportTitle = "Export selected programs to file";
+        if ( selectedRows.isEmpty() )
         {
-            return;
+            exportTitle = "Export all programs to file";
+            selectedRows.addRange(juce::Range<int>(0, model_ProgramListLocal->getNumRows()));
         }
 
-        fileChooser = std::make_unique<juce::FileChooser> ("Please select the filename to export...",
+        fileChooser = std::make_unique<juce::FileChooser> (exportTitle,
             juce::File::getSpecialLocation (juce::File::userHomeDirectory),
             "*.syx");
 
         fileChooser->launchAsync (juce::FileBrowserComponent::saveMode, [this, selectedRows] (const juce::FileChooser& chooser) {
             juce::File exportFile (chooser.getResult());
+            exportFile.deleteFile();
+            exportFile.create();
 
-            auto programMessage = model_ProgramListLocal->getProgramForRow (selectedRows[0]);
-            exportFile.replaceWithData(programMessage->getRawData()->data(), programMessage->getRawData()->size());
+            for (int i = 0; i < selectedRows.size(); i++)
+            {
+                auto programMessage = model_ProgramListLocal->getProgramForRow (selectedRows[i]);
+                exportFile.appendData(programMessage->getRawData()->data(), programMessage->getRawData()->size());
+            }
         });
     };
 
@@ -62,8 +69,24 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
             juce::MemoryBlock memBlock;
             importFile.loadFileAsData(memBlock);
-            std::shared_ptr<ProgramMessage> programMessage(new ProgramMessage((const uint8_t*)memBlock.getData(), (int)memBlock.getSize()));            
-            model_ProgramListLocal->updateElement( programMessage );
+
+            size_t start = 0;
+            for ( size_t i = 0; i < (size_t)memBlock.getSize(); i++ )
+            {
+                if ( i == start && (uint8_t)memBlock[i] != 0xF0 )
+                {
+                    std::cerr << "Not a valid sysex file!" << std::endl;
+                    return;
+                }
+
+                if ( (uint8_t)memBlock[i] == 0xF7 )
+                {
+                    auto programMessage = std::shared_ptr<ProgramMessage>(new ProgramMessage((const uint8_t*)memBlock.getData()+start, i-start+1));            
+                    model_ProgramListLocal->updateElement( programMessage );
+                    
+                    start = i+1;
+                }
+            }
         });
     };
 

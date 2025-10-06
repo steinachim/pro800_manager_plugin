@@ -27,7 +27,7 @@ public:
     virtual void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix);
 
     void requestFactoryReset();
-    void requestProgramDump(int first, int last = -1);
+    void requestProgramDump();
     void sendProgram(std::shared_ptr<ProgramMessage> &message);
 
 protected:
@@ -49,4 +49,21 @@ private:
 
     std::shared_ptr<SettingsMessage> currentSettings = std::shared_ptr<SettingsMessage>();
     std::shared_ptr<VersionMessage> currentVersion = std::shared_ptr<VersionMessage>();
+
+    class MidiDumpRequestThread : public juce::Thread
+    {
+    public:
+        MidiDumpRequestThread (MidiHandler* handler)
+            : juce::Thread ("MidiRequestThread"), midiHandler (handler)
+        {
+        }
+
+        void run() override;
+        
+
+    private:
+        MidiHandler *midiHandler;
+    };
+
+    std::unique_ptr<MidiDumpRequestThread> midiDumpRequestThread;
 };

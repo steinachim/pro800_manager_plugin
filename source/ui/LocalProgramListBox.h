@@ -14,5 +14,4 @@ public:
     virtual void itemDragEnter (const SourceDetails& dragSourceDetails) override;
     virtual void itemDragMove (const SourceDetails& dragSourceDetails) override;
     virtual void itemDragExit (const SourceDetails& dragSourceDetails) override;
-
 };

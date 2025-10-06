@@ -36,7 +36,7 @@ ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : 
 
         // move 0xF7 from previous last position to new last position
         this->getRawData()->at((size_t)(newRawDataSize-1)) = 0x00;
-        this->getRawData()->at(getRawDataSize()-1) = 0xF0;
+        this->getRawData()->at(getRawDataSize()-1) = 0xF7;
 
         // update program version info
         this->setUint8Value(PROGRAM_VERSION_POS, SUPPORTED_PRESET_VERSION);

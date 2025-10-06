@@ -33,6 +33,8 @@ class AdvancedTab : public juce::Component, public MidiComponent
         juce::TextButton button_sendMessage;
         juce::TextButton button_debug;
 
+        juce::ToggleButton checkBox_enableLogging { "Enable Logging" };
+
         juce::Slider slider_debugInput { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AdvancedTab)
