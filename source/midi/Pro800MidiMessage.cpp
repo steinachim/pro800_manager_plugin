@@ -12,6 +12,12 @@ Pro800MidiMessage::Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSi
     this->rawData->insert(this->rawData->end(), &newRawData[0], &newRawData[newRawDataSize]);  
 }
 
+Pro800MidiMessage::Pro800MidiMessage(const Pro800MidiMessage &other)
+{
+    this->rawData = std::make_unique<std::vector<uint8_t>>();
+    this->rawData->insert(this->rawData->end(), other.rawData->begin(), other.rawData->end());
+}
+
 
 Pro800MidiMessage::~Pro800MidiMessage()
 {

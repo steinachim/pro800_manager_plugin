@@ -2,9 +2,10 @@
 
 #include "../midi/ProgramMessage.h"
 
-ProgramModel::ProgramModel(ModelType type) : juce::ListBoxModel()
+ProgramModel::ProgramModel(ModelType type, juce::ListBox *parent) : juce::ListBoxModel()
 {
     this->modelType = type;
+    this->parentListBox = parent;
     reset();
 }
 
@@ -39,7 +40,7 @@ std::shared_ptr<ProgramMessage> ProgramModel::getProgramForRow(int rowNumber)
 
 void ProgramModel::paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
-    if (rowIsSelected)
+    if (rowIsSelected || rowNumber == highlightedRow)
     {
         g.fillAll (juce::Colours::lightblue);
     }
@@ -90,7 +91,46 @@ void ProgramModel::listBoxItemDoubleClicked (int row, const juce::MouseEvent &/*
 
         juce::String resultString = this->nameChangeMessageBox->getTextEditorContents(NAME_CHANGE_INPUT);
         programMessage->setProgramName(resultString.toStdString());
+        parentListBox->repaintRow(programMessage->getProgramNumber());
     }));
+}
+
+void ProgramModel::deleteKeyPressed (int lastRowSelected) 
+{
+    if ( modelType != LOCAL )
+    {
+        return;
+    }
+
+    auto selectedRows = this->parentListBox->getSelectedRows();
+
+    for( int i = 0; i < selectedRows.size(); i++ )
+    {
+        int row = selectedRows[i];
+        if ( rows.size() > row )
+        {
+            auto emptyMessage = std::make_shared<ProgramMessage>();
+            emptyMessage->setProgramNumber(row);
+            rows.set(row, emptyMessage);
+            parentListBox->repaintRow(row);
+        }
+    }   
+}
+
+
+juce::var ProgramModel::getDragSourceDescription (const juce::SparseSet<int>& selectedRows)
+{
+    if ( modelType != LOCAL)
+    {
+        return juce::var();
+    }
+
+    juce::StringArray rowsIds;
+
+    for (int i = 0; i < selectedRows.size(); ++i)
+        rowsIds.add (juce::String (selectedRows[i] + 1));
+
+    return juce::String(ProgramModel::DRAG_SOURCE_DESCRIPTION) + ":" + rowsIds.joinIntoString (",");
 }
 
 void ProgramModel::reset()
@@ -102,6 +142,7 @@ void ProgramModel::reset()
         emptyMessage->setProgramNumber(i);
         rows.add( emptyMessage );        
     } 
+    parentListBox->repaint();
 }
 
 void ProgramModel::updateElement(std::shared_ptr<ProgramMessage> message)
@@ -115,4 +156,12 @@ void ProgramModel::updateElement(std::shared_ptr<ProgramMessage> message)
     }
 
     rows.set(message->getProgramNumber(), message);
+
+    parentListBox->repaintRow(programNumber);
+}
+
+void ProgramModel::highlightRow(int row)
+{
+    this->highlightedRow = row;
+    parentListBox->repaintRow(row);
 }

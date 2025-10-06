@@ -5,8 +5,8 @@
 
 ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM_MESSAGE})
 {
-    model_ProgramListSynth = new ProgramModel(ProgramModel::SYNTH);
-    model_ProgramListLocal = new ProgramModel(ProgramModel::LOCAL);
+    model_ProgramListSynth = new ProgramModel(ProgramModel::SYNTH, &listBox_ProgramListSynth);
+    model_ProgramListLocal = new ProgramModel(ProgramModel::LOCAL, &listBox_ProgramListLocal);
     listBox_ProgramListSynth.setModel(model_ProgramListSynth);
     listBox_ProgramListSynth.setMultipleSelectionEnabled(true);
 
@@ -25,12 +25,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
     button_Clear.onClick = [this] {
         model_ProgramListSynth->reset();
-        listBox_ProgramListSynth.updateContent();
-        listBox_ProgramListSynth.repaint();
-
         model_ProgramListLocal->reset();
-        listBox_ProgramListLocal.updateContent();
-        listBox_ProgramListLocal.repaint();
     };
 
     button_Export.onClick = [this] {
@@ -69,8 +64,6 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
             importFile.loadFileAsData(memBlock);
             std::shared_ptr<ProgramMessage> programMessage(new ProgramMessage((const uint8_t*)memBlock.getData(), (int)memBlock.getSize()));            
             model_ProgramListLocal->updateElement( programMessage );
-            listBox_ProgramListLocal.updateContent();
-            listBox_ProgramListLocal.repaint();
         });
     };
 
@@ -80,8 +73,6 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
         {
             auto programMessage = model_ProgramListSynth->getProgramForRow(selectedRows[i]);
             model_ProgramListLocal->updateElement(programMessage);
-            listBox_ProgramListLocal.updateContent();
-            listBox_ProgramListLocal.repaint();
         }
     };
 
@@ -90,8 +81,6 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
         {
             auto programMessage = model_ProgramListSynth->getProgramForRow(i);
             model_ProgramListLocal->updateElement(programMessage);
-            listBox_ProgramListLocal.updateContent();
-            listBox_ProgramListLocal.repaint();
         }
     };
 
@@ -101,22 +90,19 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
         {
             auto programMessage = model_ProgramListLocal->getProgramForRow(selectedRows[i]);
             model_ProgramListSynth->updateElement(programMessage);
-            listBox_ProgramListSynth.updateContent();
-            listBox_ProgramListSynth.repaint();
 
             sendProgram(programMessage);
         }
     };
 
-    button_SynthToLocalAll.onClick = [this] {
+    button_LocalToSynthAll.onClick = [this] {
         for ( int i = 0; i < model_ProgramListLocal->getNumRows(); i++)
         {
             auto programMessage = model_ProgramListLocal->getProgramForRow(i);
             model_ProgramListSynth->updateElement(programMessage);
-            listBox_ProgramListSynth.updateContent();
-            listBox_ProgramListSynth.repaint();
 
             sendProgram(programMessage);
+            juce::Thread::sleep(10);
         }
     };
 
@@ -182,8 +168,6 @@ void ProgramManagementTab::resized()
 void ProgramManagementTab::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage)
 {
     model_ProgramListSynth->updateElement( programMessage );
-    listBox_ProgramListSynth.updateContent();
-    listBox_ProgramListSynth.repaint();
 }
 
 void ProgramManagementTab::compareSelectedPrograms()

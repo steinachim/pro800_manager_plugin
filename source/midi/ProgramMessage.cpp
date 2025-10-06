@@ -45,6 +45,11 @@ ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : 
     isInitialized = true;
 }
 
+ProgramMessage::ProgramMessage(const ProgramMessage &other) : Pro800MidiMessage(other)
+{
+    isInitialized = other.isInitialized;
+}
+
 bool ProgramMessage::isValid() const
 {
     // length is handled in the constructor. Check version (should always be 111).

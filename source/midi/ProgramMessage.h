@@ -32,6 +32,7 @@ public:
     ProgramMessage();
     ProgramMessage(const juce::MidiMessage &message);
     ProgramMessage(const uint8_t *newRawData, int newRawDataSize);
+    ProgramMessage(const ProgramMessage &other);
     virtual MessageType getMessageType() const override { return MessageType::PRO800_PROGRAM_MESSAGE;}
 
     virtual bool isValid() const override;

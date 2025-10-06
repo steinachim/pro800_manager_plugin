@@ -101,6 +101,8 @@ public:
 
     Pro800MidiMessage(const juce::MidiMessage &message);
     Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize);
+    Pro800MidiMessage(const Pro800MidiMessage &other);
+    
     virtual ~Pro800MidiMessage();
 
     virtual MessageType getMessageType() const { return MessageType::PRO800_UNKNOWN_MESSAGE;}

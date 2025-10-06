@@ -3,10 +3,11 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "MidiComponent.h"
+#include "LocalProgramListBox.h"
 
 class ProgramModel;
 
-class ProgramManagementTab : public juce::Component, public MidiComponent
+class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent
 {
 public:
     ProgramManagementTab(MidiHandler *handler);
@@ -21,7 +22,7 @@ private:
     void compareSelectedPrograms();
 
     juce::ListBox listBox_ProgramListSynth;
-    juce::ListBox listBox_ProgramListLocal;
+    LocalProgramListBox listBox_ProgramListLocal;
 
     juce::Slider spinBox_MaxProgramNumber { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
     juce::TextButton button_RefreshDump { "Refresh Dump" };
