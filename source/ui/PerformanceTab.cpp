@@ -66,6 +66,7 @@ void PerformanceTab::setupGroupLFO()
     this->combo_LFOspeed.addItem("Fast", Pro800LFOSpeed::LFO_SPEED_FAST+1);
     this->combo_LFOspeed.addItem("Slow", Pro800LFOSpeed::LFO_SPEED_SLOW+1);
 
+    this->group_LFO.setTextLabelPosition(juce::Justification::left);
     this->group_LFO.addComponents( { 
         &label_LFOtarget, &combo_LFOtarget,
         &label_LFOspeed,  &combo_LFOspeed
@@ -83,6 +84,7 @@ void PerformanceTab::setupGroupVibrato()
     this->slider_VibratoSpeed.setRange(0.0, 127.0, 1.0);
     this->slider_VibratoAmount.setRange(0.0, 127.0, 1.0);
 
+    this->group_Vibrato.setTextLabelPosition(juce::Justification::left);
     this->group_Vibrato.addComponents( {
         &label_VibratoSpeed,  &slider_VibratoSpeed,
         &label_VibratoAmount, &label_VibratoAmount
@@ -105,6 +107,7 @@ void PerformanceTab::setupGroupModulation()
     this->combo_ModulationWheelTarget.addItem("Vibrato", Pro800ModWheelTarget::MOD_WHEEL_TARGET_VIBRATO+1);
     this->slider_ModulationDelay.setRange(0.0, 127.0, 1.0);
 
+    this->group_Modulation.setTextLabelPosition(juce::Justification::left);
     this->group_Modulation.addComponents( {
         &label_ModulationWheelAmount, &combo_ModulationWheelAmount,
         &label_ModulationWheelTarget, &combo_ModulationWheelTarget,
@@ -131,6 +134,7 @@ void PerformanceTab::setupGroupEnvelopes()
     this->combo_EnvShapeVCF.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
     this->combo_EnvShapeVCF.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
 
+    this->group_Envelopes.setTextLabelPosition(juce::Justification::left);
     this->group_Envelopes.addComponents( {
         &label_EnvSpeedVCA, &combo_EnvSpeedVCA,
         &label_EnvShapeVCA, &combo_EnvShapeVCA,
@@ -156,6 +160,7 @@ void PerformanceTab::setupGroupPitchBend()
     this->combo_PitchBendTarget.addItem("Volume", Pro800PitchBendTarget::PITCH_BEND_TARGET_VOLUME+1);
     this->slider_PitchBendRange.setRange(0.0, 31.0, 1.0);
 
+    this->group_PitchBend.setTextLabelPosition(juce::Justification::left);
     this->group_PitchBend.addComponents( {
         &label_PitchBendTarget, &combo_PitchBendTarget,
         &label_PitchBendRange,  &slider_PitchBendRange
@@ -183,6 +188,7 @@ void PerformanceTab::setupGroupOscillators()
     this->combo_OscKeyboardTracking.addItem("C3", Pro800KeyboardTracking::KEYBOARD_TRACKING_C3+1); 
     this->combo_OscKeyboardTracking.addItem("C4", Pro800KeyboardTracking::KEYBOARD_TRACKING_C4+1); 
 
+    this->group_Oscillators.setTextLabelPosition(juce::Justification::left);
     this->group_Oscillators.addComponents( {
         &label_OscAFreqPotMode,     &combo_OscAFreqPotMode,
         &label_OscBFreqPotMode,     &combo_OscBFreqPotMode,
@@ -202,6 +208,7 @@ void PerformanceTab::setupGroupVelocity()
     this->slider_VelocityAmountVCA.setRange(0.0, 127.0, 1.0);
     this->slider_VelocityAmountVCF.setRange(0.0, 127.0, 1.0);
     
+    this->group_Velocity.setTextLabelPosition(juce::Justification::left);
     this->group_Velocity.addComponents( {
         &label_VelocityAmountVCA, &slider_VelocityAmountVCA,
         &label_VelocityAmountVCF, &slider_VelocityAmountVCF
@@ -220,6 +227,7 @@ void PerformanceTab::setupGroupAftertouch()
     this->slider_AfterTouchAmountVCF.setRange(0.0, 127.0, 1.0);
     this->slider_AfterTouchAmountLFO.setRange(0.0, 127.0, 1.0);
 
+    this->group_Aftertouch.setTextLabelPosition(juce::Justification::left);
     this->group_Aftertouch.addComponents( {
         &label_AfterTouchAmountVCA, &slider_AfterTouchAmountVCA,
         &label_AfterTouchAmountVCF, &slider_AfterTouchAmountVCF,
@@ -239,6 +247,7 @@ void PerformanceTab::setupGroupSpread()
     this->checkBox_SpreadVoiceEnable.setButtonText("Enable");
     this->slider_SpreadUnisonDetune.setRange(0.0, 127.0, 1.0);
 
+    this->group_Spread.setTextLabelPosition(juce::Justification::left);
     this->group_Spread.addComponents( {
         &label_SpreadUnisonDetune, &slider_SpreadUnisonDetune,
         &label_SpreadVoiceEnable,  &checkBox_SpreadVoiceEnable
@@ -256,6 +265,7 @@ void PerformanceTab::setupGroupGlide()
     this->combo_GlideMode.addItem("Speed", Pro800GlideMode::GLIDE_MODE_SPEED+1);
     this->combo_GlideMode.addItem("Time", Pro800GlideMode::GLIDE_MODE_TIME+1);
 
+    this->group_Glide.setTextLabelPosition(juce::Justification::left);
     this->group_Glide.addComponents( {
         &label_GlideMode, &combo_GlideMode
     });

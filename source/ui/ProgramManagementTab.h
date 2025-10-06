@@ -24,10 +24,8 @@ private:
     juce::ListBox listBox_ProgramListSynth;
     LocalProgramListBox listBox_ProgramListLocal;
 
-    juce::Slider spinBox_MaxProgramNumber { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
     juce::TextButton button_RefreshDump { "Refresh Dump" };
     juce::TextButton button_Compare { "Compare" };
-    juce::TextButton button_Clear { "Clear" };
     juce::TextButton button_Export { "Export" };
     juce::TextButton button_Import { "Import" };
 

@@ -13,19 +13,12 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     listBox_ProgramListLocal.setModel(model_ProgramListLocal);
     listBox_ProgramListLocal.setMultipleSelectionEnabled(true);
 
-    spinBox_MaxProgramNumber.setRange(0.0, 399.0, 1.0);
-
     button_RefreshDump.onClick = [this] {
         requestProgramDump();
     };
 
     button_Compare.onClick = [this] { 
         compareSelectedPrograms(); 
-    };
-
-    button_Clear.onClick = [this] {
-        model_ProgramListSynth->reset();
-        model_ProgramListLocal->reset();
     };
 
     button_Export.onClick = [this] {
@@ -109,24 +102,29 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
     button_LocalToSynth.onClick = [this] {
         auto selectedRows = listBox_ProgramListLocal.getSelectedRows();
+        juce::MouseCursor::showWaitCursor();
         for ( int i = 0; i < selectedRows.size(); i++)
         {
             auto programMessage = model_ProgramListLocal->getProgramForRow(selectedRows[i]);
             model_ProgramListSynth->updateElement(programMessage);
 
             sendProgram(programMessage);
+            juce::Thread::sleep(20);
         }
+        juce::MouseCursor::hideWaitCursor();
     };
 
     button_LocalToSynthAll.onClick = [this] {
+        juce::MouseCursor::showWaitCursor();
         for ( int i = 0; i < model_ProgramListLocal->getNumRows(); i++)
         {
             auto programMessage = model_ProgramListLocal->getProgramForRow(i);
             model_ProgramListSynth->updateElement(programMessage);
 
             sendProgram(programMessage);
-            juce::Thread::sleep(10);
+            juce::Thread::sleep(20);
         }
+        juce::MouseCursor::hideWaitCursor();
     };
 
     addAndMakeVisible(label_Synth);
@@ -134,15 +132,13 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     addAndMakeVisible(listBox_ProgramListSynth);
     addAndMakeVisible(listBox_ProgramListLocal);
 
-    addAndMakeVisible (button_SynthToLocal);
-    addAndMakeVisible (button_SynthToLocalAll);
-    addAndMakeVisible (button_LocalToSynth);
-    addAndMakeVisible (button_LocalToSynthAll);
+    addAndMakeVisible(button_SynthToLocal);
+    addAndMakeVisible(button_SynthToLocalAll);
+    addAndMakeVisible(button_LocalToSynth);
+    addAndMakeVisible(button_LocalToSynthAll);
 
-    addAndMakeVisible (spinBox_MaxProgramNumber);
-    addAndMakeVisible (button_RefreshDump);
-    addAndMakeVisible (button_Compare);
-    addAndMakeVisible(button_Clear);
+    addAndMakeVisible(button_RefreshDump);
+    addAndMakeVisible(button_Compare);
     addAndMakeVisible(button_Export);
     addAndMakeVisible(button_Import);
 }
@@ -179,11 +175,9 @@ void ProgramManagementTab::resized()
 
     listBox_ProgramListLocal.setBounds(listArea);
 
+    button_Compare.setBounds(area.removeFromLeft(120).reduced(4, 0));
+    button_RefreshDump.setBounds(area.removeFromLeft(120).reduced(4, 0));
     
-    button_Clear.setBounds(area.removeFromRight(120).reduced(4, 0));
-    button_Compare.setBounds(area.removeFromRight(120).reduced(4, 0));
-    button_RefreshDump.setBounds(area.removeFromRight(120).reduced(4, 0));
-    spinBox_MaxProgramNumber.setBounds(area.removeFromRight(120).reduced(4, 0));
     button_Export.setBounds(area.removeFromRight(120).reduced(4, 0));
     button_Import.setBounds(area.removeFromRight(120).reduced(4, 0));
 }
