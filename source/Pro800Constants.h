@@ -245,7 +245,7 @@ enum Pro800Settings
 const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
 {
     {SETTINGS_PRESET_NUM,              {8, 2, "Preset Number"}},
-
+    // 10 = overflow
     {SETTINGS_PRESET_MODE,             {11, 1, "Preset Mode"}}, // see: Pro800PresetMode
     {SETTINGS_MIDI_RX_CHANNEL,         {12, 1, "MIDI RX Channel"}}, // see: Pro800MidiReceiveChannel
     {SETTINGS_VOICE_KILL,              {13, 1, "Voice Kill"}}, // voices 1-7, bitwise // 14
@@ -394,41 +394,11 @@ enum Pro800VoicePriority
     VOICE_PRIORITY_HIGH = 2
 };
 
-enum Pro800TransposeSign
-{
-    TRANSPOSE_POSITIVE = 0,
-    TRANSPOSE_NEGATIVE = 4
-};
-
-enum Pro800OverflowBitPosition
-{
-    OVERFLOW_BPM_BIT8 = 6,
-    OVERFLOW_VOICE8_BIT8 = 2,
-    OVERFLOW_EXTERNAL_CV_AMOUNT_BIT8 = 1,
-    OVERFLOW_EXTERNAL_CV_AMOUNT_BIT16 = 2,
-    OVERFLOW_TRANSPOSE_BIT8 = 2,
-    OVERFLOW_PRESET_BIT8 = 5,
-    OVERFLOW_NONE = -1
-};
-
 enum Pro800PresetMode
 {
     PRESET_MODE_MANUAL = 0,
     PRESET_MODE_LOADED = 1,
     PRESET_MODE_EDITED = 2
-};
-
-
-
-enum Pro800ProgramSpecialParameters
-{
-    PROGRAM_NUM_LSB = 0, // offset from Pro800MidiMessage::POS_MESSAGE_START
-    PROGRAM_NUM_MSB = 1,
-
-    PROGRAM_VERSION_POS = 7,
-
-    PROGRAM_NAME_FIRST_CHAR = 174,
-    PROGRAM_NAME_LAST_CHAR  = 191,
 };
 
 enum Pro800ProgramLfoDestination
@@ -439,12 +409,13 @@ enum Pro800ProgramLfoDestination
     PROGRAM_LFO_DEST_FREQ_A  = 8, // bit 3
     PROGRAM_LFO_DEST_FREQ_B  = 16, // bit 4
     PROGRAM_LFO_DEST_FREQ_AB_VCA  = 32, // bit 5
-
 };
 
 enum Pro800ProgramField
 {
     PROGRAM_FIELD_NUM = 0,
+    PROGRAM_FIELD_NUM_LSB,
+    PROGRAM_FIELD_NUM_MSB,
     PROGRAM_FIELD_STORAGE_CODE,
     PROGRAM_FIELD_VERSION,
 
@@ -524,6 +495,8 @@ enum Pro800ProgramField
     PROGRAM_FIELD_KEY_TRACKING_REF_NOTE,
 
     PROGRAM_FIELD_NAME,
+    PROGRAM_FIELD_NAME_FIRST_CHAR,
+    PROGRAM_FIELD_NAME_LAST_CHAR,
 
     PROGRAM_FIELD_VOICE1_OFFSET,
     PROGRAM_FIELD_VOICE2_OFFSET,
@@ -551,9 +524,11 @@ enum Pro800ProgramField
 
 const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
+    {PROGRAM_FIELD_NUM_LSB,                   {0, 1, "Program Number LSB"}},
+    {PROGRAM_FIELD_NUM_MSB,                   {1, 1, "Program Number MSB"}},
     // field, {first byte, num bytes, name, isSigned}
     {PROGRAM_FIELD_STORAGE_CODE,              {3, 4, "Storage Code"}},
-    {PROGRAM_FIELD_VERSION,                   {PROGRAM_VERSION_POS, 1, "Version"}},
+    {PROGRAM_FIELD_VERSION,                   {7, 1, "Version"}},
 
     {PROGRAM_FIELD_OSC_A_FREQ,                {8, 2, "Osc A Frequency"}},
     // 10 = overflow
@@ -678,12 +653,12 @@ const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
     {PROGRAM_FIELD_AMP_ENV_SPEED,             {172, 1, "Amp Envelope Speed"}},
     {PROGRAM_FIELD_ARP_MODE,                  {173, 1, "ARP Mode"}},
 
-    // 174 = first char of preset name
+    {PROGRAM_FIELD_NAME_FIRST_CHAR,           {174, 1, "Preset Name (first char)"}},
 
     // 178 = overflow byte, not used by name
     // 186 = overflow byte, not used by name
 
-    // 191 = last char of preset name
+    {PROGRAM_FIELD_NAME_LAST_CHAR,            {191, 1, "Preset Name (last char)"}},
 
     // only in preset version 110 and newer:
     {PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT,     {192, 2, "LFO Aftertouch Amount"}},

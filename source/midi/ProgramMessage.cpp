@@ -39,7 +39,7 @@ ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : 
         this->getRawData()->at(getRawDataSize()-1) = 0xF7;
 
         // update program version info
-        this->setUint8Value(PROGRAM_VERSION_POS, SUPPORTED_PRESET_VERSION);
+        this->setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
     }
 
     isInitialized = true;
@@ -63,7 +63,7 @@ bool ProgramMessage::isValid() const
     if ( getRawDataSize() <= POS_MESSAGE_START + PROGRAM_FIELD_VERSION )
         return false;
 
-    if ( getUint8Value( PROGRAM_VERSION_POS ) != 111 )
+    if ( getValue(PROGRAM_FIELD_VERSION) != 111 )
         return false;
 
     return true;
@@ -71,8 +71,8 @@ bool ProgramMessage::isValid() const
 
 uint16_t ProgramMessage::getProgramNumber() const
 {
-    uint8_t programLSB = getUint8Value(PROGRAM_NUM_LSB);
-    uint8_t programMSB = getUint8Value(PROGRAM_NUM_MSB);
+    uint8_t programLSB = (uint8_t)getValue(PROGRAM_FIELD_NUM_LSB);
+    uint8_t programMSB = (uint8_t)getValue(PROGRAM_FIELD_NUM_MSB);
     return (uint16_t)((programMSB << 7) | programLSB);
 }
 
@@ -94,8 +94,8 @@ void ProgramMessage::setProgramNumber(uint16_t programNumber)
 {
     uint8_t programLSB = programNumber & 0x7F;
     uint8_t programMSB = (programNumber >> 7) & 0x7F;
-    this->setUint8Value(PROGRAM_NUM_LSB, programLSB);
-    this->setUint8Value(PROGRAM_NUM_MSB, programMSB);
+    setValue(PROGRAM_FIELD_NUM_LSB, programLSB);
+    setValue(PROGRAM_FIELD_NUM_MSB, programMSB);
 }
 
 std::string ProgramMessage::getProgramName() const
@@ -105,12 +105,16 @@ std::string ProgramMessage::getProgramName() const
         return "--- Uninitialized ---";
     }
 
-    return getStringValue(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR);
+    int firstByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_FIRST_CHAR).firstByte;
+    int lastByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_LAST_CHAR).firstByte;
+    return getStringValue(firstByte, lastByte);
 }
 
 void ProgramMessage::setProgramName(const std::string &newName)
 {
-    setStringValue(PROGRAM_NAME_FIRST_CHAR, PROGRAM_NAME_LAST_CHAR, newName);
+    int firstByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_FIRST_CHAR).firstByte;
+    int lastByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_LAST_CHAR).firstByte;
+    setStringValue(firstByte, lastByte, newName);
 }
 
 bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestination destination) const
