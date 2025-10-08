@@ -95,7 +95,7 @@ void ProgramModel::listBoxItemDoubleClicked (int row, const juce::MouseEvent &/*
     }));
 }
 
-void ProgramModel::deleteKeyPressed (int lastRowSelected) 
+void ProgramModel::deleteKeyPressed (int /*lastRowSelected*/) 
 {
     if ( modelType != LOCAL )
     {
@@ -106,7 +106,7 @@ void ProgramModel::deleteKeyPressed (int lastRowSelected)
 
     for( int i = 0; i < selectedRows.size(); i++ )
     {
-        int row = selectedRows[i];
+        uint16_t row = (uint16_t)selectedRows[i];
         if ( rows.size() > row )
         {
             auto emptyMessage = std::make_shared<ProgramMessage>();

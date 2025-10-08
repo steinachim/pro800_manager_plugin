@@ -24,7 +24,7 @@ bool LocalProgramListBox::isInterestedInDragSource(const juce::DragAndDropTarget
 void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
 {
     juce::StringArray sourceRows;
-    sourceRows.addTokens (dragSourceDetails.description.toString().substring (ProgramModel::DRAG_SOURCE_DESCRIPTION.length() + 1), ",", "");
+    sourceRows.addTokens (dragSourceDetails.description.toString().substring ((int)ProgramModel::DRAG_SOURCE_DESCRIPTION.length() + 1), ",", "");
 
     if ( sourceRows.isEmpty() )
         return;

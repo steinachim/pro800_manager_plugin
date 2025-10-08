@@ -42,7 +42,7 @@ void MidiComponent::requestFactoryReset()
 
 void MidiComponent::sendProgram(std::shared_ptr<ProgramMessage> &message)
 {
-    juce::MidiMessage midiMessage(message->getRawData()->data(), message->getRawDataSize());
+    juce::MidiMessage midiMessage(message->getRawData()->data(), (int)message->getRawDataSize());
     this->midiHandler->sendMidiMessage(midiMessage);
 }
 
