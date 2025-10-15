@@ -15,8 +15,9 @@
 Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor() 
      : AudioProcessor(BusesProperties()
                       // workaround: not really used, but added to allow plugin in Audio FX section
-                      .withInput  ("Input",  juce::AudioChannelSet::stereo(), false)
-                      .withOutput ("Output", juce::AudioChannelSet::stereo(), false))
+                      //.withInput  ("Input",  juce::AudioChannelSet::stereo(), false)
+                      //.withOutput ("Output", juce::AudioChannelSet::stereo(), false))
+                     )
 {
     this->midiHandler = new MidiHandler(this);
 }

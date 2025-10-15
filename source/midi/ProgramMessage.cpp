@@ -52,18 +52,10 @@ ProgramMessage::ProgramMessage(const ProgramMessage &other) : Pro800MidiMessage(
 
 bool ProgramMessage::isValid() const
 {
-    // length is handled in the constructor. Check version (should always be 111).
-
-    if ( !isInitialized )
-        return false;
-
     if ( !Pro800MidiMessage::isValid() )
         return false;
 
     if ( getRawDataSize() <= POS_MESSAGE_START + PROGRAM_FIELD_VERSION )
-        return false;
-
-    if ( getValue(PROGRAM_FIELD_VERSION) != 111 )
         return false;
 
     return true;

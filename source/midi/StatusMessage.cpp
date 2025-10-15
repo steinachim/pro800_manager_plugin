@@ -29,7 +29,7 @@ StatusMessage::Status StatusMessage::getStatus() const
 {
     if (isValid())
     {
-        return (Status)this->getValue(POS_STATUS_BYTE, 1);
+        return (Status)this->getUint8Value(POS_STATUS_BYTE);
     }
     else
     {

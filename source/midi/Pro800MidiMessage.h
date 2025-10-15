@@ -42,11 +42,13 @@ protected:
     std::string getStringValue(int firstByte, int lastByte) const;
     void setStringValue(int firstByte, int lastByte, const std::string &newValue);
 
+    uint8_t getUint8Value(size_t position) const;
+    void setUint8Value(size_t position, uint8_t value);
+
     virtual unsigned char getResponseType() const;
 
 private:
-    uint8_t getUint8Value(size_t position) const;
-    void setUint8Value(size_t position, uint8_t value);
+
 
     bool isCorrectResponse() const;
 

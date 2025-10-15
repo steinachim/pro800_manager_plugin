@@ -45,9 +45,9 @@ std::string VersionMessage::getVersionString() const
     else
     {
         std::stringstream ss;
-        ss << getValue(VERSION_FIELD_1, 1) << "." 
-           << getValue(VERSION_FIELD_2, 1) << "." 
-           << getValue(VERSION_FIELD_3, 1);
+        ss << (int)getUint8Value(VERSION_FIELD_1) << "." 
+           << (int)getUint8Value(VERSION_FIELD_2) << "." 
+           << (int)getUint8Value(VERSION_FIELD_3);
         return ss.str();
     }
 }
