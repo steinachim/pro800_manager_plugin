@@ -51,15 +51,6 @@ project(${PROJECT_NAME} VERSION ${CURRENT_VERSION})
 # On Github Actions, this is done as a part of actions/checkout
 add_subdirectory(JUCE)
 
-# Add CLAP format
-add_subdirectory(modules/clap-juce-extensions EXCLUDE_FROM_ALL)
-
-# Add any other modules you want modules here, before the juce_add_plugin call
-# juce_add_module(modules/my_module)
-
-# This adds the melatonin inspector module
-add_subdirectory (modules/melatonin_inspector)
-
 # See `docs/CMake API.md` in the JUCE repo for all config options
 juce_add_plugin("${PROJECT_NAME}"
     # Icons for the standalone app
@@ -95,10 +86,6 @@ juce_add_plugin("${PROJECT_NAME}"
 # This lets us use our code in both the JUCE targets and our Test target
 # Without running into ODR violations
 add_library(SharedCode INTERFACE)
-
-clap_juce_extensions_plugin(TARGET "${PROJECT_NAME}"
-    CLAP_ID "${BUNDLE_ID}"
-    CLAP_FEATURES audio-effect)
 
 # Enable fast math, C++20 and a few other target defaults
 include(SharedCodeDefaults)
@@ -142,7 +129,6 @@ target_compile_definitions(SharedCode
 # This allows the JUCE plugin targets and the Tests target to link against it
 target_link_libraries(SharedCode
     INTERFACE
-    melatonin_inspector
     juce_audio_utils
     juce_audio_processors
     juce_dsp
