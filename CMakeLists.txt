@@ -25,10 +25,10 @@ set(PROJECT_NAME "pro800_manager_plugin")
 #   set(PROJECT_NAME "MyPlugin_v${MAJOR_VERSION}")
 # Doing so enables major versions to show up in IDEs and DAWs as separate plugins
 # allowing you to change parameters and behavior without breaking existing user projects
-set(PRODUCT_NAME "Pro-800 Manager Plugin - alpha")
+set(PRODUCT_NAME "Pro-800 Manager Plugin")
 
 # Change me! Used for the MacOS bundle name and Installers
-set(COMPANY_NAME "Wolfwalk Enterprises")
+set(COMPANY_NAME "Wolfwalk Software Experience")
 
 # Change me! Used for the MacOS bundle identifier (and signing)
 set(BUNDLE_ID "de.thewolkfwalkexperience.pro800_manager_plugin")
@@ -143,12 +143,3 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
 # IPP support, comment out to disable
 include(PamplejuceIPP)
-
-# Everything related to the tests target
-#include(Tests)
-
-# A separate target for Benchmarks (keeps the Tests target fast)
-#include(Benchmarks)
-
-# Output some config for CI (like our PRODUCT_NAME)
-#include(GitHubENV)
