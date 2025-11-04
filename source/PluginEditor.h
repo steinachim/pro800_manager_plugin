@@ -1,10 +1,20 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
+/** 
+ * Pro800 Manager Plugin
+ * Copyright (C) 2025 Achim Stein
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ **/
 
 #pragma once
 
@@ -15,16 +25,12 @@
 
 class MidiHandler;
 
-//==============================================================================
-/**
-*/
 class Pro800ManagerEditor  : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener
 {
 public:
     Pro800ManagerEditor (MidiHandler *midiHandler, Pro800ManagerAudioProcessor&);
     ~Pro800ManagerEditor() override;
     
-    //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
 
@@ -32,8 +38,6 @@ public:
     void handleNoteOff(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
     
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     Pro800ManagerAudioProcessor& audioProcessor;
     
     juce::MidiKeyboardState keyboardState;
