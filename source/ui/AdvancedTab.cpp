@@ -60,8 +60,8 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     button_debug.onClick = [this]
     {
 
-      juce::String prefix = "f0 00 20 32 00 01 24 00";
-      juce::String postfix = "00 f7";
+      juce::String prefix = "f0 00 20 32 00 01 24 00 77";
+      juce::String postfix = "03 f7";
 
       int currentTestNum = (int)slider_debugInput.getValue();
 

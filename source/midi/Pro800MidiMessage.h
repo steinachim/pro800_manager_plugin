@@ -24,8 +24,6 @@
 class Pro800MidiMessage
 {
 public:
-    const uint8_t POS_OFFSET = 10; // TODO: cleanup and remove
-
     const static inline std::vector<uint8_t> PRO800_HEADER = {
         0x00, 0x20, 0x32,      // Brand ID (Behringer)
         0x00, 0x01, 0x24,      // Product ID (Pro-800)
@@ -33,8 +31,6 @@ public:
     };
 
     static const int POS_MESSAGE_TYPE = 0x08;
-    static const int POS_MESSAGE_START = 0x09;
-
     static const uint8_t RESPONSE_UNINIT = 0xFF;
 
     Pro800MidiMessage(const juce::MidiMessage &message);
@@ -54,12 +50,6 @@ public:
     size_t getRawDataSize() const;
 
 protected:
-    int getValue(int firstByte, int numBytes, bool isSigned = false) const;
-    void setValue(int firstByte, int numBytes, int value);
-
-    std::string getStringValue(int firstByte, int lastByte) const;
-    void setStringValue(int firstByte, int lastByte, const std::string &newValue);
-
     uint8_t getUint8Value(size_t position) const;
     void setUint8Value(size_t position, uint8_t value);
 

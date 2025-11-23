@@ -229,7 +229,7 @@ void ProgramManagementTab::compareSelectedPrograms()
 
         if (firstByte != secondByte)
         {
-            diffs += juce::String::formatted("byte: %3d (offset: %3d) - 0x%02x (%3d)  <=>   0x%02x (%3d)\n", i, i - Pro800MidiMessage::POS_MESSAGE_START, firstByte, firstByte, secondByte, secondByte);
+            diffs += juce::String::formatted("byte: %3d (offset: %3d) - 0x%02x (%3d)  <=>   0x%02x (%3d)\n", i, i - Pro800DataMessage::DATA_START_POS, firstByte, firstByte, secondByte, secondByte);
         }
     }
 

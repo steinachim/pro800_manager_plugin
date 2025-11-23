@@ -30,13 +30,10 @@ juce::MidiMessage ProgramMessage::request(int programNumber)
     uint8_t programLSB = (programNumber & 0x7F);
     uint8_t programMSB = (uint8_t)(programNumber >> 7);
 
-    std::vector<uint8_t> request;
-    request.insert(request.end(), std::begin(PRO800_HEADER), std::end(PRO800_HEADER));
-    request.insert(request.end(), {REQUEST_ID, programLSB, programMSB});
-    return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
+    return Pro800DataMessage::request(programLSB, programMSB);
 }
 
-ProgramMessage::ProgramMessage() : Pro800MidiMessage(EMPTY_PROGRAM.data(), (int)EMPTY_PROGRAM.size())
+ProgramMessage::ProgramMessage() : Pro800DataMessage()
 {
 }
 
@@ -44,7 +41,7 @@ ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : ProgramMessag
 {
 }
 
-ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800MidiMessage(newRawData, newRawDataSize)
+ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800DataMessage(newRawData, newRawDataSize)
 {
     // if this message is an older version (pre 111), then update version to 111 and reserve memory accordingly
     if ( newRawDataSize < PROGRAM_MESSAGE_SIZE )
@@ -59,13 +56,10 @@ ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : 
         // update program version info
         this->setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
     }
-
-    isInitialized = true;
 }
 
-ProgramMessage::ProgramMessage(const ProgramMessage &other) : Pro800MidiMessage(other)
+ProgramMessage::ProgramMessage(const ProgramMessage &other) : Pro800DataMessage(other)
 {
-    isInitialized = other.isInitialized;
 }
 
 bool ProgramMessage::isValid() const
@@ -73,7 +67,7 @@ bool ProgramMessage::isValid() const
     if ( !Pro800MidiMessage::isValid() )
         return false;
 
-    if ( getRawDataSize() <= POS_MESSAGE_START + PROGRAM_FIELD_VERSION )
+    if ( getRawDataSize() <= DATA_START_POS + PROGRAM_FIELD_VERSION )
         return false;
 
     return true;
@@ -81,8 +75,8 @@ bool ProgramMessage::isValid() const
 
 uint16_t ProgramMessage::getProgramNumber() const
 {
-    uint8_t programLSB = (uint8_t)getValue(PROGRAM_FIELD_NUM_LSB);
-    uint8_t programMSB = (uint8_t)getValue(PROGRAM_FIELD_NUM_MSB);
+    uint8_t programLSB = (uint8_t)getUint8Value(ADDRESS_LSB_POS);
+    uint8_t programMSB = (uint8_t)getUint8Value(ADDRESS_MSB_POS);
     return (uint16_t)((programMSB << 7) | programLSB);
 }
 
@@ -104,8 +98,8 @@ void ProgramMessage::setProgramNumber(uint16_t programNumber)
 {
     uint8_t programLSB = programNumber & 0x7F;
     uint8_t programMSB = (programNumber >> 7) & 0x7F;
-    setValue(PROGRAM_FIELD_NUM_LSB, programLSB);
-    setValue(PROGRAM_FIELD_NUM_MSB, programMSB);
+    setUint8Value(ADDRESS_LSB_POS, programLSB);
+    setUint8Value(ADDRESS_MSB_POS, programMSB);
 }
 
 std::string ProgramMessage::getProgramName() const
@@ -164,11 +158,7 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
         Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
-        return Pro800MidiMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
-    }
-    else if ( field == PROGRAM_FIELD_NUM )
-    {
-        return (int)getProgramNumber();
+        return Pro800DataMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
     }
     else
     {
@@ -183,19 +173,10 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
     if ( PRO800_PROGRAM_FIELDS.contains(field) )
     {
         Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
-        Pro800MidiMessage::setValue(param.firstByte, param.numBytes, value);
-    }
-    else if ( field == PROGRAM_FIELD_NUM )
-    {
-        setProgramNumber((uint16_t)value);
+        Pro800DataMessage::setValue(param.firstByte, param.numBytes, value);
     }
     else
     {
         std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
     }    
-}
-
-unsigned char ProgramMessage::getResponseType() const
-{
-    return RESPONSE_ID;
 }

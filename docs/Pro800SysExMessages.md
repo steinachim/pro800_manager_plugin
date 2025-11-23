@@ -209,6 +209,8 @@ The contents are the following:
 
 |byte number | number of bytes | description |
 |--|--|--|
+|0 | 1 | *overflow byte*
+|1 | 5 | unknown (probably settings version number/storage code?)
 |6 | 2 | Current Preset Number
 |8 | 1 | *overflow byte*
 |9 | 1 | Preset Mode<br> --> 0 = MANUAL, 1 = LOADED, 2 = EDITED

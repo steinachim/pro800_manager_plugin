@@ -70,5 +70,6 @@ void MainWidget::handlePro800VersionUpdate()
   this->getTabContentComponent(TAB_FRONTPANEL)->setEnabled(true);
   this->getTabContentComponent(TAB_PERFORMANCE)->setEnabled(true);
   this->getTabContentComponent(TAB_SETTINGS)->setEnabled(true);
- this->getTabContentComponent(TAB_ADVANCED)->setEnabled(true);
+  this->getTabContentComponent(TAB_ADVANCED)->setEnabled(true);
+  this->getTabContentComponent(TAB_PROGRAM)->setEnabled(true);
 }

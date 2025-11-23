@@ -19,19 +19,14 @@
 #include "SettingsMessage.h"
 
 #include <sstream>
-#include <list>
-#include <bitset>
 #include <iostream>
 
 juce::MidiMessage SettingsMessage::request()
 {
-    std::vector<uint8_t> request;
-    request.insert(request.end(), std::begin(PRO800_HEADER), std::end(PRO800_HEADER));
-    request.insert(request.end(), {REQUEST_ID, ADDRESS_LOW, ADDRESS_HIGH});
-    return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
+    return Pro800DataMessage::request(ADDRESS_LOW, ADDRESS_HIGH);
 }
 
-SettingsMessage::SettingsMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
+SettingsMessage::SettingsMessage(const juce::MidiMessage &message) : Pro800DataMessage(message)
 {
 
 }
@@ -57,17 +52,12 @@ juce::String SettingsMessage::toString() const
     return ss.str();
 }
 
-unsigned char SettingsMessage::getResponseType() const
-{
-    return RESPONSE_ID;
-}
-
 void SettingsMessage::setValue(Pro800Settings setting, int value)
 {
     if ( PRO800_SETTINGS_FIELDS.contains(setting) )
     {
         Pro800Parameter param = PRO800_SETTINGS_FIELDS.at(setting);
-        Pro800MidiMessage::setValue(param.firstByte, param.numBytes, value);
+        Pro800DataMessage::setValue(param.firstByte, param.numBytes, value);
     }
     else
     {
@@ -80,7 +70,7 @@ int SettingsMessage::getValue(Pro800Settings setting) const
     if ( PRO800_SETTINGS_FIELDS.contains(setting) )
     {
         Pro800Parameter param = PRO800_SETTINGS_FIELDS.at(setting);
-        return Pro800MidiMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
+        return Pro800DataMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
     }
     else
     {

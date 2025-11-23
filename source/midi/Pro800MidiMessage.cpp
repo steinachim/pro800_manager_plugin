@@ -93,169 +93,23 @@ unsigned char Pro800MidiMessage::getResponseType() const
 uint8_t Pro800MidiMessage::getUint8Value(size_t position) const
 {
     // low-level function: ignore validity check
-    if ( POS_MESSAGE_START + position >= getRawDataSize() )
+    if ( position >= getRawDataSize() )
     {
+        std::cerr << "Pro800MidiMessage::getUint8Value() - reading out of range. Returning 0!" << std::endl;
         return 0;
     }
 
-    return this->rawData->at(POS_MESSAGE_START + position);
+    return this->rawData->at(position);
 }
 
 void Pro800MidiMessage::setUint8Value(size_t position, uint8_t value)
 {
     // low-level function: ignore validity check
-    if ( POS_MESSAGE_START + position >= getRawDataSize() ) 
+    if ( position >= getRawDataSize() ) 
     {
         std::cerr << "Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!" << std::endl;
         return;
     }
 
-    this->rawData->at(POS_MESSAGE_START + position) = value;
-}
-
-int Pro800MidiMessage::getValue(int firstByte, int numBytes, bool isSigned) const
-{
-    if ( !isValid() )
-    {
-        return 0;
-    }
-
-    if ( numBytes > 4 )
-    {
-        std::cerr << "Pro800MidiMessage::getValue() only implemented for maximum of 4 byte values" << std::endl;
-        return 0;
-    }
-
-    int value = 0;
-    int skippedBytes = 0;
-    for ( int i = 0; i < numBytes; i++ )
-    {
-        int offset_byte = firstByte + i - POS_OFFSET;
-        if ( offset_byte % 8 == 0 )
-        {
-            // this is an overflow byte - skip to next
-            skippedBytes++;
-        }
-
-        offset_byte += skippedBytes;
-        uint8_t byteValue = this->getUint8Value((size_t)(offset_byte + POS_OFFSET));
-
-        
-        int overflowByte = (offset_byte / 8) * 8 + POS_OFFSET;
-        uint8_t overflowBit = (uint8_t)((offset_byte % 8) - 1);
-
-        uint8_t overflowValue = this->getUint8Value((size_t)overflowByte);
-        overflowValue = (overflowValue & (1 << overflowBit)) ? 1 : 0;
-
-        byteValue = byteValue | (uint8_t)(overflowValue << 7);
-
-        value = value | (byteValue << i*8);
-
-        if( isSigned && overflowValue == 1 )
-        {
-            // propagate highest bit to top bytes           
-            for ( int j = i+1; j < 4; j++ )
-            {
-                value = value | (0xFF << j*8);
-            }
-        }
-    }
-
-    return value;
-}
-
-void Pro800MidiMessage::setValue(int firstByte, int numBytes, int value)
-{
-    if ( !isValid() )
-    {
-        std::cerr << "Pro800MidiMessage::setValue() - cannot set value on invalid message!" << std::endl;
-        return;
-    }
-
-    if ( numBytes > 4 )
-    {
-        std::cerr << "Pro800MidiMessage::setValue() only implemented for maximum of 4 byte values" << std::endl;
-        return;
-    }
-
-    int skippedBytes = 0;
-    for ( int i = 0; i < numBytes; i++ )
-    {
-        uint8_t byteValue = (value >> i*8) & 0xFF;
-        uint8_t overflowBitValue = (byteValue & 0x80) >> 7;
-        byteValue &= 0x7F; // limit to 127, highest byte can never be set in sysex and is covered by overflowBitValue
-
-        int offset_byte = firstByte + i - POS_OFFSET;
-        if ( offset_byte % 8 == 0 )
-        {
-            // this is an overflow byte - skip to next
-            skippedBytes++;
-        }
-
-        offset_byte += skippedBytes;
-        this->setUint8Value((size_t)(offset_byte + POS_OFFSET), byteValue);
-
-        int overflowByte = (offset_byte / 8) * 8 + POS_OFFSET;
-        uint8_t overflowBit = (uint8_t)((offset_byte % 8) - 1);
-
-        uint8_t overflowValue = this->getUint8Value((size_t)overflowByte);
-
-        // clear bit, then set if required
-        overflowValue &= ~(1 << overflowBit);
-        overflowValue |= (overflowBitValue << overflowBit);
-
-        setUint8Value((size_t)overflowByte, overflowValue);
-    }
-}
-
-std::string Pro800MidiMessage::getStringValue(int firstByte, int lastByte) const
-{
-    if ( !isValid() )
-    {
-        return std::string();
-    }
-
-    std::string value = "";
-    for ( int pos = firstByte; pos <= lastByte; pos++)
-    {
-        if ( (pos - POS_OFFSET) % 8 == 0 )
-        {
-            // this is an overflow byte. Skip.
-            continue; 
-        }
-        value += (char)getUint8Value((size_t)pos);
-    }
-    
-    // remove potential trailing null values
-    value.erase(std::remove(value.begin(), value.end(), 0x00), value.end());
-
-    return value;
-}
-
-
-
-void Pro800MidiMessage::setStringValue(int firstByte, int lastByte, const std::string &newValue)
-{
-    if ( !isValid() )
-    {
-        std::cerr << "Pro800MidiMessage::setStringValue() - cannot set value on invalid message!" << std::endl;
-        return;
-    }
-
-    // resize new value to full range
-    std::string resizedValue = newValue;
-    resizedValue.resize((size_t)(lastByte - firstByte + 1), 0x00);
-
-    int numOverflowBytes = 0;
-    for ( int pos = firstByte; pos <= lastByte; pos++ )
-    {
-        if ( (pos - POS_OFFSET) % 8 == 0 )
-        {
-            // this is an overflow byte. Skip.
-            numOverflowBytes++;
-            pos++;
-        }
-        
-        setUint8Value((size_t)pos, (uint8_t)resizedValue[(size_t)(pos - firstByte - numOverflowBytes)]);
-    }
+    this->rawData->at(position) = value;
 }

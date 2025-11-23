@@ -47,9 +47,9 @@ protected:
 private:
     enum VersionPosition
     {
-        VERSION_FIELD_1 = 0x01, // relative to POS_MESSAGE_START
-        VERSION_FIELD_2 = 0x02,
-        VERSION_FIELD_3 = 0x03
+        VERSION_FIELD_1 = 0x0A,
+        VERSION_FIELD_2 = 0x0B,
+        VERSION_FIELD_3 = 0x0C
     };
 
     const std::set<std::string> SUPPORTED_FIRMWARE_VERSIONS = {"1.4.6"};

@@ -18,18 +18,15 @@
 
 #pragma once
 
-#include "Pro800MidiMessage.h"
+#include "Pro800DataMessage.h"
 #include "../Pro800Constants.h"
 
 #include <vector>
 
-class SettingsMessage : public Pro800MidiMessage
+class SettingsMessage : public Pro800DataMessage
 {
-    static const unsigned short SETTINGS_MESSAGE_SIZE = 58;
-
 public:
-    static const unsigned char REQUEST_ID = 0x77;
-    static const unsigned char RESPONSE_ID = 0x78;
+    static const unsigned short SETTINGS_MESSAGE_SIZE = 58;
 
     static const unsigned char ADDRESS_LOW = 0x7E;
     static const unsigned char ADDRESS_HIGH = 0x03;
@@ -46,6 +43,4 @@ public:
     void setValue(Pro800Settings setting, int value);
     int getValue(Pro800Settings) const;
 
-protected:
-    unsigned char getResponseType() const override;
 };
