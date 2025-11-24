@@ -20,6 +20,8 @@
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+
 
 #include "../PluginProcessor.h"
 #include "MidiCallbackMessage.h"
@@ -27,18 +29,38 @@
 #include "Pro800MidiMessage.h"
 #include "Pro800MessageFactory.h"
 #include "SettingsMessage.h"
+#include "VersionMessage.h"
 
 #include "../ui/MidiComponent.h"
 
 
 
-MidiHandler::MidiHandler(Pro800ManagerAudioProcessor* parent)
+MidiHandler::MidiHandler(Pro800ManagerAudioProcessor* parent) : juce::MidiInputCallback()
 {
     this->processor = parent;
 }
 
 MidiHandler::~MidiHandler()
 {
+    
+}
+
+void MidiHandler::connectMidiDevices(const juce::String& inputDeviceName, const juce::String& outputDeviceName)
+{
+    this->midiInput = juce::MidiInput::openDevice(inputDeviceName, this);
+    this->midiOutput = juce::MidiOutput::openDevice(outputDeviceName);
+
+    if ( this->midiInput )
+    {
+        this->midiInput->start();
+        sendMidiMessage(VersionMessage::request());
+
+    }
+}
+
+void MidiHandler::handleIncomingMidiMessage (juce::MidiInput */*source*/, const juce::MidiMessage& message) 
+{
+    (new MidiCallbackMessage(this, message))->post();
 }
 
 void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent)
@@ -116,6 +138,13 @@ void MidiHandler::sendMidiCCMessage (uint8_t midiCC, uint8_t value)
 
 void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
 {
+    if ( !this->midiOutput )
+    {
+        std::cerr << "[ERROR] Cannot send MIDI message: MIDI output device is not open!" << std::endl;
+        return;
+    }
+
     (new MidiCallbackMessage(this, message, true))->post();
-    this->processor->sendMidiMessage(message);
+
+    this->midiOutput->sendMessageNow(message);
 }

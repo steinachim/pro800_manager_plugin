@@ -57,10 +57,7 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    void sendMidiMessage(const juce::MidiMessage& message);
-
 private:
-    juce::MidiBuffer sendBuffer;
     MidiHandler *midiHandler;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pro800ManagerAudioProcessor)

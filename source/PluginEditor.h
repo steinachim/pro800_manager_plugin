@@ -25,7 +25,7 @@
 
 class MidiHandler;
 
-class Pro800ManagerEditor  : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener
+class Pro800ManagerEditor  : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, public MidiComponent
 {
 public:
     Pro800ManagerEditor (MidiHandler *midiHandler, Pro800ManagerAudioProcessor&);
@@ -36,11 +36,27 @@ public:
 
     void handleNoteOn(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
     void handleNoteOff(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
+
+    void refreshMidiDeviceLists();
+    void connectMidiDevices();
+
+    void handlePro800VersionUpdate() override;
+
     
 private:
+    MidiHandler *midiHandler;
+
     Pro800ManagerAudioProcessor& audioProcessor;
     
     juce::MidiKeyboardState keyboardState;
+
+    juce::Label label_FirmwareVersion { "", "Not Connected" };
+    juce::Label label_MidiInput { "", "MIDI Input:" };
+    juce::ComboBox combo_MidiInputList;
+    juce::Label label_MidiOutput { "", "MIDI Output:" };
+    juce::ComboBox combo_MidiOutputList;
+    juce::TextButton button_RefreshMidi { "Refresh" };
+    juce::TextButton button_ConnectMidi { "Connect" };
 
     MainWidget *tabBar;
     juce::MidiKeyboardComponent keyboardPanel { keyboardState, juce::MidiKeyboardComponent::Orientation::horizontalKeyboard };

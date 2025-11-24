@@ -22,21 +22,13 @@
 
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
-#include "../midi/VersionMessage.h"
 
 SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_SETTINGS_MESSAGE, MessageType::PRO800_VERSION_MESSAGE})
 {
-    addAndMakeVisible(label_FirmwareVersion);
-
-    button_Reconnect.onClick = [midiHandler] {
-        midiHandler->sendMidiMessage(VersionMessage::request());
-    };
-
     button_RefreshSettings.onClick = [midiHandler] {
         midiHandler->sendMidiMessage(SettingsMessage::request());
     };
 
-    addAndMakeVisible(button_Reconnect);
     addAndMakeVisible(button_RefreshSettings);
     
     setupGroupConnections();
@@ -93,17 +85,6 @@ void SettingsTab::handlePro800SettingsUpdate()
   }
 }
 
-void SettingsTab::handlePro800VersionUpdate()
-{
-    std::shared_ptr<VersionMessage> versionMessage = getCurrentVersion();
-    if( !versionMessage || !versionMessage->isValid())
-    {
-      return;
-    }
-
-    label_FirmwareVersion.setText( "Firmware Version: " + versionMessage->getVersionString(), juce::NotificationType::dontSendNotification);
-}
-
 void SettingsTab::resized()
 {
     const int refreshHeight = 30;
@@ -117,8 +98,8 @@ void SettingsTab::resized()
     auto middleColumn = area.withLeft (groupWidth).withRight (2 * groupWidth);
     auto rightColumn = area.withLeft (2 * groupWidth);
 
-    label_FirmwareVersion.setBounds(leftColumn.removeFromTop(refreshHeight));
-    button_Reconnect.setBounds(middleColumn.removeFromTop(refreshHeight));
+    button_RefreshSettings.setBounds(leftColumn.removeFromTop(refreshHeight));
+    button_RefreshSettings.setBounds(middleColumn.removeFromTop(refreshHeight));
     button_RefreshSettings.setBounds(rightColumn.removeFromTop(refreshHeight));
 
     this->group_Connections.setBounds (leftColumn.removeFromTop (11*elementHeight));

@@ -29,8 +29,6 @@ class SettingsTab : public juce::Component, public MidiComponent
         SettingsTab(MidiHandler *midiHandler);
         ~SettingsTab() override;
         virtual void handlePro800SettingsUpdate() override;
-        virtual void handlePro800VersionUpdate() override;
-
     
         void resized() override;
 
@@ -52,8 +50,6 @@ private:
     void setupSettingsComponent(Pro800Settings setting, juce::Component *component);
     juce::HashMap<Pro800Settings, juce::Component*> settingsListeners;
 
-    juce::Label label_FirmwareVersion;
-    juce::TextButton button_Reconnect { "Reconnect"};
     juce::TextButton button_RefreshSettings { "Refresh Settings" };
 
     EqualSpacingGroupComponent group_Connections { "1 - Connections", 255, 10, 2 };

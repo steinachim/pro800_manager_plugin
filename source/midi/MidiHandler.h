@@ -19,6 +19,7 @@
 #pragma once
 
 #include <juce_core/juce_core.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 
 #include "../Pro800Constants.h"
 
@@ -32,11 +33,14 @@ namespace juce
 }
 
 
-class MidiHandler
+class MidiHandler : public juce::MidiInputCallback
 {
 public:
     MidiHandler (Pro800ManagerAudioProcessor* processor);
-    ~MidiHandler();
+    ~MidiHandler() override;
+
+    void connectMidiDevices(const juce::String& inputDeviceName, const juce::String& outputDeviceName);
+    void handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage& message) override;
 
 
     void handleMidiMessage(const juce::MidiMessage& message, bool sent);
@@ -58,5 +62,8 @@ private:
     juce::Array<MidiComponent *> midiCCComponents;
     juce::HashMap<MessageType, juce::Array<MidiComponent *>> midiComponents;
     Pro800ManagerAudioProcessor* processor = nullptr;
+
+    std::unique_ptr<juce::MidiInput> midiInput;
+    std::unique_ptr<juce::MidiOutput> midiOutput;
 
 };

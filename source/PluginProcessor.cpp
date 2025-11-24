@@ -23,7 +23,7 @@
 
 Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor() 
      : AudioProcessor(BusesProperties()
-                      // workaround: not really used, but added to allow plugin in Audio FX section and get calls to processBlock
+                      // workaround: not really used, but added to allow plugin in Audio FX section in Logic
                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), false)
                       .withOutput ("Output", juce::AudioChannelSet::stereo(), false)
                      )
@@ -98,27 +98,9 @@ bool Pro800ManagerAudioProcessor::isBusesLayoutSupported (const BusesLayout& lay
     return true;
 }
 
-void Pro800ManagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void Pro800ManagerAudioProcessor::processBlock (juce::AudioBuffer<float>& /*buffer*/, juce::MidiBuffer& /*midiMessages*/)
 {
-    buffer.clear();
-    for (const auto metadata : midiMessages)
-    {
-        auto message = metadata.getMessage();
-        (new MidiCallbackMessage(this->midiHandler, message))->post();
-    }
-    midiMessages.clear();
-    
-    if ( !this->sendBuffer.isEmpty() )
-    {
-        midiMessages.swapWith(this->sendBuffer);
-        this->sendBuffer.clear();
-    }
 }
-
-void Pro800ManagerAudioProcessor::sendMidiMessage(const juce::MidiMessage& message)
-{
-    this->sendBuffer.addEvent(message, 0);
-}   
 
 bool Pro800ManagerAudioProcessor::hasEditor() const
 {

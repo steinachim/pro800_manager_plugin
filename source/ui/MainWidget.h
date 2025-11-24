@@ -23,13 +23,11 @@
 
 class MidiHandler;
 
-class MainWidget : public juce::TabbedComponent, public MidiComponent
+class MainWidget : public juce::TabbedComponent
 {
 public:
     MainWidget(MidiHandler *midiHandler);
     ~MainWidget() override;
-
-    void handlePro800VersionUpdate() override;
 
 private:
     enum TabIds
