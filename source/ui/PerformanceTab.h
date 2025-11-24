@@ -29,6 +29,8 @@ public:
     PerformanceTab(MidiHandler *midiHandler);
     ~PerformanceTab() override;
 
+    void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
+
     void resized() override;
 
 private:
@@ -50,13 +52,13 @@ private:
     juce::ComboBox combo_LFOspeed;
 
     EqualSpacingGroupComponent group_Vibrato { "2 - Vibrato", 255, 3, 2 };
-    juce::Label label_VibratoAmount { "", "Target" };
+    juce::Label label_VibratoAmount { "", "Amount" };
     juce::Slider slider_VibratoAmount { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
     juce::Label label_VibratoSpeed { "", "Target" };
     juce::Slider slider_VibratoSpeed { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Modulation { "3 - Modulation", 255, 3, 2 };
-    juce::Label label_ModulationWheelTarget { "", "Wheel Amount" };
+    juce::Label label_ModulationWheelTarget { "", "Wheel Target" };
     juce::ComboBox combo_ModulationWheelTarget;
     juce::Label label_ModulationWheelAmount { "", "Wheel Amount" };
     juce::ComboBox combo_ModulationWheelAmount;

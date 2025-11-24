@@ -19,6 +19,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include <iostream>
+
 #include "midi/MidiCallbackMessage.h"
 
 Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor() 
@@ -115,10 +117,12 @@ juce::AudioProcessorEditor* Pro800ManagerAudioProcessor::createEditor()
 
 void Pro800ManagerAudioProcessor::getStateInformation (juce::MemoryBlock& /*destData*/)
 {
+    std::cerr << "getStateInformation called" << std::endl;
 }
 
 void Pro800ManagerAudioProcessor::setStateInformation (const void* /*data*/, int /*sizeInBytes*/)
 {
+    std::cerr << "setStateInformation called" << std::endl;
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

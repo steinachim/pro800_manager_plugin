@@ -17,6 +17,7 @@
  **/
 
 #include "PerformanceTab.h"
+#include "../midi/ProgramMessage.h" 
 
 PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, true)
 {
@@ -34,6 +35,11 @@ PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiCom
 
 PerformanceTab::~PerformanceTab()
 {
+}
+
+void PerformanceTab::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
+{
+    setComponentValue(&this->slider_VibratoAmount, Pro800CCMessages::VIBRATO_AMOUNT, programMessage->getValue(Pro800ProgramField::PROGRAM_FIELD_LFO_VIBRATO_AMOUNT), 65535);
 }
 
 void PerformanceTab::resized()
@@ -95,7 +101,7 @@ void PerformanceTab::setupGroupVibrato()
     this->group_Vibrato.setTextLabelPosition(juce::Justification::left);
     this->group_Vibrato.addComponents( {
         &label_VibratoSpeed,  &slider_VibratoSpeed,
-        &label_VibratoAmount, &label_VibratoAmount
+        &label_VibratoAmount, &slider_VibratoAmount
     });
 
     this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_SPEED, &slider_VibratoSpeed);

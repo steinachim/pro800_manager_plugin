@@ -34,13 +34,26 @@ MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedB
     addTab("Front Panel", colour, new FrontPanelTab(midiHandler), true, TAB_FRONTPANEL);
     addTab("Performance", colour, new PerformanceTab(midiHandler), true, TAB_PERFORMANCE);
     addTab("Settings", colour, new SettingsTab(midiHandler), true, TAB_SETTINGS);
-    addTab("Program Management", colour, new ProgramManagementTab(midiHandler), true, TAB_PROGRAM);
+    addTab("Program Management", colour, new ProgramManagementTab(midiHandler, this), true, TAB_PROGRAM);
     addTab("Advanced", colour, new AdvancedTab(midiHandler), true, TAB_ADVANCED);
-
-    midiHandler->sendMidiMessage(VersionMessage::request());    
 }
 
 MainWidget::~MainWidget()
 {
     
+}
+
+void MainWidget::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
+{
+    auto* frontPanelTab = dynamic_cast<FrontPanelTab*>(getTabContentComponent(TAB_FRONTPANEL));
+    if ( frontPanelTab != nullptr )
+    {
+        frontPanelTab->loadFromProgram(programMessage);
+    }
+
+    auto* performanceTab = dynamic_cast<PerformanceTab*>(getTabContentComponent(TAB_PERFORMANCE));
+    if ( performanceTab != nullptr )
+    {
+        performanceTab->loadFromProgram(programMessage);
+    }
 }

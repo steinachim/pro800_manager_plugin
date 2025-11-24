@@ -39,6 +39,8 @@ public:
     MidiHandler (Pro800ManagerAudioProcessor* processor);
     ~MidiHandler() override;
 
+    void setMidiChannel(uint8_t channel);
+
     void connectMidiDevices(const juce::String& inputDeviceName, const juce::String& outputDeviceName);
     void handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage& message) override;
 
@@ -55,6 +57,7 @@ public:
     void unregisterMessageComponent(MessageType type, MidiComponent *component);
 
     void sendMidiCCMessage(uint8_t midiCC, uint8_t value);
+    void sendProgramChange (uint8_t program);
     void sendMidiMessage(const juce::MidiMessage& message);
 
 
@@ -65,5 +68,7 @@ private:
 
     std::unique_ptr<juce::MidiInput> midiInput;
     std::unique_ptr<juce::MidiOutput> midiOutput;
+
+    uint8_t midiChannel = 0;
 
 };

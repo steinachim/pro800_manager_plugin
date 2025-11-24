@@ -32,7 +32,20 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
     button_ConnectMidi.onClick = [this] { connectMidiDevices(); };
     button_RefreshMidi.onClick = [this] { refreshMidiDeviceLists(); };
 
+    spinBox_MidiChannel.setRange(1, 16, 1);
+    spinBox_MidiChannel.setValue(1);
+    this->midiHandler->setMidiChannel(1);
+
+    spinBox_MidiChannel.onValueChange = [this] {
+        uint8_t channel = (uint8_t)spinBox_MidiChannel.getValue();
+        this->keyboardPanel.setMidiChannel(channel);
+        this->midiHandler->setMidiChannel(channel);
+    };
+
+
     addAndMakeVisible(label_FirmwareVersion);
+    addAndMakeVisible(label_MidiChannel);
+    addAndMakeVisible(spinBox_MidiChannel);
     addAndMakeVisible(label_MidiInput);
     addAndMakeVisible(combo_MidiInputList);
     addAndMakeVisible(label_MidiOutput);
@@ -42,7 +55,6 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
 
     // main widget
     tabBar = new MainWidget(midiHandler);
-    tabBar->setEnabled(false);
     addAndMakeVisible(tabBar);
 
 
@@ -96,6 +108,8 @@ void Pro800ManagerEditor::resized()
     label_MidiOutput.setBounds(midiArea.removeFromRight(80));
     combo_MidiInputList.setBounds(midiArea.removeFromRight(200).reduced(0, 4));
     label_MidiInput.setBounds(midiArea.removeFromRight(80));
+    spinBox_MidiChannel.setBounds(midiArea.removeFromRight(120).reduced(0, 4));
+    label_MidiChannel.setBounds(midiArea.removeFromRight(100));
 
     label_FirmwareVersion.setBounds(midiArea);
 
@@ -135,25 +149,41 @@ void Pro800ManagerEditor::handleNoteOff(juce::MidiKeyboardState* /*source*/, int
     
 void Pro800ManagerEditor::refreshMidiDeviceLists()
 {
+    auto selectedInputId = combo_MidiInputList.getSelectedId();
+    auto selectedOutputId = combo_MidiOutputList.getSelectedId();
+    juce::String noneString = "None";
+
     combo_MidiInputList.clear(juce::dontSendNotification);
-    combo_MidiOutputList.clear(juce::dontSendNotification);
+    combo_MidiInputList.addItem("None", noneString.hashCode());
+    combo_MidiInputList.setSelectedId(noneString.hashCode(), juce::dontSendNotification);
+
+    combo_MidiOutputList.clear(juce::dontSendNotification);    
+    combo_MidiOutputList.addItem("None", noneString.hashCode());
+    combo_MidiOutputList.setSelectedId(noneString.hashCode(), juce::dontSendNotification);
 
     auto midiInputs = juce::MidiInput::getAvailableDevices();
     for ( auto &input : midiInputs )
     {
         combo_MidiInputList.addItem(input.name, input.identifier.hashCode());
+        if ( input.identifier.hashCode() == selectedInputId )
+        {
+            combo_MidiInputList.setSelectedId(selectedInputId, juce::dontSendNotification);
+        }   
     }
 
     auto midiOutputs = juce::MidiOutput::getAvailableDevices();
     for ( auto &output : midiOutputs )
     {
         combo_MidiOutputList.addItem(output.name, output.identifier.hashCode());
+        if ( output.identifier.hashCode() == selectedOutputId )
+        {
+            combo_MidiOutputList.setSelectedId(selectedOutputId, juce::dontSendNotification);
+        }
     }
 }
 
 void Pro800ManagerEditor::connectMidiDevices()
 {
-    tabBar->setEnabled(false);
     label_FirmwareVersion.setText ("Not Connected", juce::NotificationType::dontSendNotification);
 
     auto selectedInputId = combo_MidiInputList.getSelectedId();
@@ -207,5 +237,4 @@ void Pro800ManagerEditor::handlePro800VersionUpdate()
     }
 
     label_FirmwareVersion.setText ("Firmware Version: " + versionMessage->getVersionString(), juce::NotificationType::dontSendNotification);
-    tabBar->setEnabled(true);
 }

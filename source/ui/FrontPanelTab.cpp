@@ -19,6 +19,7 @@
 #include "FrontPanelTab.h"
 
 #include "../midi/MidiHandler.h"
+#include "../midi/ProgramMessage.h"
 #include "../Pro800Constants.h"
 
 FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : MidiComponent(midiHandler, true)
@@ -36,6 +37,13 @@ FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : MidiComponent(midiHandl
 
 FrontPanelTab::~FrontPanelTab()
 {
+}
+
+void FrontPanelTab::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
+{
+    std::cerr << "FrontPanelTab::loadFromProgram: Loading program " << programMessage->toString() << std::endl;
+    setComponentValue(&this->slider_OscAFrequency, Pro800CCMessages::OSC_A_FREQ, programMessage->getValue(Pro800ProgramField::PROGRAM_FIELD_OSC_A_FREQ), 65535);
+
 }
 
 void FrontPanelTab::resized()

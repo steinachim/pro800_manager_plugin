@@ -29,6 +29,8 @@ public:
     MainWidget(MidiHandler *midiHandler);
     ~MainWidget() override;
 
+    void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
+
 private:
     enum TabIds
     {

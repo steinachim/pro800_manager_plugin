@@ -132,6 +132,8 @@ enum Pro800GlideMode
 
 enum Pro800CCMessages
 {
+    BANK_SELECT = 0,
+
     // Front Panel
     OSC_A_FREQ = 8,
     OSC_A_LEVEL = 9,

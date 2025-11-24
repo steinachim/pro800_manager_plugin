@@ -45,6 +45,11 @@ MidiHandler::~MidiHandler()
     
 }
 
+void MidiHandler::setMidiChannel (uint8_t channel)
+{
+    this->midiChannel = channel;
+}
+
 void MidiHandler::connectMidiDevices(const juce::String& inputDeviceName, const juce::String& outputDeviceName)
 {
     this->midiInput = juce::MidiInput::openDevice(inputDeviceName, this);
@@ -54,7 +59,6 @@ void MidiHandler::connectMidiDevices(const juce::String& inputDeviceName, const 
     {
         this->midiInput->start();
         sendMidiMessage(VersionMessage::request());
-
     }
 }
 
@@ -65,14 +69,17 @@ void MidiHandler::handleIncomingMidiMessage (juce::MidiInput */*source*/, const 
 
 void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent)
 {    
-    if ( !message.isNoteOnOrOff() )
+    if ( !message.isSysEx() && message.getChannel() != 0 && message.getChannel() != this->midiChannel )
     {
-        // don't log note messages... 
-        for(auto *component : this->midiComponents.getReference(MessageType::MIDI_LOG_MESSAGE ))
-        {
-            juce::String logPrefix = (sent ? "Sent message:" : "Received message:");
-            component->handleMidiLog(message, logPrefix);
-        }
+        // not our channel
+        return;
+    }
+
+    // don't log note messages... 
+    for(auto *component : this->midiComponents.getReference(MessageType::MIDI_LOG_MESSAGE ))
+    {
+        juce::String logPrefix = (sent ? "Sent message:" : "Received message:");
+        component->handleMidiLog(message, logPrefix);
     }
 
     if ( sent )
@@ -132,7 +139,13 @@ void MidiHandler::unregisterMessageComponent(MessageType type, MidiComponent *co
 
 void MidiHandler::sendMidiCCMessage (uint8_t midiCC, uint8_t value)
 {
-    juce::MidiMessage message = juce::MidiMessage::controllerEvent (1, (int) midiCC, (int) value);  
+    juce::MidiMessage message = juce::MidiMessage::controllerEvent (midiChannel, (int) midiCC, (int) value);  
+    sendMidiMessage(message);
+}
+
+void MidiHandler::sendProgramChange (uint8_t program)
+{
+    juce::MidiMessage message = juce::MidiMessage::programChange (midiChannel, (int) program);  
     sendMidiMessage(message);
 }
 

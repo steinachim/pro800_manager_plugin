@@ -22,13 +22,14 @@
 
 #include "MidiComponent.h"
 #include "LocalProgramListBox.h"
+#include "MainWidget.h"
 
 class ProgramModel;
 
 class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent
 {
 public:
-    ProgramManagementTab(MidiHandler *handler);
+    ProgramManagementTab(MidiHandler *handler, MainWidget *parent);
     virtual ~ProgramManagementTab() override;
 
     void resized() override;
@@ -44,6 +45,8 @@ private:
 
     juce::TextButton button_RefreshDump { "Refresh Dump" };
     juce::TextButton button_Compare { "Compare" };
+    juce::TextButton button_Load { "Load" };
+
     juce::TextButton button_Export { "Export" };
     juce::TextButton button_Import { "Import" };
 
@@ -60,4 +63,7 @@ private:
     ProgramModel *model_ProgramListLocal;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
+
+    MainWidget *mainWidget = nullptr;
+
 };

@@ -69,6 +69,15 @@ void MidiComponent::requestProgramDump()
     this->midiDumpRequestThread->startThread();
 }
 
+void MidiComponent::loadProgram(uint16_t programNumber)
+{
+    uint8_t program = programNumber % 100; // range 0-99
+    uint8_t bank = (uint8_t)(programNumber / 100);
+    
+    this->midiHandler->sendMidiCCMessage(BANK_SELECT, bank);
+    this->midiHandler->sendProgramChange(program);
+}
+
 void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
 {
     switch(type)

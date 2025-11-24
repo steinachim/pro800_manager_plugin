@@ -44,6 +44,8 @@ public:
 
     
 private:
+    juce::TooltipWindow tooltipWindow { this, 500 };
+
     MidiHandler *midiHandler;
 
     Pro800ManagerAudioProcessor& audioProcessor;
@@ -51,6 +53,8 @@ private:
     juce::MidiKeyboardState keyboardState;
 
     juce::Label label_FirmwareVersion { "", "Not Connected" };
+    juce::Label label_MidiChannel { "", "MIDI Channel:" };
+    juce::Slider spinBox_MidiChannel { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
     juce::Label label_MidiInput { "", "MIDI Input:" };
     juce::ComboBox combo_MidiInputList;
     juce::Label label_MidiOutput { "", "MIDI Output:" };

@@ -22,6 +22,22 @@
 
 AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::MIDI_LOG_MESSAGE})
 {
+    juce::String comboToolTip = "";
+    for ( const auto& [id, preparedMessage] : PREPARED_MESSAGES )
+    {
+        combo_PreparedMessages.addItem(preparedMessage.name, (int)id);
+        comboToolTip += preparedMessage.name + ":\n" + preparedMessage.description + "\n\n";
+    }
+    combo_PreparedMessages.setTooltip(comboToolTip.trimEnd());
+    combo_PreparedMessages.onChange = [this]()
+    {
+        PreparedMessageId selectedId = (PreparedMessageId)combo_PreparedMessages.getSelectedId();
+        if ( PREPARED_MESSAGES.contains(selectedId) )
+        {
+            textEdit_inputMidiMessage.setText( PREPARED_MESSAGES.at(selectedId).byteString, false);
+        }
+    };
+
     textEdit_midiMessageLog.setReadOnly(false);
     textEdit_midiMessageLog.setMultiLine(true);
     textEdit_midiMessageLog.setReturnKeyStartsNewLine(true);
@@ -69,12 +85,20 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
       slider_debugInput.setValue(currentTestNum+1);
     };
 
+    button_clearLog.onClick = [this]
+    {
+        textEdit_midiMessageLog.clear();
+    };
+
     addAndMakeVisible(textEdit_midiMessageLog);
+
+    addAndMakeVisible(combo_PreparedMessages);
     addAndMakeVisible(textEdit_inputMidiMessage);
     addAndMakeVisible(button_sendMessage);
     addAndMakeVisible(button_debug);
     addAndMakeVisible(slider_debugInput);
     addAndMakeVisible(checkBox_enableLogging);
+    addAndMakeVisible(button_clearLog);
 }
 
 AdvancedTab::~AdvancedTab()
@@ -85,12 +109,16 @@ void AdvancedTab::resized()
 {
     const int buttonHeight = 30;
     auto area = getLocalBounds().reduced(4);
-    checkBox_enableLogging.setBounds(area.removeFromTop(buttonHeight).reduced(4));
+
+    auto logTopArea = area.removeFromTop(buttonHeight).reduced(4);
+    button_clearLog.setBounds(logTopArea.removeFromRight(100));
+    checkBox_enableLogging.setBounds(logTopArea);
     textEdit_midiMessageLog.setBounds(area.removeFromTop(area.getHeight()-buttonHeight).reduced(4));
     
     slider_debugInput.setBounds(area.removeFromRight(150).reduced(4));
     button_debug.setBounds(area.removeFromRight(100).reduced(4));
     button_sendMessage.setBounds(area.removeFromRight(100).reduced(4));
+    combo_PreparedMessages.setBounds(area.removeFromLeft(200).reduced(4));
     textEdit_inputMidiMessage.setBounds(area.reduced(4));
 }
 

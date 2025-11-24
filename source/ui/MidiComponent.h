@@ -46,6 +46,7 @@ public:
 
     void requestFactoryReset();
     void requestProgramDump();
+    void loadProgram(uint16_t programNumber);
     void sendProgram(std::shared_ptr<ProgramMessage> &message);
 
 protected:

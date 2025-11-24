@@ -21,8 +21,9 @@
 #include "../midi/ProgramMessage.h"
 #include "ProgramModel.h"
 
-ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM_MESSAGE})
+ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget *parent) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM_MESSAGE})
 {
+    this->mainWidget = parent;
     model_ProgramListSynth = new ProgramModel(ProgramModel::SYNTH, &listBox_ProgramListSynth);
     model_ProgramListLocal = new ProgramModel(ProgramModel::LOCAL, &listBox_ProgramListLocal);
     listBox_ProgramListSynth.setModel(model_ProgramListSynth);
@@ -37,6 +38,18 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
 
     button_Compare.onClick = [this] { 
         compareSelectedPrograms(); 
+    };
+
+    button_Load.onClick = [this] {
+        auto selectedRows = listBox_ProgramListSynth.getSelectedRows();
+        if ( selectedRows.isEmpty())
+        {
+            return;
+        }
+
+        auto programMessage = model_ProgramListSynth->getProgramForRow (selectedRows[0]);
+        loadProgram(programMessage->getProgramNumber());
+        this->mainWidget->loadFromProgram(programMessage);
     };
 
     button_Export.onClick = [this] {
@@ -155,6 +168,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Com
     addAndMakeVisible(button_LocalToSynth);
     addAndMakeVisible(button_LocalToSynthAll);
 
+    addAndMakeVisible(button_Load);
     addAndMakeVisible(button_RefreshDump);
     addAndMakeVisible(button_Compare);
     addAndMakeVisible(button_Export);
@@ -195,6 +209,7 @@ void ProgramManagementTab::resized()
 
     button_Compare.setBounds(area.removeFromLeft(120).reduced(4, 0));
     button_RefreshDump.setBounds(area.removeFromLeft(120).reduced(4, 0));
+    button_Load.setBounds(area.removeFromLeft(120).reduced(4, 0));
     
     button_Export.setBounds(area.removeFromRight(120).reduced(4, 0));
     button_Import.setBounds(area.removeFromRight(120).reduced(4, 0));
