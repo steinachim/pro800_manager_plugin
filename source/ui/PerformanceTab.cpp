@@ -18,6 +18,8 @@
 
 #include "PerformanceTab.h"
 #include "../midi/ProgramMessage.h" 
+#include "../constants/Pro800CCConstants.h"
+#include "../constants/Pro800ProgramConstants.h"
 
 PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, true)
 {
@@ -35,11 +37,6 @@ PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiCom
 
 PerformanceTab::~PerformanceTab()
 {
-}
-
-void PerformanceTab::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
-{
-    setComponentValue(&this->slider_VibratoAmount, Pro800CCMessages::VIBRATO_AMOUNT, programMessage->getValue(Pro800ProgramField::PROGRAM_FIELD_LFO_VIBRATO_AMOUNT), 65535);
 }
 
 void PerformanceTab::resized()
@@ -73,12 +70,20 @@ void PerformanceTab::resized()
 void PerformanceTab::setupGroupLFO()
 {
     // 1 - LFO
-    this->combo_LFOtarget.addItem("Osc A & B", Pro800LFOTarget::LFO_TARGET_OSC_AB+1);
-    this->combo_LFOtarget.addItem("Osc A", Pro800LFOTarget::LFO_TARGET_OSC_A+1);
-    this->combo_LFOtarget.addItem("Osc B", Pro800LFOTarget::LFO_TARGET_OSC_B+1);
-    this->combo_LFOtarget.addItem("VCA", Pro800LFOTarget::LFO_TARGET_VCA+1);
-    this->combo_LFOspeed.addItem("Fast", Pro800LFOSpeed::LFO_SPEED_FAST+1);
-    this->combo_LFOspeed.addItem("Slow", Pro800LFOSpeed::LFO_SPEED_SLOW+1);
+
+    // note: LFO Target is a royal pain since it's not a simple one-to-one mapping and
+    //       it is cobbeled together from multiple CCs but only one program bit field (!).
+    //       To make life easier for me, this is still using CC identifiers and be translate
+    //       the program field backwards when settings values.
+    //
+    //       see: Pro800ProgramLfoDestinationBitMask.
+
+    this->combo_LFOtarget.addItem("Osc A & B", CC_LFO_TARGET_OSC_AB+1);
+    this->combo_LFOtarget.addItem("Osc A", CC_LFO_TARGET_OSC_A+1);
+    this->combo_LFOtarget.addItem("Osc B", CC_LFO_TARGET_OSC_B+1);
+    this->combo_LFOtarget.addItem("VCA", CC_LFO_TARGET_VCA+1);
+    this->combo_LFOspeed.addItem("Fast", PROGRAM_LFO_SPEED_FAST+1);
+    this->combo_LFOspeed.addItem("Slow", PROGRAM_LFO_SPEED_SLOW+1);
 
     this->group_LFO.setTextLabelPosition(juce::Justification::left);
     this->group_LFO.addComponents( { 
@@ -86,8 +91,8 @@ void PerformanceTab::setupGroupLFO()
         &label_LFOspeed,  &combo_LFOspeed
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::LFO_TARGET, &combo_LFOtarget);
-    this->setupMidiCCComponent(Pro800CCMessages::LFO_SPEED, &combo_LFOspeed);
+    this->setupMidiComponent(&combo_LFOtarget, CC_LFO_TARGET, PROGRAM_FIELD_LFO_DEST);
+    this->setupMidiComponent(&combo_LFOspeed,  CC_LFO_SPEED,  PROGRAM_FIELD_LFO_SPEED);
 
     this->addAndMakeVisible(group_LFO);
 }
@@ -104,8 +109,8 @@ void PerformanceTab::setupGroupVibrato()
         &label_VibratoAmount, &slider_VibratoAmount
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_SPEED, &slider_VibratoSpeed);
-    this->setupMidiCCComponent(Pro800CCMessages::VIBRATO_AMOUNT, &slider_VibratoAmount);
+    this->setupMidiComponent(&slider_VibratoSpeed, CC_VIBRATO_SPEED, PROGRAM_FIELD_LFO_VIBRATO_FREQ);
+    this->setupMidiComponent(&slider_VibratoAmount, CC_VIBRATO_AMOUNT, PROGRAM_FIELD_LFO_AMOUNT);
 
     this->addAndMakeVisible(group_Vibrato);
 }
@@ -113,12 +118,12 @@ void PerformanceTab::setupGroupVibrato()
 void PerformanceTab::setupGroupModulation()
 {
     // 3 - Modulation
-    this->combo_ModulationWheelAmount.addItem("Full", Pro800ModWheelAmount::MOD_WHEEL_AMOUNT_FULL+1);
-    this->combo_ModulationWheelAmount.addItem("High", Pro800ModWheelAmount::MOD_WHEEL_AMOUNT_HIGH+1);
-    this->combo_ModulationWheelAmount.addItem("Low", Pro800ModWheelAmount::MOD_WHEEL_AMOUNT_LOW+1);
-    this->combo_ModulationWheelAmount.addItem("Min", Pro800ModWheelAmount::MOD_WHEEL_AMOUNT_MIN+1);
-    this->combo_ModulationWheelTarget.addItem("LFO", Pro800ModWheelTarget::MOD_WHEEL_TARGET_LFO+1);
-    this->combo_ModulationWheelTarget.addItem("Vibrato", Pro800ModWheelTarget::MOD_WHEEL_TARGET_VIBRATO+1);
+    this->combo_ModulationWheelAmount.addItem("Full", PROGRAM_MOD_WHEEL_AMOUNT_FULL+1);
+    this->combo_ModulationWheelAmount.addItem("High", PROGRAM_MOD_WHEEL_AMOUNT_HIGH+1);
+    this->combo_ModulationWheelAmount.addItem("Low", PROGRAM_MOD_WHEEL_AMOUNT_LOW+1);
+    this->combo_ModulationWheelAmount.addItem("Min", PROGRAM_MOD_WHEEL_AMOUNT_MIN+1);
+    this->combo_ModulationWheelTarget.addItem("LFO", PROGRAM_MOD_WHEEL_TARGET_LFO+1);
+    this->combo_ModulationWheelTarget.addItem("Vibrato", PROGRAM_MOD_WHEEL_TARGET_VIBRATO+1);
     this->slider_ModulationDelay.setRange(0.0, 127.0, 1.0);
 
     this->group_Modulation.setTextLabelPosition(juce::Justification::left);
@@ -128,9 +133,9 @@ void PerformanceTab::setupGroupModulation()
         &label_ModulationDelay,       &slider_ModulationDelay
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::MOD_WHEEL_AMOUNT, &combo_ModulationWheelAmount);
-    this->setupMidiCCComponent(Pro800CCMessages::MOD_WHEEL_TARGET, &combo_ModulationWheelTarget);
-    this->setupMidiCCComponent(Pro800CCMessages::MODULATION_DELAY, &slider_ModulationDelay);
+    this->setupMidiComponent(&combo_ModulationWheelAmount, CC_MOD_WHEEL_AMOUNT, PROGRAM_FIELD_MODWHEEL_RANGE);
+    this->setupMidiComponent(&combo_ModulationWheelTarget, CC_MOD_WHEEL_TARGET, PROGRAM_FIELD_MODWHEEL_TARGET);
+    this->setupMidiComponent(&slider_ModulationDelay,      CC_MODULATION_DELAY, PROGRAM_FIELD_LFO_MODULATION_DELAY);
 
     this->addAndMakeVisible(group_Modulation);
 }
@@ -138,15 +143,15 @@ void PerformanceTab::setupGroupModulation()
 void PerformanceTab::setupGroupEnvelopes()
 {
     // 4 - Envelopes
-    this->combo_EnvSpeedVCA.addItem("Fast", Pro800EnvelopeSpeed::ENV_SPEED_FAST+1);
-    this->combo_EnvSpeedVCA.addItem("Slow", Pro800EnvelopeSpeed::ENV_SPEED_SLOW+1);
-    this->combo_EnvShapeVCA.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
-    this->combo_EnvShapeVCA.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
+    this->combo_EnvSpeedVCA.addItem("Fast", PROGRAM_ENV_SPEED_FAST+1);
+    this->combo_EnvSpeedVCA.addItem("Slow", PROGRAM_ENV_SPEED_SLOW+1);
+    this->combo_EnvShapeVCA.addItem("Exponential", PROGRAM_ENV_SHAPE_EXPONENTIAL+1);
+    this->combo_EnvShapeVCA.addItem("Linear", PROGRAM_ENV_SHAPE_LINEAR+1);
 
-    this->combo_EnvSpeedVCF.addItem("Fast", Pro800EnvelopeSpeed::ENV_SPEED_FAST+1);
-    this->combo_EnvSpeedVCF.addItem("Slow", Pro800EnvelopeSpeed::ENV_SPEED_SLOW+1);
-    this->combo_EnvShapeVCF.addItem("Exponential", Pro800EnvelopeShape::ENV_SHAPE_EXPONENTIAL+1);
-    this->combo_EnvShapeVCF.addItem("Linear", Pro800EnvelopeShape::ENV_SHAPE_LINEAR+1);
+    this->combo_EnvSpeedVCF.addItem("Fast", PROGRAM_ENV_SPEED_FAST+1);
+    this->combo_EnvSpeedVCF.addItem("Slow", PROGRAM_ENV_SPEED_SLOW+1);
+    this->combo_EnvShapeVCF.addItem("Exponential", PROGRAM_ENV_SHAPE_EXPONENTIAL+1);
+    this->combo_EnvShapeVCF.addItem("Linear", PROGRAM_ENV_SHAPE_LINEAR+1);
 
     this->group_Envelopes.setTextLabelPosition(juce::Justification::left);
     this->group_Envelopes.addComponents( {
@@ -156,11 +161,11 @@ void PerformanceTab::setupGroupEnvelopes()
         &label_EnvShapeVCF, &combo_EnvShapeVCF,        
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SPEED, &combo_EnvSpeedVCA);
-    this->setupMidiCCComponent(Pro800CCMessages::VCA_ENV_SHAPE, &combo_EnvShapeVCA);
+    this->setupMidiComponent(&combo_EnvSpeedVCA, CC_VCA_ENV_SPEED, PROGRAM_FIELD_AMP_ENV_SPEED);
+    this->setupMidiComponent(&combo_EnvShapeVCA, CC_VCA_ENV_SHAPE, PROGRAM_FIELD_AMP_ENV_SHAPE);
   
-    this->setupMidiCCComponent(Pro800CCMessages::VCF_ENV_SPEED, &combo_EnvSpeedVCF);
-    this->setupMidiCCComponent(Pro800CCMessages::VCF_ENV_SHAPE, &combo_EnvShapeVCF);
+    this->setupMidiComponent(&combo_EnvSpeedVCF, CC_VCF_ENV_SPEED, PROGRAM_FIELD_FILTER_ENV_SPEED);
+    this->setupMidiComponent(&combo_EnvShapeVCF, CC_VCF_ENV_SHAPE, PROGRAM_FIELD_FILTER_ENV_SHAPE);
     
     this->addAndMakeVisible(group_Envelopes);
 }
@@ -168,10 +173,10 @@ void PerformanceTab::setupGroupEnvelopes()
 void PerformanceTab::setupGroupPitchBend()
 {
     // 5 - Pitch Bend
-    this->combo_PitchBendTarget.addItem("Off", Pro800PitchBendTarget::PITCH_BEND_TARGET_OFF+1);
-    this->combo_PitchBendTarget.addItem("VCF", Pro800PitchBendTarget::PITCH_BEND_TARGET_VCF+1);
-    this->combo_PitchBendTarget.addItem("VCO", Pro800PitchBendTarget::PITCH_BEND_TARGET_VCO+1);
-    this->combo_PitchBendTarget.addItem("Volume", Pro800PitchBendTarget::PITCH_BEND_TARGET_VOLUME+1);
+    this->combo_PitchBendTarget.addItem("Off", PROGRAM_PITCH_BEND_TARGET_OFF+1);
+    this->combo_PitchBendTarget.addItem("VCF", PROGRAM_PITCH_BEND_TARGET_VCF+1);
+    this->combo_PitchBendTarget.addItem("VCO", PROGRAM_PITCH_BEND_TARGET_VCO+1);
+    this->combo_PitchBendTarget.addItem("Volume", PROGRAM_PITCH_BEND_TARGET_VOLUME+1);
     this->slider_PitchBendRange.setRange(0.0, 31.0, 1.0);
 
     this->group_PitchBend.setTextLabelPosition(juce::Justification::left);
@@ -180,8 +185,8 @@ void PerformanceTab::setupGroupPitchBend()
         &label_PitchBendRange,  &slider_PitchBendRange
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::PITCH_BEND_TARGET, &combo_PitchBendTarget);
-    this->setupMidiCCComponent(Pro800CCMessages::PITCH_BEND_RANGE, &slider_PitchBendRange);
+    this->setupMidiComponent(&combo_PitchBendTarget, CC_PITCH_BEND_TARGET, PROGRAM_FIELD_PITCHBEND_TARGET);
+    this->setupMidiComponent(&slider_PitchBendRange,  CC_PITCH_BEND_RANGE,  PROGRAM_FIELD_PITCHBEND_RANGE);
 
     this->addAndMakeVisible(group_PitchBend);
 }
@@ -189,18 +194,18 @@ void PerformanceTab::setupGroupPitchBend()
 void PerformanceTab::setupGroupOscillators()
 {
     // 6 - Oscillators
-    this->combo_OscAFreqPotMode.addItem("Fixed", Pro800FreqPotMode::FREQ_POT_MODE_FIXED+1);
-    this->combo_OscAFreqPotMode.addItem("Free", Pro800FreqPotMode::FREQ_POT_MODE_FREE+1);
-    this->combo_OscAFreqPotMode.addItem("Semi-Tone", Pro800FreqPotMode::FREQ_POT_MODE_SEMI+1);
-    this->combo_OscAFreqPotMode.addItem("Octave", Pro800FreqPotMode::FREQ_POT_MODE_OCT+1);
-    this->combo_OscBFreqPotMode.addItem("Fixed", Pro800FreqPotMode::FREQ_POT_MODE_FIXED+1);
-    this->combo_OscBFreqPotMode.addItem("Free", Pro800FreqPotMode::FREQ_POT_MODE_FREE+1);
-    this->combo_OscBFreqPotMode.addItem("Semi-Tone", Pro800FreqPotMode::FREQ_POT_MODE_SEMI+1);
-    this->combo_OscBFreqPotMode.addItem("Octave", Pro800FreqPotMode::FREQ_POT_MODE_OCT+1);
-    this->combo_OscKeyboardTracking.addItem("C1", Pro800KeyboardTracking::KEYBOARD_TRACKING_C1+1); 
-    this->combo_OscKeyboardTracking.addItem("C2", Pro800KeyboardTracking::KEYBOARD_TRACKING_C2+1); 
-    this->combo_OscKeyboardTracking.addItem("C3", Pro800KeyboardTracking::KEYBOARD_TRACKING_C3+1); 
-    this->combo_OscKeyboardTracking.addItem("C4", Pro800KeyboardTracking::KEYBOARD_TRACKING_C4+1); 
+    this->combo_OscAFreqPotMode.addItem("Fixed", PROGRAM_FREQ_POT_MODE_FIXED+1);
+    this->combo_OscAFreqPotMode.addItem("Free", PROGRAM_FREQ_POT_MODE_FREE+1);
+    this->combo_OscAFreqPotMode.addItem("Semi-Tone", PROGRAM_FREQ_POT_MODE_SEMI+1);
+    this->combo_OscAFreqPotMode.addItem("Octave", PROGRAM_FREQ_POT_MODE_OCT+1);
+    this->combo_OscBFreqPotMode.addItem("Fixed", PROGRAM_FREQ_POT_MODE_FIXED+1);
+    this->combo_OscBFreqPotMode.addItem("Free", PROGRAM_FREQ_POT_MODE_FREE+1);
+    this->combo_OscBFreqPotMode.addItem("Semi-Tone", PROGRAM_FREQ_POT_MODE_SEMI+1);
+    this->combo_OscBFreqPotMode.addItem("Octave", PROGRAM_FREQ_POT_MODE_OCT+1);
+    this->combo_OscKeyboardTracking.addItem("C1", PROGRAM_KEYBOARD_TRACKING_REF_C1+1); 
+    this->combo_OscKeyboardTracking.addItem("C2", PROGRAM_KEYBOARD_TRACKING_REF_C2+1); 
+    this->combo_OscKeyboardTracking.addItem("C3", PROGRAM_KEYBOARD_TRACKING_REF_C3+1); 
+    this->combo_OscKeyboardTracking.addItem("C4", PROGRAM_KEYBOARD_TRACKING_REF_C4+1); 
 
     this->group_Oscillators.setTextLabelPosition(juce::Justification::left);
     this->group_Oscillators.addComponents( {
@@ -209,9 +214,9 @@ void PerformanceTab::setupGroupOscillators()
         &label_OscKeyboardTracking, &combo_OscKeyboardTracking
     });
     
-    this->setupMidiCCComponent(Pro800CCMessages::OSC_A_FREQ_POT_MODE, &combo_OscAFreqPotMode);
-    this->setupMidiCCComponent(Pro800CCMessages::OSC_B_FREQ_POT_MODE, &combo_OscBFreqPotMode);
-    this->setupMidiCCComponent(Pro800CCMessages::KEYBOARD_TRACKING, &combo_OscKeyboardTracking);
+    this->setupMidiComponent(&combo_OscAFreqPotMode,     CC_OSC_A_FREQ_POT_MODE,   PROGRAM_FIELD_OSC_A_FREQ_POT_MODE);
+    this->setupMidiComponent(&combo_OscBFreqPotMode,     CC_OSC_B_FREQ_POT_MODE,   PROGRAM_FIELD_OSC_B_FREQ_POT_MODE);
+    this->setupMidiComponent(&combo_OscKeyboardTracking, CC_KEYBOARD_TRACKING_REF, PROGRAM_FIELD_KEY_TRACKING_REF_NOTE);
 
     this->addAndMakeVisible(group_Oscillators);
 }
@@ -228,8 +233,8 @@ void PerformanceTab::setupGroupVelocity()
         &label_VelocityAmountVCF, &slider_VelocityAmountVCF
     });
     
-    this->setupMidiCCComponent(Pro800CCMessages::VCA_VELOCITY_AMOUNT, &slider_VelocityAmountVCA);
-    this->setupMidiCCComponent(Pro800CCMessages::VCF_VELOCITY_AMOUNT, &slider_VelocityAmountVCF);
+    this->setupMidiComponent(&slider_VelocityAmountVCA, CC_VCA_VELOCITY_AMOUNT, PROGRAM_FIELD_AMP_VELOCITY);
+    this->setupMidiComponent(&slider_VelocityAmountVCF, CC_VCF_VELOCITY_AMOUNT, PROGRAM_FIELD_FILTER_VELOCITY);
 
     this->addAndMakeVisible(group_Velocity);
 }
@@ -248,9 +253,9 @@ void PerformanceTab::setupGroupAftertouch()
         &label_AfterTouchAmountLFO, &slider_AfterTouchAmountLFO
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::VCA_AFTERTOUCH_AMOUNT, &slider_AfterTouchAmountVCA);
-    this->setupMidiCCComponent(Pro800CCMessages::VCF_AFTERTOUCH_AMOUNT, &slider_AfterTouchAmountVCF);
-    this->setupMidiCCComponent(Pro800CCMessages::LFO_AFTERTOUCH_AMOUNT, &slider_AfterTouchAmountLFO);
+    this->setupMidiComponent(&slider_AfterTouchAmountVCA, CC_VCA_AFTERTOUCH_AMOUNT, PROGRAM_FIELD_AMP_AFTERTOUCH_AMOUNT);
+    this->setupMidiComponent(&slider_AfterTouchAmountVCF, CC_VCF_AFTERTOUCH_AMOUNT, PROGRAM_FIELD_FILTER_AFTERTOUCH_AMOUNT);
+    this->setupMidiComponent(&slider_AfterTouchAmountLFO, CC_LFO_AFTERTOUCH_AMOUNT, PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT);
 
     this->addAndMakeVisible(group_Aftertouch);
 }
@@ -267,8 +272,8 @@ void PerformanceTab::setupGroupSpread()
         &label_SpreadVoiceEnable,  &checkBox_SpreadVoiceEnable
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::VOICE_SPREAD_ENABLE, &checkBox_SpreadVoiceEnable);
-    this->setupMidiCCComponent(Pro800CCMessages::UNISON_SPREAD_DETUNE, &slider_SpreadUnisonDetune);
+    this->setupMidiComponent(&checkBox_SpreadVoiceEnable, CC_VOICE_SPREAD_ENABLE, PROGRAM_FIELD_VOICE_SPREAD_ENABLE);
+    this->setupMidiComponent(&slider_SpreadUnisonDetune,  CC_UNISON_SPREAD_DETUNE, PROGRAM_FIELD_UNISON_DETUNE);
 
     this->addAndMakeVisible(group_Spread);
 }
@@ -276,15 +281,15 @@ void PerformanceTab::setupGroupSpread()
 void PerformanceTab::setupGroupGlide()
 {
     // 0 - Glide
-    this->combo_GlideMode.addItem("Speed", Pro800GlideMode::GLIDE_MODE_SPEED+1);
-    this->combo_GlideMode.addItem("Time", Pro800GlideMode::GLIDE_MODE_TIME+1);
+    this->combo_GlideMode.addItem("Speed", PROGRAM_GLIDE_MODE_SPEED+1);
+    this->combo_GlideMode.addItem("Time", PROGRAM_GLIDE_MODE_TIME+1);
 
     this->group_Glide.setTextLabelPosition(juce::Justification::left);
     this->group_Glide.addComponents( {
         &label_GlideMode, &combo_GlideMode
     });
 
-    this->setupMidiCCComponent(Pro800CCMessages::GLIDE_MODE, &combo_GlideMode);
+    this->setupMidiComponent(&combo_GlideMode, CC_GLIDE_MODE, PROGRAM_FIELD_GLIDE_MODE);
 
     addAndMakeVisible(group_Glide);
 }

@@ -81,7 +81,7 @@ void SettingsTab::handlePro800SettingsUpdate()
         continue;
     }
 
-    setComponentValue(component, setting, settingsMessage->getValue(setting));
+    setComponentValue(component, settingsMessage->getValue(setting));
   }
 }
 
@@ -120,41 +120,41 @@ void SettingsTab::resized()
 
 void SettingsTab::setupGroupConnections()
 {
-  combo_ConnectionsMidiInputChannel.addItem("Dip Switches", Pro800MidiReceiveChannel::MIDI_RX_DIPS + 1); // TODO
-  combo_ConnectionsMidiInputChannel.addItem("All", Pro800MidiReceiveChannel::MIDI_RX_ALL + 1);
-  combo_ConnectionsMidiInputChannel.addItem("Off", Pro800MidiReceiveChannel::MIDI_RX_OFF + 1);
+  combo_ConnectionsMidiInputChannel.addItem("Dip Switches", SETTINGS_MIDI_RX_DIPS + 1);
+  combo_ConnectionsMidiInputChannel.addItem("All",          SETTINGS_MIDI_RX_ALL + 1);
+  combo_ConnectionsMidiInputChannel.addItem("Off",          SETTINGS_MIDI_RX_OFF + 1);
   for ( int ch = 0; ch < 16; ch++ )
   {
-    combo_ConnectionsMidiInputChannel.addItem(juce::String::formatted("%d", ch+1), Pro800MidiReceiveChannel::MIDI_RX_1 + ch + 1);
+    combo_ConnectionsMidiInputChannel.addItem(juce::String::formatted("%d", ch+1), SETTINGS_MIDI_RX_1 + ch + 1);
   }
 
-  combo_ConnectionsMidiOutputChannel.addItem("Dip Switches", Pro800MidiTransmitChannel::MIDI_TX_DIPS + 1);
-  combo_ConnectionsMidiOutputChannel.addItem("Thru", Pro800MidiTransmitChannel::MIDI_TX_THRU + 1);
+  combo_ConnectionsMidiOutputChannel.addItem("Dip Switches", SETTINGS_MIDI_TX_DIPS + 1);
+  combo_ConnectionsMidiOutputChannel.addItem("Thru",         SETTINGS_MIDI_TX_THRU + 1);
   for ( int ch = 0; ch < 16; ch++ )
   {
-    combo_ConnectionsMidiOutputChannel.addItem(juce::String::formatted("%d", ch+1), Pro800MidiTransmitChannel::MIDI_TX_1 + ch + 1);
+    combo_ConnectionsMidiOutputChannel.addItem(juce::String::formatted("%d", ch+1), SETTINGS_MIDI_TX_1 + ch + 1);
   }
 
-  combo_ConnectionsMidiCC.addItem("Send & Receive", Pro800MidiMode::MIDI_MODE_TX_RX+1);
-  combo_ConnectionsMidiCC.addItem("Send", Pro800MidiMode::MIDI_MODE_TX+1);
-  combo_ConnectionsMidiCC.addItem("Receive", Pro800MidiMode::MIDI_MODE_RX+1);
-  combo_ConnectionsMidiCC.addItem("Off", Pro800MidiMode::MIDI_MODE_OFF+1);
+  combo_ConnectionsMidiCC.addItem("Send & Receive", SETTINGS_MIDI_MODE_TX_RX+1);
+  combo_ConnectionsMidiCC.addItem("Send",           SETTINGS_MIDI_MODE_TX+1);
+  combo_ConnectionsMidiCC.addItem("Receive",        SETTINGS_MIDI_MODE_RX+1);
+  combo_ConnectionsMidiCC.addItem("Off",            SETTINGS_MIDI_MODE_OFF+1);
 
-  combo_ConnectionsMidiPC.addItem("Send & Receive", Pro800MidiMode::MIDI_MODE_TX_RX+1); // TODO
-  combo_ConnectionsMidiPC.addItem("Send", Pro800MidiMode::MIDI_MODE_TX+1);
-  combo_ConnectionsMidiPC.addItem("Receive", Pro800MidiMode::MIDI_MODE_RX+1);
-  combo_ConnectionsMidiPC.addItem("Off", Pro800MidiMode::MIDI_MODE_OFF+1);
+  combo_ConnectionsMidiPC.addItem("Send & Receive", SETTINGS_MIDI_MODE_TX_RX+1);
+  combo_ConnectionsMidiPC.addItem("Send",           SETTINGS_MIDI_MODE_TX+1);
+  combo_ConnectionsMidiPC.addItem("Receive",        SETTINGS_MIDI_MODE_RX+1);
+  combo_ConnectionsMidiPC.addItem("Off",            SETTINGS_MIDI_MODE_OFF+1);
 
-  combo_ConnectionsSyncInPolarity.addItem("Rise", Pro800SettingsPolarity::POLARITY_RISE+1); // TODO
-  combo_ConnectionsSyncInPolarity.addItem("Fall", Pro800SettingsPolarity::POLARITY_FALL+1);
-  combo_ConnectionsSyncInPolarity.addItem("Both", Pro800SettingsPolarity::POLARITY_BOTH+1);
+  combo_ConnectionsSyncInPolarity.addItem("Rise", SETTINGS_POLARITY_RISE+1);
+  combo_ConnectionsSyncInPolarity.addItem("Fall", SETTINGS_POLARITY_FALL+1);
+  combo_ConnectionsSyncInPolarity.addItem("Both", SETTINGS_POLARITY_BOTH+1);
 
-  combo_ConnectionsSyncInPPQN.addItem("1PPS", Pro800SettingsSyncInPPQN::SYNC_IN_1PPS+1); // TODO
-  combo_ConnectionsSyncInPPQN.addItem("1PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_1PPQN+1);
-  combo_ConnectionsSyncInPPQN.addItem("2PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_2PPQN+1);
-  combo_ConnectionsSyncInPPQN.addItem("4PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_4PPQN+1);
-  combo_ConnectionsSyncInPPQN.addItem("24PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_24PPQN+1);
-  combo_ConnectionsSyncInPPQN.addItem("48PPQN", Pro800SettingsSyncInPPQN::SYNC_IN_48PPQN+1);
+  combo_ConnectionsSyncInPPQN.addItem("1PPS",   SETTINGS_SYNC_IN_1PPS+1);
+  combo_ConnectionsSyncInPPQN.addItem("1PPQN",  SETTINGS_SYNC_IN_1PPQN+1);
+  combo_ConnectionsSyncInPPQN.addItem("2PPQN",  SETTINGS_SYNC_IN_2PPQN+1);
+  combo_ConnectionsSyncInPPQN.addItem("4PPQN",  SETTINGS_SYNC_IN_4PPQN+1);
+  combo_ConnectionsSyncInPPQN.addItem("24PPQN", SETTINGS_SYNC_IN_24PPQN+1);
+  combo_ConnectionsSyncInPPQN.addItem("48PPQN", SETTINGS_SYNC_IN_48PPQN+1);
 
   this->group_Connections.setTextLabelPosition(juce::Justification::left);
   this->group_Connections.addComponents( {
@@ -170,16 +170,16 @@ void SettingsTab::setupGroupConnections()
     &label_ConnectionsSoftThru,               &checkBox_ConnectionsSoftThru
   });
 
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_RX_CHANNEL, &combo_ConnectionsMidiInputChannel);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_TX_CHANNEL, &combo_ConnectionsMidiOutputChannel);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_CC_MODE, &combo_ConnectionsMidiCC);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_PC_MODE, &combo_ConnectionsMidiPC);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_FORWARD, &checkBox_ConnectionsSyncInForwardEnabled);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_POLARITY, &combo_ConnectionsSyncInPolarity);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_RX_CHANNEL,    &combo_ConnectionsMidiInputChannel);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_TX_CHANNEL,    &combo_ConnectionsMidiOutputChannel);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_CC_MODE,       &combo_ConnectionsMidiCC);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_PC_MODE,       &combo_ConnectionsMidiPC);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_FORWARD,    &checkBox_ConnectionsSyncInForwardEnabled);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_POLARITY,   &combo_ConnectionsSyncInPolarity);
   this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_START_STOP, &checkBox_ConnectionsSyncInStartStopEnabled);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_PPQN, &combo_ConnectionsSyncInPPQN);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_LOCAL_ENABLE, &checkBox_ConnectionsLocalEnable);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SOFT_THRU, &checkBox_ConnectionsSoftThru);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_PPQN,       &combo_ConnectionsSyncInPPQN);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_LOCAL_ENABLE,       &checkBox_ConnectionsLocalEnable);
+  this->setupSettingsComponent(Pro800Settings::SETTINGS_SOFT_THRU,          &checkBox_ConnectionsSoftThru);
 
   addAndMakeVisible(group_Connections);
 }
@@ -270,19 +270,19 @@ void SettingsTab::setupGroupDisplay()
     &label_DisplayPresetNameEnabled, &checkBox_DisplayPresetNameEnabled
   });
 
-  setupSettingsComponent(Pro800Settings::SETTINGS_BRIGHTNESS, &spinBox_DisplayBrightness);
+  setupSettingsComponent(Pro800Settings::SETTINGS_BRIGHTNESS,             &spinBox_DisplayBrightness);
   setupSettingsComponent(Pro800Settings::SETTINGS_DISPLAY_PARAMETER_TIME, &spinBox_DisplayParameterTime);
-  setupSettingsComponent(Pro800Settings::SETTINGS_SHOW_PRESET_NAME, &checkBox_DisplayPresetNameEnabled);
+  setupSettingsComponent(Pro800Settings::SETTINGS_SHOW_PRESET_NAME,       &checkBox_DisplayPresetNameEnabled);
 
   addAndMakeVisible(group_Display);
 }
 
 void SettingsTab::setupGroupAutoTune()
 {
-  combo_AutoTunePrecision.addItem("0.5 cent", Pro800TunerPrecision::TUNER_PRECISION_0_5CT+1);
-  combo_AutoTunePrecision.addItem("1.0 cent", Pro800TunerPrecision::TUNER_PRECISION_1CT+1);
-  combo_AutoTunePrecision.addItem("1.5 cent", Pro800TunerPrecision::TUNER_PRECISION_1_5CT+1);
-  combo_AutoTunePrecision.addItem("2.0 cent", Pro800TunerPrecision::TUNER_PRECISION_2CT+1);
+  combo_AutoTunePrecision.addItem("0.5 cent", SETTINGS_TUNER_PRECISION_0_5CT+1);
+  combo_AutoTunePrecision.addItem("1.0 cent", SETTINGS_TUNER_PRECISION_1CT+1);
+  combo_AutoTunePrecision.addItem("1.5 cent", SETTINGS_TUNER_PRECISION_1_5CT+1);
+  combo_AutoTunePrecision.addItem("2.0 cent", SETTINGS_TUNER_PRECISION_2CT+1);
 
   this->group_AutoTune.setTextLabelPosition(juce::Justification::left);
   this->group_AutoTune.addComponents( {
@@ -297,9 +297,9 @@ void SettingsTab::setupGroupAutoTune()
 void SettingsTab::setupGroupMiscellaneous()
 {
   spinBox_MiscExternalFilterModAmount.setRange(0.0, 65535.0, 1.0);
-  combo_MiscVoicePriority.addItem("Last", Pro800VoicePriority::VOICE_PRIORITY_LAST+1);
-  combo_MiscVoicePriority.addItem("Low", Pro800VoicePriority::VOICE_PRIORITY_LOW+1);
-  combo_MiscVoicePriority.addItem("High", Pro800VoicePriority::VOICE_PRIORITY_HIGH+1);
+  combo_MiscVoicePriority.addItem("Last", SETTINGS_VOICE_PRIORITY_LAST+1);
+  combo_MiscVoicePriority.addItem("Low",  SETTINGS_VOICE_PRIORITY_LOW+1);
+  combo_MiscVoicePriority.addItem("High", SETTINGS_VOICE_PRIORITY_HIGH+1);
 
   combo_MiscPedalPriority.setEnabled(false); // not implemented yet (not in standard settings message)
 
@@ -311,30 +311,30 @@ void SettingsTab::setupGroupMiscellaneous()
   });
 
   setupSettingsComponent(Pro800Settings::SETTINGS_EXTERNAL_CV_AMOUNT, &spinBox_MiscExternalFilterModAmount);
-  setupSettingsComponent(Pro800Settings::SETTINGS_VOICE_PRIORITY, &combo_MiscVoicePriority);
+  setupSettingsComponent(Pro800Settings::SETTINGS_VOICE_PRIORITY,     &combo_MiscVoicePriority);
 
   addAndMakeVisible(group_Miscellaneous);
 }
 
 void SettingsTab::setupGroupSync()
 {
-  combo_SyncSource.addItem("Internal", Pro800SyncSource::SYNC_SOURCE_INTERNAL+1);
-  combo_SyncSource.addItem("MIDI", Pro800SyncSource::SYNC_SOURCE_MIDI+1);
-  combo_SyncSource.addItem("USB", Pro800SyncSource::SYNC_SOURCE_USB+1);
-  combo_SyncSource.addItem("External", Pro800SyncSource::SYNC_SOURCE_EXTERNAL+1);
+  combo_SyncSource.addItem("Internal", SETTINGS_SYNC_SOURCE_INTERNAL+1);
+  combo_SyncSource.addItem("MIDI",     SETTINGS_SYNC_SOURCE_MIDI+1);
+  combo_SyncSource.addItem("USB",      SETTINGS_SYNC_SOURCE_USB+1);
+  combo_SyncSource.addItem("External", SETTINGS_SYNC_SOURCE_EXTERNAL+1);
 
   spinBox_SyncClockBPM.valueFromTextFunction = [](const juce::String &text) { return text.getFloatValue() * 10.0; };
   spinBox_SyncClockBPM.textFromValueFunction = [](double value)             { return juce::String::formatted("%.1f", value/10.0); };
   spinBox_SyncClockBPM.setRange(500, 4000, 1.0);
 
-  combo_SyncClockSubdivision.addItem("1/4", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_4+1);
-  combo_SyncClockSubdivision.addItem("1/4T", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_4T+1);
-  combo_SyncClockSubdivision.addItem("1/8", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_8+1);
-  combo_SyncClockSubdivision.addItem("1/8T", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_8T+1);
-  combo_SyncClockSubdivision.addItem("1/16", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_16+1);
-  combo_SyncClockSubdivision.addItem("1/16T", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_16T+1);
-  combo_SyncClockSubdivision.addItem("1/32", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_32+1);
-  combo_SyncClockSubdivision.addItem("1/32T", Pro800SyncClockSubdivision::SYNC_CLOCK_SUBDIVISION_1_32T+1);
+  combo_SyncClockSubdivision.addItem("1/4",   SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4+1);
+  combo_SyncClockSubdivision.addItem("1/4T",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4T+1);
+  combo_SyncClockSubdivision.addItem("1/8",   SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8+1);
+  combo_SyncClockSubdivision.addItem("1/8T",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8T+1);
+  combo_SyncClockSubdivision.addItem("1/16",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_16+1);
+  combo_SyncClockSubdivision.addItem("1/16T", SETTINGS_SYNC_CLOCK_SUBDIVISION_1_16T+1);
+  combo_SyncClockSubdivision.addItem("1/32",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32+1);
+  combo_SyncClockSubdivision.addItem("1/32T", SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32T+1);
 
   spinBox_SyncClockSwing.setRange(50.0, 95.0, 1.0);
   spinBox_SyncClockNoteLength.setRange(1.0, 100.0, 1.0);

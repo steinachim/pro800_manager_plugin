@@ -23,6 +23,8 @@
 #include <vector>
 
 #include "Pro800DataMessage.h"
+#include "../constants/Pro800ProgramConstants.h"
+#include "../constants/Pro800CCConstants.h"
 
 class ProgramMessage : public Pro800DataMessage
 {
@@ -52,8 +54,10 @@ public:
 
     virtual juce::String toString() const override;
 
-    bool isLfoDestinationEnabled(Pro800ProgramLfoDestination destination) const;
-    void setLfoDestinationEnabled(Pro800ProgramLfoDestination destination, bool enabled);
+    bool isLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination) const;
+    void setLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination, bool enabled);
+
+    int getLfoDestinationValue(Pro800CCMessages ccNumber) const;
 
     int getValue(Pro800ProgramField field) const;
     void setValue(Pro800ProgramField field, int value);

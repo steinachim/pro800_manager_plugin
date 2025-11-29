@@ -31,10 +31,9 @@ public:
     virtual ~FrontPanelTab() override;
     
     void resized() override;
-    void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
 
 protected:
-    void setComponentValue(juce::Component *component, int midiCC, int value, int maxValue = -1) override;
+    virtual void setComponentValue(juce::Component *component, int value, int maxValue = -1) override;
     
 private:
     void setupGroupOscA();

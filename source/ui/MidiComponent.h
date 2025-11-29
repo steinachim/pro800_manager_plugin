@@ -20,7 +20,10 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
-#include "../Pro800Constants.h"
+#include "../constants/Pro800Constants.h"
+#include "../constants/Pro800CCConstants.h"
+#include "../constants/Pro800ProgramConstants.h"
+#include "../constants/Pro800SettingsConstants.h"
 
 class MidiHandler;
 class SettingsMessage;
@@ -32,6 +35,10 @@ class MidiComponent
 {
 public:
     const juce::String RADIO_VALUE_PROPERTY {"radioValue"};
+    const juce::String MIDI_CC_PROPERTY {"midiCC"};
+    const juce::String PROGRAM_FIELD_PROPERTY {"programField"};
+    const juce::String SETTINGS_FIELD_PROPERTY {"settingsField"};
+
 
     MidiComponent(MidiHandler *midiHandler, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
     virtual ~MidiComponent();
@@ -49,20 +56,22 @@ public:
     void loadProgram(uint16_t programNumber);
     void sendProgram(std::shared_ptr<ProgramMessage> &message);
 
+    virtual void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
+
 protected:
-    void setupMidiCCComponent(uint8_t midiCC, juce::Component *component);
-    void removeMidiCCComponent(uint8_t midiCC, juce::Component *component);
+    void setupMidiComponent(juce::Component *component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = SETTINGS_FIELD_NONE);
+    void removeMidiComponent(juce::Component *component);
 
     std::shared_ptr<SettingsMessage> &getCurrentSettings();
     void updateSettings(Pro800Settings setting, int value);
 
     std::shared_ptr<VersionMessage> &getCurrentVersion();
 
-    virtual void setComponentValue(juce::Component *component, int identifier, int value, int maxValue = -1);
+    virtual void setComponentValue(juce::Component *component, int value, int maxValue = -1);
     
 private:
     juce::Array<MessageType> registeredMessageTypes = juce::Array<MessageType>();
-    juce::HashMap<uint8_t, juce::Array<juce::Component*>> registeredCCComponents;
+    juce::HashMap<Pro800CCMessages, juce::Array<juce::Component*>> registeredCCComponents;
 
     MidiHandler *midiHandler;
 

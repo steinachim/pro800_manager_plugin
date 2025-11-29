@@ -29,8 +29,6 @@ public:
     PerformanceTab(MidiHandler *midiHandler);
     ~PerformanceTab() override;
 
-    void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
-
     void resized() override;
 
 private:

@@ -19,9 +19,11 @@
 #pragma once
 
 #include "Pro800DataMessage.h"
-#include "../Pro800Constants.h"
+#include "../constants/Pro800Constants.h"
+#include "../constants/Pro800SettingsConstants.h"
 
 #include <vector>
+
 
 class SettingsMessage : public Pro800DataMessage
 {
@@ -41,6 +43,6 @@ public:
     virtual juce::String toString() const override;
 
     void setValue(Pro800Settings setting, int value);
-    int getValue(Pro800Settings) const;
+    int getValue(Pro800Settings setting) const;
 
 };

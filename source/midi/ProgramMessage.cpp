@@ -121,19 +121,60 @@ void ProgramMessage::setProgramName(const std::string &newName)
     setStringValue(firstByte, lastByte, newName);
 }
 
-bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestination destination) const
+bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination) const
 {
     const uint8_t lfoDestinations = (uint8_t)getValue(PROGRAM_FIELD_LFO_DEST);
     return lfoDestinations & destination;
 }
 
-void ProgramMessage::setLfoDestinationEnabled(Pro800ProgramLfoDestination destination, bool enabled)
+void ProgramMessage::setLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination, bool enabled)
 {
     uint8_t lfoDestinations = (uint8_t)getValue(PROGRAM_FIELD_LFO_DEST);
     uint8_t targetValue = (enabled ? destination : 0);
 
     lfoDestinations = (lfoDestinations & ~destination) | targetValue;
-    setValue(PROGRAM_FIELD_LFO_DEST, lfoDestinations);
+    setValue (PROGRAM_FIELD_LFO_DEST, lfoDestinations);
+}
+
+int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
+{
+    int value = 0;
+
+    switch ((int)ccNumber)
+    {
+        case CC_LFO_MOD_DEST_FREQ_AB:
+            value = isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB) ? CC_ON : CC_OFF;
+            break;
+
+        case CC_LFO_MOD_DEST_PW_AB:
+            value = isLfoDestinationEnabled (PROGRAM_LFO_DEST_PW_AB) ? CC_ON : CC_OFF;
+            break;
+
+        case CC_LFO_MOD_DEST_FILTER:
+            value = isLfoDestinationEnabled (PROGRAM_LFO_DEST_FILTER) ? CC_ON : CC_OFF;
+            break;
+
+        case CC_LFO_TARGET:
+            value = CC_LFO_TARGET_OSC_AB;
+            if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_A))
+            {
+                value = CC_LFO_TARGET_OSC_A;
+            }
+            else if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_B))
+            {
+                value = CC_LFO_TARGET_OSC_B;
+            }
+            else if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB_VCA))
+            {
+                value = CC_LFO_TARGET_VCA;
+            }
+            break;
+
+        default:
+            std::cerr << "ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " << ccNumber << std::endl;
+            break;
+    }
+    return value;
 }
 
 juce::String ProgramMessage::toString() const
