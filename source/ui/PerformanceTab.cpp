@@ -100,8 +100,8 @@ void PerformanceTab::setupGroupLFO()
 void PerformanceTab::setupGroupVibrato()
 {
     // 2 - Vibrato
-    this->slider_VibratoSpeed.setRange(0.0, 127.0, 1.0);
-    this->slider_VibratoAmount.setRange(0.0, 127.0, 1.0);
+    this->slider_VibratoSpeed.setRange(0.0, 65535.0, 1.0);
+    this->slider_VibratoAmount.setRange(0.0, 65535.0, 1.0);
 
     this->group_Vibrato.setTextLabelPosition(juce::Justification::left);
     this->group_Vibrato.addComponents( {
@@ -124,7 +124,7 @@ void PerformanceTab::setupGroupModulation()
     this->combo_ModulationWheelAmount.addItem("Min", PROGRAM_MOD_WHEEL_AMOUNT_MIN+1);
     this->combo_ModulationWheelTarget.addItem("LFO", PROGRAM_MOD_WHEEL_TARGET_LFO+1);
     this->combo_ModulationWheelTarget.addItem("Vibrato", PROGRAM_MOD_WHEEL_TARGET_VIBRATO+1);
-    this->slider_ModulationDelay.setRange(0.0, 127.0, 1.0);
+    this->slider_ModulationDelay.setRange(0.0, 65535.0, 1.0);
 
     this->group_Modulation.setTextLabelPosition(juce::Justification::left);
     this->group_Modulation.addComponents( {
@@ -224,8 +224,8 @@ void PerformanceTab::setupGroupOscillators()
 void PerformanceTab::setupGroupVelocity()
 {
     // 7 - Velocity
-    this->slider_VelocityAmountVCA.setRange(0.0, 127.0, 1.0);
-    this->slider_VelocityAmountVCF.setRange(0.0, 127.0, 1.0);
+    this->slider_VelocityAmountVCA.setRange(0.0, 65535.0, 1.0);
+    this->slider_VelocityAmountVCF.setRange(0.0, 65535.0, 1.0);
     
     this->group_Velocity.setTextLabelPosition(juce::Justification::left);
     this->group_Velocity.addComponents( {
@@ -242,9 +242,9 @@ void PerformanceTab::setupGroupVelocity()
 void PerformanceTab::setupGroupAftertouch()
 {
     // 8 - Aftertouch
-    this->slider_AfterTouchAmountVCA.setRange(0.0, 127.0, 1.0);
-    this->slider_AfterTouchAmountVCF.setRange(0.0, 127.0, 1.0);
-    this->slider_AfterTouchAmountLFO.setRange(0.0, 127.0, 1.0);
+    this->slider_AfterTouchAmountVCA.setRange(0.0, 65535.0, 1.0);
+    this->slider_AfterTouchAmountVCF.setRange(0.0, 65535.0, 1.0);
+    this->slider_AfterTouchAmountLFO.setRange(0.0, 65535.0, 1.0);
 
     this->group_Aftertouch.setTextLabelPosition(juce::Justification::left);
     this->group_Aftertouch.addComponents( {
@@ -264,7 +264,7 @@ void PerformanceTab::setupGroupSpread()
 {
     // 9 - Spread
     this->checkBox_SpreadVoiceEnable.setButtonText("Enable");
-    this->slider_SpreadUnisonDetune.setRange(0.0, 127.0, 1.0);
+    this->slider_SpreadUnisonDetune.setRange(0.0, 65535.0, 1.0);
 
     this->group_Spread.setTextLabelPosition(juce::Justification::left);
     this->group_Spread.addComponents( {
