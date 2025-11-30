@@ -401,7 +401,7 @@ void SettingsTab::setupSettingsComponent(Pro800Settings setting, juce::Component
         juce::ToggleButton *checkBox = dynamic_cast<juce::ToggleButton*>(component);
         if ( checkBox == nullptr )
         {
-            std::cerr << "[ERROR] Cannot setup voice kill checkboxes... Not a toggle button"<< std::endl;
+            juce::Logger::writeToLog("[ERROR] Cannot setup voice kill checkboxes... Not a toggle button");
             return;
         }
 
@@ -439,7 +439,7 @@ void SettingsTab::setupSettingsComponent(Pro800Settings setting, juce::Component
     }
     else 
     {
-        std::cerr << "[WARNING] setupSettingsComponent(): Unknown component type for setting " << setting << std::endl;
+        juce::Logger::writeToLog("[WARNING] setupSettingsComponent(): Unknown component type for setting " + juce::String((int)setting));
     }
 
 }

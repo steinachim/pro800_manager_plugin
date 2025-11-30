@@ -95,7 +95,7 @@ uint8_t Pro800MidiMessage::getUint8Value(size_t position) const
     // low-level function: ignore validity check
     if ( position >= getRawDataSize() )
     {
-        std::cerr << "Pro800MidiMessage::getUint8Value() - reading out of range. Returning 0!" << std::endl;
+        juce::Logger::writeToLog("Pro800MidiMessage::getUint8Value() - reading out of range. Returning 0!");
         return 0;
     }
 
@@ -107,7 +107,7 @@ void Pro800MidiMessage::setUint8Value(size_t position, uint8_t value)
     // low-level function: ignore validity check
     if ( position >= getRawDataSize() ) 
     {
-        std::cerr << "Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!" << std::endl;
+        juce::Logger::writeToLog("Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!");
         return;
     }
 

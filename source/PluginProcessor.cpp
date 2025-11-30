@@ -117,12 +117,12 @@ juce::AudioProcessorEditor* Pro800ManagerAudioProcessor::createEditor()
 
 void Pro800ManagerAudioProcessor::getStateInformation (juce::MemoryBlock& /*destData*/)
 {
-    std::cerr << "getStateInformation called" << std::endl;
+    juce::Logger::writeToLog("getStateInformation called");
 }
 
 void Pro800ManagerAudioProcessor::setStateInformation (const void* /*data*/, int /*sizeInBytes*/)
 {
-    std::cerr << "setStateInformation called" << std::endl;
+    juce::Logger::writeToLog("setStateInformation called");
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

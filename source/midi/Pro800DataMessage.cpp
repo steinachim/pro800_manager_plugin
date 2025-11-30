@@ -64,7 +64,7 @@ int Pro800DataMessage::getValue(size_t firstByte, size_t numBytes, bool isSigned
 
     if ( numBytes > 4 )
     {
-        std::cerr << "Pro800DataMessage::getValue() only implemented for maximum of 4 byte values" << std::endl;
+        juce::Logger::writeToLog("Pro800DataMessage::getValue() only implemented for maximum of 4 byte values");
         return 0;
     }
 
@@ -110,13 +110,13 @@ void Pro800DataMessage::setValue(size_t firstByte, size_t numBytes, int value)
 {
     if ( !isValid() )
     {
-        std::cerr << "Pro800DataMessage::setValue() - cannot set value on invalid message!" << std::endl;
+        juce::Logger::writeToLog("Pro800DataMessage::setValue() - cannot set value on invalid message!");
         return;
     }
 
     if ( numBytes > 4 )
     {
-        std::cerr << "Pro800DataMessage::setValue() only implemented for maximum of 4 byte values" << std::endl;
+        juce::Logger::writeToLog("Pro800DataMessage::setValue() only implemented for maximum of 4 byte values");
         return;
     }
 
@@ -182,7 +182,7 @@ void Pro800DataMessage::setStringValue(size_t firstByte, size_t lastByte, const 
 {
     if ( !isValid() )
     {
-        std::cerr << "Pro800MidiMessage::setStringValue() - cannot set value on invalid message!" << std::endl;
+        juce::Logger::writeToLog("Pro800MidiMessage::setStringValue() - cannot set value on invalid message!");
         return;
     }
 

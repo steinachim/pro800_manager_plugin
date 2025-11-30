@@ -171,7 +171,7 @@ int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
             break;
 
         default:
-            std::cerr << "ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " << ccNumber << std::endl;
+            juce::Logger::writeToLog("ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " + juce::String((int)ccNumber));
             break;
     }
     return value;
@@ -203,7 +203,7 @@ int ProgramMessage::getValue(Pro800ProgramField field) const
     }
     else
     {
-        std::cerr << "ProgramMessage::getValue(): No getter for field defined: " << field << std::endl;
+        juce::Logger::writeToLog("ProgramMessage::getValue(): No getter for field defined: " + juce::String((int)field));
     }
 
     return 0;
@@ -218,6 +218,6 @@ void ProgramMessage::setValue(Pro800ProgramField field, int value)
     }
     else
     {
-        std::cerr << "ProgramMessage::setValue(): No setter for field defined: " << field << std::endl;
+        juce::Logger::writeToLog("ProgramMessage::setValue(): No setter for field defined: " + juce::String((int)field));
     }    
 }

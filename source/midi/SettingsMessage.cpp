@@ -61,7 +61,7 @@ void SettingsMessage::setValue(Pro800Settings setting, int value)
     }
     else
     {
-        std::cerr << "SettingsMessage::setValue(): No setter for field defined: " << setting << std::endl;
+        juce::Logger::writeToLog("SettingsMessage::setValue(): No setter for field defined: " + juce::String((int)setting));
     }    
 }
 
@@ -74,7 +74,7 @@ int SettingsMessage::getValue(Pro800Settings setting) const
     }
     else
     {
-        std::cerr << "SettingsMessage::getValue(): No getter for field defined: " << setting << std::endl;
+        juce::Logger::writeToLog("SettingsMessage::getValue(): No getter for field defined: " + juce::String((int)setting));
     }
 
     return 0;

@@ -104,7 +104,7 @@ void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent
         std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage(message);
         if ( !pro800Message )
         {
-            std::cerr << "[WARNING] Received invalid pro800Message" << std::endl;
+            juce::Logger::writeToLog("[WARNING] Received invalid pro800Message");
             return;
         }
 
@@ -153,7 +153,7 @@ void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
 {
     if ( !this->midiOutput )
     {
-        std::cerr << "[ERROR] Cannot send MIDI message: MIDI output device is not open!" << std::endl;
+        juce::Logger::writeToLog("[ERROR] Cannot send MIDI message: MIDI output device is not open!");
         return;
     }
 

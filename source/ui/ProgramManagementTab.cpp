@@ -99,7 +99,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget 
             {
                 if ( i == start && (uint8_t)memBlock[i] != 0xF0 )
                 {
-                    std::cerr << "Not a valid sysex file!" << std::endl;
+                    juce::Logger::writeToLog("Not a valid sysex file!");
                     return;
                 }
 

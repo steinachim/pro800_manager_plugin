@@ -112,7 +112,7 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
         case PRO800_UNKNOWN_MESSAGE:
         default:
             // should never be reached
-            std::cerr << "[WARNING] handlePro800Message(): Unsupported / unknown message type" << type << std::endl;
+            juce::Logger::writeToLog("[WARNING] handlePro800Message(): Unsupported / unknown message type " + juce::String((int)type));
     }
 }
 
@@ -224,7 +224,7 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
     }
     else
     {
-      std::cerr << "[WARNING] setupMidiCCComponent() - Unknown component type" << std::endl;
+        juce::Logger::writeToLog("[WARNING] setupMidiComponent() - Unknown component type");
     }
 }
 
@@ -245,7 +245,7 @@ void MidiComponent::updateSettings(Pro800Settings setting, int value)
 {
     if ( !this->currentSettings )
     {
-        std::cerr << "[WARNING] updateSettings: Load settings first!" << std::endl;
+        juce::Logger::writeToLog("[WARNING] updateSettings: Load settings first!");
         return;
     }
 

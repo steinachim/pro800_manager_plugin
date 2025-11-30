@@ -169,7 +169,7 @@ void ProgramModel::updateElement(std::shared_ptr<ProgramMessage> message)
 
     if ( programNumber >= rows.size() )
     {
-        std::cerr << "ProgramModel::updateElement() - received program out of range" << std::endl;
+        juce::Logger::writeToLog("ProgramModel::updateElement() - received program out of range");
         return;
     }
 
