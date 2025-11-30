@@ -19,6 +19,7 @@
 #include "Pro800MidiMessage.h"
 
 #include <cstring>
+#include <memory>
 
 Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message.getRawData(), message.getRawDataSize())
 {
@@ -49,7 +50,7 @@ juce::String Pro800MidiMessage::toString() const
 
 std::shared_ptr<juce::MidiMessage> Pro800MidiMessage::toMidiMessage() const
 {
-    return std::shared_ptr<juce::MidiMessage>(new juce::MidiMessage(rawData->data(), (int)rawData->size()));
+    return std::make_shared<juce::MidiMessage>(rawData->data(), (int)rawData->size());
 }
 
 std::shared_ptr<std::vector<uint8_t>> &Pro800MidiMessage::getRawData()

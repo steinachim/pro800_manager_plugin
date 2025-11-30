@@ -22,6 +22,7 @@
 
 #include "PluginProcessor.h"
 #include "ui/MainWidget.h"
+#include <memory>
 
 class MidiHandler;
 
@@ -62,7 +63,7 @@ private:
     juce::TextButton button_RefreshMidi { "Refresh" };
     juce::TextButton button_ConnectMidi { "Connect" };
 
-    MainWidget *tabBar;
+    std::unique_ptr<MainWidget> tabBar;
     juce::MidiKeyboardComponent keyboardPanel { keyboardState, juce::MidiKeyboardComponent::Orientation::horizontalKeyboard };
     juce::TextButton button_ShowHideKeyboard { "Hide Keyboard" };
 

@@ -30,12 +30,11 @@ Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor()
                       .withOutput ("Output", juce::AudioChannelSet::stereo(), false)
                      )
 {
-    this->midiHandler = new MidiHandler(this);
+    this->midiHandler = std::make_unique<MidiHandler>(this);
 }
 
 Pro800ManagerAudioProcessor::~Pro800ManagerAudioProcessor()
 {
-    delete this->midiHandler;
 }
 
 const juce::String Pro800ManagerAudioProcessor::getName() const
@@ -111,7 +110,7 @@ bool Pro800ManagerAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Pro800ManagerAudioProcessor::createEditor()
 {
-    return new Pro800ManagerEditor (midiHandler, *this);
+    return new Pro800ManagerEditor (midiHandler.get(), *this);
 }
 
 

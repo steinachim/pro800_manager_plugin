@@ -23,6 +23,7 @@
 #include "MidiComponent.h"
 #include "LocalProgramListBox.h"
 #include "MainWidget.h"
+#include <memory>
 
 class ProgramModel;
 
@@ -58,9 +59,8 @@ private:
     juce::Label label_Local { "", "Local" };
     juce::Label label_Synth { "", "Synth" };
 
-
-    ProgramModel *model_ProgramListSynth;
-    ProgramModel *model_ProgramListLocal;
+    std::unique_ptr<ProgramModel> model_ProgramListSynth;
+    std::unique_ptr<ProgramModel> model_ProgramListLocal;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 

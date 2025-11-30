@@ -24,12 +24,12 @@
 ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget *parent) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM_MESSAGE})
 {
     this->mainWidget = parent;
-    model_ProgramListSynth = new ProgramModel(ProgramModel::SYNTH, &listBox_ProgramListSynth);
-    model_ProgramListLocal = new ProgramModel(ProgramModel::LOCAL, &listBox_ProgramListLocal);
-    listBox_ProgramListSynth.setModel(model_ProgramListSynth);
+    model_ProgramListSynth = std::make_unique<ProgramModel>(ProgramModel::SYNTH, &listBox_ProgramListSynth);
+    model_ProgramListLocal = std::make_unique<ProgramModel>(ProgramModel::LOCAL, &listBox_ProgramListLocal);
+    listBox_ProgramListSynth.setModel(model_ProgramListSynth.get());
     listBox_ProgramListSynth.setMultipleSelectionEnabled(true);
 
-    listBox_ProgramListLocal.setModel(model_ProgramListLocal);
+    listBox_ProgramListLocal.setModel(model_ProgramListLocal.get());
     listBox_ProgramListLocal.setMultipleSelectionEnabled(true);
 
     button_RefreshDump.onClick = [this] {
@@ -105,7 +105,7 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget 
 
                 if ( (uint8_t)memBlock[i] == 0xF7 )
                 {
-                    auto programMessage = std::shared_ptr<ProgramMessage>(new ProgramMessage((const uint8_t*)memBlock.getData()+start, i-start+1));            
+                    auto programMessage = std::make_shared<ProgramMessage>((const uint8_t*)memBlock.getData()+start, i-start+1);            
                     model_ProgramListLocal->updateElement( programMessage );
                     
                     start = i+1;
@@ -177,8 +177,6 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget 
 
 ProgramManagementTab::~ProgramManagementTab()
 {
-    delete model_ProgramListLocal;
-    delete model_ProgramListSynth;
 }
 
 

@@ -17,6 +17,7 @@
  **/
 
 #include "Pro800MessageFactory.h"
+#include <memory>
 
 
 #include "ProgramMessage.h"
@@ -26,7 +27,7 @@
 
 std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const juce::MidiMessage &midiMessage)
 {
-    std::shared_ptr<Pro800MidiMessage> pro800Message(new Pro800MidiMessage(midiMessage));
+    std::shared_ptr<Pro800MidiMessage> pro800Message = std::make_shared<Pro800MidiMessage>(midiMessage);
     if ( !pro800Message->isValid() )
     {
         return std::shared_ptr<Pro800MidiMessage>();
@@ -43,19 +44,19 @@ std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const 
         // note: SettingsMessage is a program message with specific format
         if ( addressLow == SettingsMessage::ADDRESS_LOW && addressHigh == SettingsMessage::ADDRESS_HIGH )
         {
-            return std::shared_ptr<Pro800MidiMessage>(new SettingsMessage(midiMessage));
+            return std::make_shared<SettingsMessage>(midiMessage);
         }
         else
         {       
-            return std::shared_ptr<ProgramMessage>(new ProgramMessage(midiMessage));
+            return std::make_shared<ProgramMessage>(midiMessage);
         }
     }
 
     case VersionMessage::RESPONSE_ID:
-        return std::shared_ptr<VersionMessage>(new VersionMessage(midiMessage));
+        return std::make_shared<VersionMessage>(midiMessage);
 
     case StatusMessage::RESPONSE_ID:
-        return std::shared_ptr<StatusMessage>(new StatusMessage(midiMessage));
+        return std::make_shared<StatusMessage>(midiMessage);
 
     default:
         return pro800Message;

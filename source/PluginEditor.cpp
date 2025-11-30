@@ -54,8 +54,8 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
     addAndMakeVisible(button_ConnectMidi);
 
     // main widget
-    tabBar = new MainWidget(midiHandler);
-    addAndMakeVisible(tabBar);
+    tabBar = std::make_unique<MainWidget>(midiHandler);
+    addAndMakeVisible(tabBar.get());
 
 
     // keyboard at the bottom
@@ -85,9 +85,6 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
 Pro800ManagerEditor::~Pro800ManagerEditor()
 {
     keyboardState.removeListener(this);
-    delete tabBar;
-    this->tabBar = nullptr;
-
 }
 
 void Pro800ManagerEditor::paint (juce::Graphics& g)

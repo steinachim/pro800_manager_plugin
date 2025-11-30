@@ -22,6 +22,7 @@
 #include <set>
 
 #include "midi/MidiHandler.h"
+#include <memory>
 
 class Pro800ManagerEditor;
 
@@ -58,7 +59,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    MidiHandler *midiHandler;
+    std::unique_ptr<MidiHandler> midiHandler;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pro800ManagerAudioProcessor)
 };
