@@ -24,8 +24,8 @@
 #include "../midi/ProgramMessage.h"
 #include "../midi/Pro800FactoryResetMessage.h"
 
-#include "../constants/Pro800CCConstants.h"
-#include "../constants/Pro800CCUtils.h"
+#include "../tailoring/Pro800CCConstants.h"
+#include "../tailoring/Pro800CCUtils.h"
 
 
 MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<MessageType> messageTypes)

@@ -19,8 +19,8 @@
 #pragma once
 
 #include "Pro800DataMessage.h"
-#include "../constants/Pro800Constants.h"
-#include "../constants/Pro800SettingsConstants.h"
+#include "../tailoring/Pro800Constants.h"
+#include "../tailoring/Pro800SettingsConstants.h"
 
 #include <vector>
 

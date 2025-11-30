@@ -54,9 +54,9 @@ public:
 protected:
     unsigned char getResponseType() const override;
 
-    int getValue(int firstByte, int numBytes, bool isSigned = false) const;
-    void setValue(int firstByte, int numBytes, int value);
+    int getValue(size_t firstByte, size_t numBytes, bool isSigned = false) const;
+    void setValue(size_t firstByte, size_t numBytes, int value);
 
-    std::string getStringValue(int firstByte, int lastByte) const;
-    void setStringValue(int firstByte, int lastByte, const std::string &newValue);
+    std::string getStringValue(size_t firstByte, size_t lastByte) const;
+    void setStringValue(size_t firstByte, size_t lastByte, const std::string &newValue);
 };

@@ -20,10 +20,10 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
-#include "../constants/Pro800Constants.h"
-#include "../constants/Pro800CCConstants.h"
-#include "../constants/Pro800ProgramConstants.h"
-#include "../constants/Pro800SettingsConstants.h"
+#include "../tailoring/Pro800Constants.h"
+#include "../tailoring/Pro800CCConstants.h"
+#include "../tailoring/Pro800ProgramConstants.h"
+#include "../tailoring/Pro800SettingsConstants.h"
 
 class MidiHandler;
 class SettingsMessage;

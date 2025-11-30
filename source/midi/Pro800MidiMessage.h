@@ -19,7 +19,7 @@
 #pragma once
 
 #include <juce_audio_basics/juce_audio_basics.h>
-#include "../constants/Pro800Constants.h"
+#include "../tailoring/Pro800Constants.h"
 
 class Pro800MidiMessage
 {

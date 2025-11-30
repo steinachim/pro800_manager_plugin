@@ -55,7 +55,7 @@ unsigned char Pro800DataMessage::getResponseType() const
     return RESPONSE_ID;
 }
 
-int Pro800DataMessage::getValue(int firstByte, int numBytes, bool isSigned) const
+int Pro800DataMessage::getValue(size_t firstByte, size_t numBytes, bool isSigned) const
 {
     if ( !isValid() )
     {
@@ -69,10 +69,10 @@ int Pro800DataMessage::getValue(int firstByte, int numBytes, bool isSigned) cons
     }
 
     int value = 0;
-    int skippedBytes = 0;
-    for ( int i = 0; i < numBytes; i++ )
+    size_t skippedBytes = 0;
+    for ( size_t i = 0; i < numBytes; i++ )
     {
-        int offset_byte = firstByte + i;;
+        size_t offset_byte = firstByte + i;
         if ( offset_byte % 8 == 0 )
         {
             // this is an overflow byte - skip to next
@@ -83,7 +83,7 @@ int Pro800DataMessage::getValue(int firstByte, int numBytes, bool isSigned) cons
         uint8_t byteValue = this->getUint8Value(DATA_START_POS + offset_byte);
 
         
-        int overflowByte = (offset_byte / 8) * 8;
+        size_t overflowByte = (offset_byte / 8) * 8;
         uint8_t overflowBit = (uint8_t)((offset_byte % 8) - 1);
 
         uint8_t overflowValue = this->getUint8Value(DATA_START_POS + overflowByte);
@@ -96,7 +96,7 @@ int Pro800DataMessage::getValue(int firstByte, int numBytes, bool isSigned) cons
         if( isSigned && overflowValue == 1 )
         {
             // propagate highest bit to top bytes           
-            for ( int j = i+1; j < 4; j++ )
+            for ( size_t j = i+1; j < 4; j++ )
             {
                 value = value | (0xFF << j*8);
             }
@@ -106,7 +106,7 @@ int Pro800DataMessage::getValue(int firstByte, int numBytes, bool isSigned) cons
     return value;
 }
 
-void Pro800DataMessage::setValue(int firstByte, int numBytes, int value)
+void Pro800DataMessage::setValue(size_t firstByte, size_t numBytes, int value)
 {
     if ( !isValid() )
     {
@@ -120,14 +120,14 @@ void Pro800DataMessage::setValue(int firstByte, int numBytes, int value)
         return;
     }
 
-    int skippedBytes = 0;
-    for ( int i = 0; i < numBytes; i++ )
+    size_t skippedBytes = 0;
+    for ( size_t i = 0; i < numBytes; i++ )
     {
         uint8_t byteValue = (value >> i*8) & 0xFF;
         uint8_t overflowBitValue = (byteValue & 0x80) >> 7;
         byteValue &= 0x7F; // limit to 127, highest byte can never be set in sysex and is covered by overflowBitValue
 
-        int offset_byte = firstByte + i;
+        size_t offset_byte = firstByte + i;
         if ( offset_byte % 8 == 0 )
         {
             // this is an overflow byte - skip to next
@@ -137,7 +137,7 @@ void Pro800DataMessage::setValue(int firstByte, int numBytes, int value)
         offset_byte += skippedBytes;
         this->setUint8Value(DATA_START_POS + offset_byte, byteValue);
 
-        int overflowByte = (offset_byte / 8) * 8;
+        size_t overflowByte = (offset_byte / 8) * 8;
         uint8_t overflowBit = (uint8_t)((offset_byte % 8) - 1);
 
         uint8_t overflowValue = this->getUint8Value(DATA_START_POS + overflowByte);
@@ -150,7 +150,7 @@ void Pro800DataMessage::setValue(int firstByte, int numBytes, int value)
     }
 }
 
-std::string Pro800DataMessage::getStringValue(int firstByte, int lastByte) const
+std::string Pro800DataMessage::getStringValue(size_t firstByte, size_t lastByte) const
 {
     if ( !isValid() )
     {
@@ -158,7 +158,7 @@ std::string Pro800DataMessage::getStringValue(int firstByte, int lastByte) const
     }
 
     std::string value = "";
-    for ( int pos = firstByte; pos <= lastByte; pos++)
+    for ( size_t pos = firstByte; pos <= lastByte; pos++)
     {
         if ( pos % 8 == 0 )
         {
@@ -167,12 +167,6 @@ std::string Pro800DataMessage::getStringValue(int firstByte, int lastByte) const
         }
 
         char nameChar = (char)getUint8Value(DATA_START_POS + pos);
-        // sanitize non-printable characters
-        /*if ( nameChar < 32 || nameChar > 126 )
-        {
-            nameChar = '?';
-        }*/
-
         value += nameChar;
     }
     
@@ -184,7 +178,7 @@ std::string Pro800DataMessage::getStringValue(int firstByte, int lastByte) const
 
 
 
-void Pro800DataMessage::setStringValue(int firstByte, int lastByte, const std::string &newValue)
+void Pro800DataMessage::setStringValue(size_t firstByte, size_t lastByte, const std::string &newValue)
 {
     if ( !isValid() )
     {
@@ -194,10 +188,10 @@ void Pro800DataMessage::setStringValue(int firstByte, int lastByte, const std::s
 
     // resize new value to full range
     std::string resizedValue = newValue;
-    resizedValue.resize((size_t)(lastByte - firstByte + 1), 0x00);
+    resizedValue.resize(lastByte - firstByte + 1, 0x00);
 
-    int numOverflowBytes = 0;
-    for ( int pos = firstByte; pos <= lastByte; pos++ )
+    size_t numOverflowBytes = 0;
+    for ( size_t pos = firstByte; pos <= lastByte; pos++ )
     {
         if ( pos % 8 == 0 )
         {
@@ -206,6 +200,6 @@ void Pro800DataMessage::setStringValue(int firstByte, int lastByte, const std::s
             pos++;
         }
         
-        setUint8Value(DATA_START_POS + pos, (uint8_t)resizedValue[(size_t)(pos - firstByte - numOverflowBytes)]);
+        setUint8Value(DATA_START_POS + pos, (uint8_t)resizedValue[pos - firstByte - numOverflowBytes]);
     }
 }

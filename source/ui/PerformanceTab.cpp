@@ -18,8 +18,8 @@
 
 #include "PerformanceTab.h"
 #include "../midi/ProgramMessage.h" 
-#include "../constants/Pro800CCConstants.h"
-#include "../constants/Pro800ProgramConstants.h"
+#include "../tailoring/Pro800CCConstants.h"
+#include "../tailoring/Pro800ProgramConstants.h"
 
 PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, true)
 {

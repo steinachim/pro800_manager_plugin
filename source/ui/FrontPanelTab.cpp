@@ -21,8 +21,8 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/ProgramMessage.h"
 
-#include "../constants/Pro800CCConstants.h"
-#include "../constants/Pro800ProgramConstants.h"
+#include "../tailoring/Pro800CCConstants.h"
+#include "../tailoring/Pro800ProgramConstants.h"
 
 FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : MidiComponent(midiHandler, true)
 {

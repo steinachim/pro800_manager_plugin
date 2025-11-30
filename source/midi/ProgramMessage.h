@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "Pro800DataMessage.h"
-#include "../constants/Pro800ProgramConstants.h"
-#include "../constants/Pro800CCConstants.h"
+#include "../tailoring/Pro800ProgramConstants.h"
+#include "../tailoring/Pro800CCConstants.h"
 
 class ProgramMessage : public Pro800DataMessage
 {

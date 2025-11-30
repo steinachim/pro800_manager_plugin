@@ -20,7 +20,7 @@
 
 struct Pro800Parameter
 {    
-    int16_t firstByte;
+    size_t firstByte;
     uint8_t numBytes;
     std::string name;
     uint8_t numValues = 0; // 0 = continuous, used for enum values

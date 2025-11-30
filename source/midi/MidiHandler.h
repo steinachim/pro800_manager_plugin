@@ -21,7 +21,7 @@
 #include <juce_core/juce_core.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
-#include "../constants/Pro800Constants.h"
+#include "../tailoring/Pro800Constants.h"
 
 class Pro800ManagerAudioProcessor;
 class MidiComponent;
