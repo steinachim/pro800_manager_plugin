@@ -48,6 +48,17 @@ MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const ju
 
 MidiComponent::~MidiComponent()
 {
+    // Stop and destroy the request thread before unregistering components
+    if ( this->midiDumpRequestThread )
+    {
+        if ( this->midiDumpRequestThread->isThreadRunning() )
+        {
+            this->midiDumpRequestThread->signalThreadShouldExit();
+            this->midiDumpRequestThread->stopThread(1000);
+        }
+        this->midiDumpRequestThread.reset();
+    }
+
     for ( auto type : this->registeredMessageTypes )
     {
         this->midiHandler->unregisterMessageComponent(type, this);

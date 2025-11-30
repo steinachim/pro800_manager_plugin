@@ -25,6 +25,8 @@
 #include "../tailoring/Pro800ProgramConstants.h"
 #include "../tailoring/Pro800SettingsConstants.h"
 
+#include <memory>
+
 class MidiHandler;
 class SettingsMessage;
 class VersionMessage;
@@ -73,7 +75,7 @@ private:
     juce::Array<MessageType> registeredMessageTypes = juce::Array<MessageType>();
     juce::HashMap<Pro800CCMessages, juce::Array<juce::Component*>> registeredCCComponents;
 
-    MidiHandler *midiHandler;
+    MidiHandler *midiHandler; // non-owning: lifetime managed by the audio processor/editor
 
     std::shared_ptr<SettingsMessage> currentSettings = std::shared_ptr<SettingsMessage>();
     std::shared_ptr<VersionMessage> currentVersion = std::shared_ptr<VersionMessage>();

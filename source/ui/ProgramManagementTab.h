@@ -64,6 +64,6 @@ private:
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 
-    MainWidget *mainWidget = nullptr;
+    MainWidget *mainWidget = nullptr; // non-owning: MainWidget owns this tab
 
 };
