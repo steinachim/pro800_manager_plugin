@@ -135,11 +135,17 @@ void MidiComponent::handleMidiCCMessage (uint8_t midiCC, uint8_t value)
     {
         int programFieldNumber = component->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE);
 
-        if ( programFieldNumber != PROGRAM_FIELD_NONE )
+        if ( programFieldNumber == PROGRAM_FIELD_PITCHBEND_RANGE )
+        {
+            // pitchbend range is in increments of 4 (0 - 124)
+            setComponentValue(component, propertyValue, 124);
+            continue;
+        }
+        else if ( programFieldNumber != PROGRAM_FIELD_NONE )
         {
             propertyValue = Pro800CCUtils::programEnumValueFromCC(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
         }
-        
+
         setComponentValue(component, propertyValue, 127);
     }
 }
@@ -181,9 +187,20 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
     if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
         slider->onValueChange = ([this, slider, ccNumber] {
-            float sliderValue = (float) slider->getValue();
-            float normalizedValue = (sliderValue - (float) slider->getMinimum()) / ((float) slider->getMaximum() - (float) slider->getMinimum());
-            uint8_t midiValue = (uint8_t) (normalizedValue * 127.0f);
+            double sliderValue = slider->getValue();
+            uint8_t midiValue = 0;
+
+            int programFieldNumber = slider->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE); // ensure property exists
+            if ( programFieldNumber == PROGRAM_FIELD_PITCHBEND_RANGE )
+            {
+                // pitchbend range is in increments of 4 (0 - 124)
+                midiValue = (uint8_t)( sliderValue * 4 );
+            }
+            else
+            {
+                double normalizedValue = (sliderValue - slider->getMinimum()) / (slider->getMaximum() - slider->getMinimum());
+                midiValue = (uint8_t) (normalizedValue * 127.0f);
+            }
             midiHandler->sendMidiCCMessage (ccNumber, midiValue);
         });
     }
@@ -209,13 +226,8 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
         {
             button->onClick = ([this, button, ccNumber] {
                 bool buttonState = button->getToggleState();
-                int value = buttonState ? 1 : 0;
-                
-                int programFieldNumber = button->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE); // ensure property exists
-                if ( programFieldNumber != PROGRAM_FIELD_NONE )
-                {
-                    value = Pro800CCUtils::ccFromProgramEnumValue(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
-                }
+                int value = buttonState ? CC_ON: CC_OFF;
+
                 midiHandler->sendMidiCCMessage (ccNumber, (uint8_t)value);
             });
         }
@@ -230,6 +242,7 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
             {
                 value = Pro800CCUtils::ccFromProgramEnumValue(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
             }
+
             midiHandler->sendMidiCCMessage (ccNumber, (uint8_t)value);
         });
     }

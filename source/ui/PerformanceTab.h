@@ -51,9 +51,9 @@ private:
 
     EqualSpacingGroupComponent group_Vibrato { "2 - Vibrato", 255, 3, 2 };
     juce::Label label_VibratoAmount { "", "Amount" };
-    juce::Slider slider_VibratoAmount { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_VibratoAmount { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
     juce::Label label_VibratoSpeed { "", "Speed" };
-    juce::Slider slider_VibratoSpeed { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_VibratoSpeed { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Modulation { "3 - Modulation", 255, 3, 2 };
     juce::Label label_ModulationWheelTarget { "", "Wheel Target" };
@@ -61,7 +61,7 @@ private:
     juce::Label label_ModulationWheelAmount { "", "Wheel Amount" };
     juce::ComboBox combo_ModulationWheelAmount;
     juce::Label label_ModulationDelay { "", "Modulation Delay" };
-    juce::Slider slider_ModulationDelay { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_ModulationDelay { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Envelopes { "4 - Envelopes", 255, 4, 2 };
     juce::Label label_EnvShapeVCA { "", "VCA Envelope Shape" };
@@ -77,7 +77,7 @@ private:
     juce::Label label_PitchBendTarget { "", "Target" };
     juce::ComboBox combo_PitchBendTarget;
     juce::Label label_PitchBendRange { "", "Range" };
-    juce::Slider slider_PitchBendRange { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_PitchBendRange { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Oscillators { "6 - Oscillators", 255, 4, 2 };
     juce::Label label_OscAFreqPotMode = { "", "Osc A Freq Pot Mode"};
@@ -89,23 +89,23 @@ private:
 
     EqualSpacingGroupComponent group_Velocity { "7 - Velocity", 255, 3, 2 };
     juce::Label label_VelocityAmountVCF = { "", "VCF Velocity Amount"};
-    juce::Slider slider_VelocityAmountVCF { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_VelocityAmountVCF { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
     juce::Label label_VelocityAmountVCA = { "", "VCA Velocity Amount"};
-    juce::Slider slider_VelocityAmountVCA { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_VelocityAmountVCA { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Aftertouch { "8 - Aftertouch", 255, 3, 2};
     juce::Label label_AfterTouchAmountVCA = { "", "VCA Velocity Amount"};
-    juce::Slider slider_AfterTouchAmountVCA { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_AfterTouchAmountVCA { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
     juce::Label label_AfterTouchAmountVCF = { "", "VCF Velocity Amount"};
-    juce::Slider slider_AfterTouchAmountVCF { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_AfterTouchAmountVCF { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
     juce::Label label_AfterTouchAmountLFO = { "", "LFO Velocity Amount"};
-    juce::Slider slider_AfterTouchAmountLFO { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_AfterTouchAmountLFO { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Spread { "9 - Spread", 255, 3, 2 };
     juce::Label label_SpreadVoiceEnable {"", "Voice Spread"};
     juce::ToggleButton checkBox_SpreadVoiceEnable;
     juce::Label label_SpreadUnisonDetune {"", "Unison Spread Detune"};
-    juce::Slider slider_SpreadUnisonDetune { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    juce::Slider slider_SpreadUnisonDetune { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Glide { "0 - Glide", 255, 3, 2 };
     juce::Label label_GlideMode { "", "Glide Mode" };

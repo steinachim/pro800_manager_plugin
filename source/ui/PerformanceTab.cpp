@@ -125,6 +125,7 @@ void PerformanceTab::setupGroupModulation()
     this->combo_ModulationWheelTarget.addItem("LFO", PROGRAM_MOD_WHEEL_TARGET_LFO+1);
     this->combo_ModulationWheelTarget.addItem("Vibrato", PROGRAM_MOD_WHEEL_TARGET_VIBRATO+1);
     this->slider_ModulationDelay.setRange(0.0, 65535.0, 1.0);
+    this->slider_ModulationDelay.setNumDecimalPlacesToDisplay (0);
 
     this->group_Modulation.setTextLabelPosition(juce::Justification::left);
     this->group_Modulation.addComponents( {
