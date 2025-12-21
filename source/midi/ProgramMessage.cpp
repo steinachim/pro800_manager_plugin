@@ -86,7 +86,7 @@ std::string ProgramMessage::getProgramBankNumber() const
     uint8_t bank = (uint8_t)(programNumber / 100); // 0-3 = A-D
     uint8_t program = (uint8_t)(programNumber % 100); // 0-99
 
-    char bankName = 'A' + bank;
+    char bankName = 'A' + (char)bank;
 
     std::stringstream ss;
     ss << bankName;

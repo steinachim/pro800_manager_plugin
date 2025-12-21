@@ -24,7 +24,7 @@
 #include <iostream>
 
 Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAudioProcessor& p) 
-    : AudioProcessorEditor (&p), MidiComponent(handler, false, {MessageType::PRO800_VERSION_MESSAGE}), audioProcessor (p)
+    : AudioProcessorEditor (&p), MidiComponent(handler, false, {MessageType::PRO800_VERSION_MESSAGE})
 {
     this->midiHandler = handler;
 

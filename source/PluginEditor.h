@@ -48,8 +48,6 @@ private:
     juce::TooltipWindow tooltipWindow { this, 500 };
 
     MidiHandler *midiHandler;
-
-    Pro800ManagerAudioProcessor& audioProcessor;
     
     juce::MidiKeyboardState keyboardState;
 
