@@ -143,3 +143,6 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
 # IPP support, comment out to disable
 include(PamplejuceIPP)
+
+# Output some config for CI (like our PRODUCT_NAME)
+include(GitHubENV)
