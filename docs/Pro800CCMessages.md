@@ -1,5 +1,23 @@
 # Behringer Pro-800 Midi CC Messages
 
+### Selecting a preset
+
+Not a SysEx message: a preset is loaded with plain channel-voice MIDI, a
+**bank select followed by a program change**.
+
+    CC 0 (BANK_SELECT), value 0-3      -> bank A-D
+    Program Change, value 0-99         -> slot within that bank
+
+Program Change alone only reaches 0-127 and so cannot address all 400 presets;
+the bank select is what makes the other three banks reachable.
+
+Neither message is acknowledged - nothing comes back either way - so a preset
+change sent on the wrong MIDI channel fails **silently**. The channel to use is
+the synth's `MIDI RX Channel` setting (see the settings message in
+[Pro800SysExMessages.md](Pro800SysExMessages.md)); note that when that setting
+reads 1, the channel comes from the rear DIP switches and the synth does not
+report which one they select.
+
 ### Front Panel Knobs
     OSC_A_FREQ = 8,
     OSC_A_LEVEL = 9,

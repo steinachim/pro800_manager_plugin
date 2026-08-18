@@ -25,7 +25,8 @@ Often, if a request requires dedicated response, the command bytes will be seque
 |0x03 |-  | Unknown (responds with Status OK)
 |0x04 |-  | Unknown (responds with `05 50 30 45 39 49 00`)
 |0x06 |-  | Request device name (responds with `07 50 52 4f 2d 38 30 30 00` - ASCII: "PRO-800"
-|0x08 |version1, version2, version3 | Request firmware version:<br> complete version = "version1.version2.version3"
+|0x08 | 0x00 | Request firmware version. The request carries a single `0x00` parameter; the reply is a `0x09` message (see below).
+|0x09 |echo, version1, version2, version3 | Firmware version reply. The first parameter byte echoes the request's, so the three version bytes are at message offsets 0x0A, 0x0B, 0x0C - complete version = "version1.version2.version3"
 |0x0E |-  | Unknown (responds with Status OK)
 |0x0F | [00-18] |Unknown (responds with Status OK in that range, Status Error otherwise)
 |0x11 | [00-1F] |Unknown (responds with Status OK in that range, Status Error otherwise)
@@ -45,7 +46,7 @@ Often, if a request requires dedicated response, the command bytes will be seque
 |0x71 | [00-17] | "push" buttons:<br>  - 00-09 = numpad<br> - 0A/0B = ??? - disable performance / settings if active<br> - 0C = preset<br> - 0D = rec<br> - 0E = perf<br> - 0F = settings<br> - 10 = seq 1<br>- 11 = seq 2<br>- 12 = ?? (in performance mode, disable perf mode; in settings mode, go to Tune)<br>- 13 = sync clock<br> - 14 = sync source<br> - 15 = ??<br> - 16 = Next Setting (value wheel?)<br> - 17 = Prev Setting (value wheel?)
 |0x72 | [00-19] |  Unknown (get value of param 1 - responds with 73 [param 1] [00-ff])<br>Example values (param 1, param2):<br> `00, 3e ( 62) - 01, 42 ( 66) - 02, 50 ( 80) - 03, 42 ( 66)`<br>`04, 3e ( 62) - 05, 40 ( 64) - 06, 6c (108) - 07, 39 ( 57)`<br>`08, 7f (127) - 09, 7f (127) - 0a, 26 ( 38) - 0b, 45 (117)` <br> `0c, 5d ( 93) - 0d, 41 ( 65) - 0e, 50 ( 80) - 0f, 32 ( 50)`<br>`10, 58 ( 88) - 11, 3a ( 58) - 12, 37 ( 55) - 13, 3f ( 63)`<br>`14, 68 (104) - 15, 00 (  0) - 16, 7e (126) - 17, 51 ( 81)`<br>`18, 53 ( 83)  - 19, 7f (127)`
 |0x73 | [00-19], [00-7F] | Unknown (set param1 to value of param 2), responds with status OK if values in range
-|0x77| [00-7F], [00-03] | Request program dump<br> param1 = program lsb,<br> param2 = program msb<br> -> response with 73 (see below)<br> -> note: 7e 03 = settings message
+|0x77| [00-7F], [00-03] | Request program dump<br> param1 = program lsb,<br> param2 = program msb<br> -> response with 78 (see below)<br> -> note: 7e 03 = settings message<br> -> an **empty** program slot answers with a bare `F0 F7`: an empty SysEx with no header, no message type and no echoed address. That, rather than a short or absent dump, is how "nothing is stored here" reads.
 |0x78 |[00-7F], [00-03], [...] | Set program to value<br> param1 = program lsb,<br>param2 = program msb,<br>following bytes = program data (may be empty -> set to "uninitialized")
 |0x7D | - | Factory Reset (no confirmation!)
 
@@ -70,6 +71,23 @@ To calculate the full byte value of any byte, execute the following:
     resultValue = byteValue | (uint8_t)(overflowValue << 7);
 
 ### Message Structure
+
+Two things about the table below that are easy to misread:
+
+* **The "number of bytes" column counts *value* bytes, not positions.** A
+  multi-byte value steps over any overflow byte inside it, so the 2-byte
+  value listed at 15 occupies positions 15 and **17**, not 15 and 16.
+* **Overflow bytes always fall on multiples of 8**, so they can be computed
+  rather than looked up.
+
+Records are also **variable length**: the synth truncates a message after its
+last meaningful byte. In preset version 109 the name is the final field, so the
+record ends right after it and its length tracks the name - a preset called
+"Harp" comes back as 190 bytes where "Classical Brass" comes back as 202.
+Versions 110 and 111 append fields *after* the name, so those records run to
+their full length regardless. A shorter message is a normal record, not a
+truncated or invalid one.
+
 The message structure is the following:
 * Pro800 header as described above
 * LSB of program number
@@ -167,7 +185,7 @@ Then, counting again from 0:
 |135 | 4 | Tune Per Note - F#
 |136 | 1 | *overflow byte*
 |140 | 4 | Tune Per Note - G
-|142 | 1 | *overflow byte*
+|144 | 1 | *overflow byte*
 |145 | 4 | Tune Per Note - G#
 |149 | 4 | Tune Per Note - A
 |152 | 1 | *overflow byte*
@@ -180,7 +198,7 @@ Then, counting again from 0:
 |168 | 1 | *overflow byte*
 |170 | 1 | Amp Envelope Speed
 |171 | 1 | ARP Mode
-|173 |   | first char of preset name
+|172 |   | first char of preset name (16 characters, ending at 189)
 |176 | 1 | *overflow byte*, not used by name
 |184 | 1 | *overflow byte*, not used by name
 |189 |   | last char of preset name
