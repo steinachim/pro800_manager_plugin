@@ -54,7 +54,8 @@ enum Pro800Settings
     SETTINGS_SOFT_THRU,
 };
 
-const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
+// inline: one instance for the whole program instead of one per translation unit
+inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
 {
     {SETTINGS_PRESET_NUM,              {6, 2, "Preset Number"}},
     // 8 = overflow

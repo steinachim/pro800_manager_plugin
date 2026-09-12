@@ -77,7 +77,7 @@ class AdvancedTab : public juce::Component, public MidiComponent
             juce::String description;
         };
 
-        const std::map<PreparedMessageId, PreparedMessage> PREPARED_MESSAGES = {
+        static inline const std::map<PreparedMessageId, PreparedMessage> PREPARED_MESSAGES = {
             {Custom,         {"Custom", "", "Enter your own command"}},
             {DumpProgram,    {"Dump Program", "F0 00 20 32 00 01 24 00 77 XX XX F7", "Replace XX XX with the program number"}},
             {RequestVersion, {"Request Version", "F0 00 20 32 00 01 24 00 08 00 F7", "Report program version, also checks compatibility"}},

@@ -249,7 +249,8 @@ enum Pro800ArpMode
     PROGRAM_ARP_MODE_NUM_VALUES = 7
 };
 
-const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
+// inline: one instance for the whole program instead of one per translation unit
+inline const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
     // 0 = overflow
     {PROGRAM_FIELD_STORAGE_CODE,              {1, 4, "Storage Code"}},

@@ -52,5 +52,5 @@ private:
         VERSION_FIELD_3 = 0x0C
     };
 
-    const std::set<std::string> SUPPORTED_FIRMWARE_VERSIONS = {"1.4.6"};
+    static inline const std::set<std::string> SUPPORTED_FIRMWARE_VERSIONS = {"1.4.6"};
 };

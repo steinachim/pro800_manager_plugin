@@ -18,6 +18,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 struct Pro800Parameter
 {    
     size_t firstByte;

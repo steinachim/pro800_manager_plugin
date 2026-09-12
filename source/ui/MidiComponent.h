@@ -37,10 +37,11 @@ class Pro800MidiMessage;
 class MidiComponent
 {
 public:
-    const juce::String RADIO_VALUE_PROPERTY {"radioValue"};
-    const juce::String MIDI_CC_PROPERTY {"midiCC"};
-    const juce::String PROGRAM_FIELD_PROPERTY {"programField"};
-    const juce::String SETTINGS_FIELD_PROPERTY {"settingsField"};
+    // keys of the component properties that link a control to its CC / program field / setting
+    static inline const juce::Identifier RADIO_VALUE_PROPERTY {"radioValue"};
+    static inline const juce::Identifier MIDI_CC_PROPERTY {"midiCC"};
+    static inline const juce::Identifier PROGRAM_FIELD_PROPERTY {"programField"};
+    static inline const juce::Identifier SETTINGS_FIELD_PROPERTY {"settingsField"};
 
     static constexpr int PROGRAM_SEND_INTERVAL_MS = 20; // pause between two program dumps sent to the synth
 
