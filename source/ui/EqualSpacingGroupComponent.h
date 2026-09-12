@@ -33,9 +33,7 @@ public:
     void resized() override;
     
     void addComponent(juce::Component *component, int rowSpan = 1, int colSpan = 1);
-    void addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> rowSpan = {}, juce::Array<int> colSpan = {} );
-    void removeComponent(juce::Component *component);
-    void removeComponents(juce::Array<juce::Component *> components);
+    void addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> &rowSpan = {}, const juce::Array<int> &colSpan = {});
 
 private:
     int numRows = 1;

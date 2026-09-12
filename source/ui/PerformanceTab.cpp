@@ -78,14 +78,13 @@ void PerformanceTab::setupGroupLFO()
     //
     //       see: Pro800ProgramLfoDestinationBitMask.
 
-    this->combo_LFOtarget.addItem("Osc A & B", CC_LFO_TARGET_OSC_AB+1);
-    this->combo_LFOtarget.addItem("Osc A", CC_LFO_TARGET_OSC_A+1);
-    this->combo_LFOtarget.addItem("Osc B", CC_LFO_TARGET_OSC_B+1);
-    this->combo_LFOtarget.addItem("VCA", CC_LFO_TARGET_VCA+1);
-    this->combo_LFOspeed.addItem("Fast", PROGRAM_LFO_SPEED_FAST+1);
-    this->combo_LFOspeed.addItem("Slow", PROGRAM_LFO_SPEED_SLOW+1);
+    addEnumItems(combo_LFOtarget, {{"Osc A & B", CC_LFO_TARGET_OSC_AB},
+                                   {"Osc A",     CC_LFO_TARGET_OSC_A},
+                                   {"Osc B",     CC_LFO_TARGET_OSC_B},
+                                   {"VCA",       CC_LFO_TARGET_VCA}});
+    addEnumItems(combo_LFOspeed,  {{"Fast", PROGRAM_LFO_SPEED_FAST},
+                                   {"Slow", PROGRAM_LFO_SPEED_SLOW}});
 
-    this->group_LFO.setTextLabelPosition(juce::Justification::left);
     this->group_LFO.addComponents( { 
         &label_LFOtarget, &combo_LFOtarget,
         &label_LFOspeed,  &combo_LFOspeed
@@ -103,7 +102,6 @@ void PerformanceTab::setupGroupVibrato()
     this->slider_VibratoSpeed.setRange(0.0, 65535.0, 1.0);
     this->slider_VibratoAmount.setRange(0.0, 65535.0, 1.0);
 
-    this->group_Vibrato.setTextLabelPosition(juce::Justification::left);
     this->group_Vibrato.addComponents( {
         &label_VibratoSpeed,  &slider_VibratoSpeed,
         &label_VibratoAmount, &slider_VibratoAmount
@@ -118,16 +116,15 @@ void PerformanceTab::setupGroupVibrato()
 void PerformanceTab::setupGroupModulation()
 {
     // 3 - Modulation
-    this->combo_ModulationWheelAmount.addItem("Full", PROGRAM_MOD_WHEEL_AMOUNT_FULL+1);
-    this->combo_ModulationWheelAmount.addItem("High", PROGRAM_MOD_WHEEL_AMOUNT_HIGH+1);
-    this->combo_ModulationWheelAmount.addItem("Low", PROGRAM_MOD_WHEEL_AMOUNT_LOW+1);
-    this->combo_ModulationWheelAmount.addItem("Min", PROGRAM_MOD_WHEEL_AMOUNT_MIN+1);
-    this->combo_ModulationWheelTarget.addItem("LFO", PROGRAM_MOD_WHEEL_TARGET_LFO+1);
-    this->combo_ModulationWheelTarget.addItem("Vibrato", PROGRAM_MOD_WHEEL_TARGET_VIBRATO+1);
+    addEnumItems(combo_ModulationWheelAmount, {{"Full", PROGRAM_MOD_WHEEL_AMOUNT_FULL},
+                                               {"High", PROGRAM_MOD_WHEEL_AMOUNT_HIGH},
+                                               {"Low",  PROGRAM_MOD_WHEEL_AMOUNT_LOW},
+                                               {"Min",  PROGRAM_MOD_WHEEL_AMOUNT_MIN}});
+    addEnumItems(combo_ModulationWheelTarget, {{"LFO",     PROGRAM_MOD_WHEEL_TARGET_LFO},
+                                               {"Vibrato", PROGRAM_MOD_WHEEL_TARGET_VIBRATO}});
     this->slider_ModulationDelay.setRange(0.0, 65535.0, 1.0);
     this->slider_ModulationDelay.setNumDecimalPlacesToDisplay (0);
 
-    this->group_Modulation.setTextLabelPosition(juce::Justification::left);
     this->group_Modulation.addComponents( {
         &label_ModulationWheelAmount, &combo_ModulationWheelAmount,
         &label_ModulationWheelTarget, &combo_ModulationWheelTarget,
@@ -144,17 +141,15 @@ void PerformanceTab::setupGroupModulation()
 void PerformanceTab::setupGroupEnvelopes()
 {
     // 4 - Envelopes
-    this->combo_EnvSpeedVCA.addItem("Fast", PROGRAM_ENV_SPEED_FAST+1);
-    this->combo_EnvSpeedVCA.addItem("Slow", PROGRAM_ENV_SPEED_SLOW+1);
-    this->combo_EnvShapeVCA.addItem("Exponential", PROGRAM_ENV_SHAPE_EXPONENTIAL+1);
-    this->combo_EnvShapeVCA.addItem("Linear", PROGRAM_ENV_SHAPE_LINEAR+1);
+    const std::vector<EnumItem> envSpeedItems = {{"Fast", PROGRAM_ENV_SPEED_FAST},
+                                                 {"Slow", PROGRAM_ENV_SPEED_SLOW}};
+    const std::vector<EnumItem> envShapeItems = {{"Exponential", PROGRAM_ENV_SHAPE_EXPONENTIAL},
+                                                 {"Linear",      PROGRAM_ENV_SHAPE_LINEAR}};
+    addEnumItems(combo_EnvSpeedVCA, envSpeedItems);
+    addEnumItems(combo_EnvShapeVCA, envShapeItems);
+    addEnumItems(combo_EnvSpeedVCF, envSpeedItems);
+    addEnumItems(combo_EnvShapeVCF, envShapeItems);
 
-    this->combo_EnvSpeedVCF.addItem("Fast", PROGRAM_ENV_SPEED_FAST+1);
-    this->combo_EnvSpeedVCF.addItem("Slow", PROGRAM_ENV_SPEED_SLOW+1);
-    this->combo_EnvShapeVCF.addItem("Exponential", PROGRAM_ENV_SHAPE_EXPONENTIAL+1);
-    this->combo_EnvShapeVCF.addItem("Linear", PROGRAM_ENV_SHAPE_LINEAR+1);
-
-    this->group_Envelopes.setTextLabelPosition(juce::Justification::left);
     this->group_Envelopes.addComponents( {
         &label_EnvSpeedVCA, &combo_EnvSpeedVCA,
         &label_EnvShapeVCA, &combo_EnvShapeVCA,
@@ -174,13 +169,12 @@ void PerformanceTab::setupGroupEnvelopes()
 void PerformanceTab::setupGroupPitchBend()
 {
     // 5 - Pitch Bend
-    this->combo_PitchBendTarget.addItem("Off", PROGRAM_PITCH_BEND_TARGET_OFF+1);
-    this->combo_PitchBendTarget.addItem("VCF", PROGRAM_PITCH_BEND_TARGET_VCF+1);
-    this->combo_PitchBendTarget.addItem("VCO", PROGRAM_PITCH_BEND_TARGET_VCO+1);
-    this->combo_PitchBendTarget.addItem("Volume", PROGRAM_PITCH_BEND_TARGET_VOLUME+1);
+    addEnumItems(combo_PitchBendTarget, {{"Off",    PROGRAM_PITCH_BEND_TARGET_OFF},
+                                         {"VCF",    PROGRAM_PITCH_BEND_TARGET_VCF},
+                                         {"VCO",    PROGRAM_PITCH_BEND_TARGET_VCO},
+                                         {"Volume", PROGRAM_PITCH_BEND_TARGET_VOLUME}});
     this->slider_PitchBendRange.setRange(0.0, 31.0, 1.0);
 
-    this->group_PitchBend.setTextLabelPosition(juce::Justification::left);
     this->group_PitchBend.addComponents( {
         &label_PitchBendTarget, &combo_PitchBendTarget,
         &label_PitchBendRange,  &slider_PitchBendRange
@@ -195,20 +189,17 @@ void PerformanceTab::setupGroupPitchBend()
 void PerformanceTab::setupGroupOscillators()
 {
     // 6 - Oscillators
-    this->combo_OscAFreqPotMode.addItem("Fixed", PROGRAM_FREQ_POT_MODE_FIXED+1);
-    this->combo_OscAFreqPotMode.addItem("Free", PROGRAM_FREQ_POT_MODE_FREE+1);
-    this->combo_OscAFreqPotMode.addItem("Semi-Tone", PROGRAM_FREQ_POT_MODE_SEMI+1);
-    this->combo_OscAFreqPotMode.addItem("Octave", PROGRAM_FREQ_POT_MODE_OCT+1);
-    this->combo_OscBFreqPotMode.addItem("Fixed", PROGRAM_FREQ_POT_MODE_FIXED+1);
-    this->combo_OscBFreqPotMode.addItem("Free", PROGRAM_FREQ_POT_MODE_FREE+1);
-    this->combo_OscBFreqPotMode.addItem("Semi-Tone", PROGRAM_FREQ_POT_MODE_SEMI+1);
-    this->combo_OscBFreqPotMode.addItem("Octave", PROGRAM_FREQ_POT_MODE_OCT+1);
-    this->combo_OscKeyboardTracking.addItem("C1", PROGRAM_KEYBOARD_TRACKING_REF_C1+1); 
-    this->combo_OscKeyboardTracking.addItem("C2", PROGRAM_KEYBOARD_TRACKING_REF_C2+1); 
-    this->combo_OscKeyboardTracking.addItem("C3", PROGRAM_KEYBOARD_TRACKING_REF_C3+1); 
-    this->combo_OscKeyboardTracking.addItem("C4", PROGRAM_KEYBOARD_TRACKING_REF_C4+1); 
+    const std::vector<EnumItem> freqPotModeItems = {{"Fixed",     PROGRAM_FREQ_POT_MODE_FIXED},
+                                                    {"Free",      PROGRAM_FREQ_POT_MODE_FREE},
+                                                    {"Semi-Tone", PROGRAM_FREQ_POT_MODE_SEMI},
+                                                    {"Octave",    PROGRAM_FREQ_POT_MODE_OCT}};
+    addEnumItems(combo_OscAFreqPotMode, freqPotModeItems);
+    addEnumItems(combo_OscBFreqPotMode, freqPotModeItems);
+    addEnumItems(combo_OscKeyboardTracking, {{"C1", PROGRAM_KEYBOARD_TRACKING_REF_C1},
+                                             {"C2", PROGRAM_KEYBOARD_TRACKING_REF_C2},
+                                             {"C3", PROGRAM_KEYBOARD_TRACKING_REF_C3},
+                                             {"C4", PROGRAM_KEYBOARD_TRACKING_REF_C4}});
 
-    this->group_Oscillators.setTextLabelPosition(juce::Justification::left);
     this->group_Oscillators.addComponents( {
         &label_OscAFreqPotMode,     &combo_OscAFreqPotMode,
         &label_OscBFreqPotMode,     &combo_OscBFreqPotMode,
@@ -228,7 +219,6 @@ void PerformanceTab::setupGroupVelocity()
     this->slider_VelocityAmountVCA.setRange(0.0, 65535.0, 1.0);
     this->slider_VelocityAmountVCF.setRange(0.0, 65535.0, 1.0);
     
-    this->group_Velocity.setTextLabelPosition(juce::Justification::left);
     this->group_Velocity.addComponents( {
         &label_VelocityAmountVCA, &slider_VelocityAmountVCA,
         &label_VelocityAmountVCF, &slider_VelocityAmountVCF
@@ -247,7 +237,6 @@ void PerformanceTab::setupGroupAftertouch()
     this->slider_AfterTouchAmountVCF.setRange(0.0, 65535.0, 1.0);
     this->slider_AfterTouchAmountLFO.setRange(0.0, 65535.0, 1.0);
 
-    this->group_Aftertouch.setTextLabelPosition(juce::Justification::left);
     this->group_Aftertouch.addComponents( {
         &label_AfterTouchAmountVCA, &slider_AfterTouchAmountVCA,
         &label_AfterTouchAmountVCF, &slider_AfterTouchAmountVCF,
@@ -267,7 +256,6 @@ void PerformanceTab::setupGroupSpread()
     this->checkBox_SpreadVoiceEnable.setButtonText("Enable");
     this->slider_SpreadUnisonDetune.setRange(0.0, 65535.0, 1.0);
 
-    this->group_Spread.setTextLabelPosition(juce::Justification::left);
     this->group_Spread.addComponents( {
         &label_SpreadUnisonDetune, &slider_SpreadUnisonDetune,
         &label_SpreadVoiceEnable,  &checkBox_SpreadVoiceEnable
@@ -282,10 +270,9 @@ void PerformanceTab::setupGroupSpread()
 void PerformanceTab::setupGroupGlide()
 {
     // 0 - Glide
-    this->combo_GlideMode.addItem("Speed", PROGRAM_GLIDE_MODE_SPEED+1);
-    this->combo_GlideMode.addItem("Time", PROGRAM_GLIDE_MODE_TIME+1);
+    addEnumItems(combo_GlideMode, {{"Speed", PROGRAM_GLIDE_MODE_SPEED},
+                                   {"Time",  PROGRAM_GLIDE_MODE_TIME}});
 
-    this->group_Glide.setTextLabelPosition(juce::Justification::left);
     this->group_Glide.addComponents( {
         &label_GlideMode, &combo_GlideMode
     });

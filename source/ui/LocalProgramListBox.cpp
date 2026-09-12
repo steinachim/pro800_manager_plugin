@@ -21,18 +21,6 @@
 #include "ProgramModel.h"
 #include "../midi/ProgramMessage.h"
 
-LocalProgramListBox::LocalProgramListBox() : juce::ListBox()
-{
-}
-
-LocalProgramListBox::LocalProgramListBox(const juce::String &componentName, juce::ListBoxModel *model) : juce::ListBox(componentName, model)
-{
-}
-
-LocalProgramListBox::~LocalProgramListBox()
-{
-}
-
 bool LocalProgramListBox::isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails& dragSourceDetails) 
 {
     bool interested = dragSourceDetails.description.toString().startsWith(ProgramModel::DRAG_SOURCE_DESCRIPTION);

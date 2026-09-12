@@ -85,7 +85,6 @@ void FrontPanelTab::setComponentValue(juce::Component *component, int value, int
 
 void FrontPanelTab::setupGroupOscA()
 {
-    group_OscillatorA.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_OscAFrequency, group_OscAFrequency);
     setupRotarySlider(slider_OscALevel, group_OscALevel);
@@ -113,7 +112,6 @@ void FrontPanelTab::setupGroupOscA()
 
 void FrontPanelTab::setupGroupOscB()
 {
-    group_OscillatorB.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_OscBFrequency, group_OscBFrequency);
     setupRotarySlider(slider_OscBFine, group_OscBFine);
@@ -140,7 +138,6 @@ void FrontPanelTab::setupGroupOscB()
 
 void FrontPanelTab::setupGroupPolyMod()
 {
-    group_PolyMod.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_PolyModSourceFilterEnv, group_PolyModSourceFilterEnv);
     setupRotarySlider(slider_PolyModSourceOscB, group_PolyModSourceOscB);
@@ -167,7 +164,6 @@ void FrontPanelTab::setupGroupPolyMod()
 
 void FrontPanelTab::setupGroupNoise()
 {
-    group_Noise.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_NoiseLevel, group_NoiseLevel);
 
@@ -178,7 +174,6 @@ void FrontPanelTab::setupGroupNoise()
 
 void FrontPanelTab::setupGroupLFO()
 {
-    group_LFO.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_LFOFrequency, group_LFOFrequency);
     setupRotarySlider(slider_LFOInitialAmount, group_LFOInitialAmount);
@@ -215,7 +210,6 @@ void FrontPanelTab::setupGroupLFO()
 
 void FrontPanelTab::setupGroupGlide()
 {
-    group_Glide.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_GlideAmount, group_GlideAmount);
 
@@ -227,7 +221,6 @@ void FrontPanelTab::setupGroupGlide()
 
 void FrontPanelTab::setupGroupFilter()
 {    
-    group_Filter.setTextLabelPosition(juce::Justification::left);
 
     setupRotarySlider(slider_FilterCutoff, group_FilterCutoff);
     setupRotarySlider(slider_FilterResonance, group_FilterResonance);
@@ -269,7 +262,6 @@ void FrontPanelTab::setupGroupFilter()
 
 void FrontPanelTab::setupGroupAmplifier()
 {
-    group_Amplifier.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_AmplifierAttack, group_AmplifierAttack);
     setupRotarySlider(slider_AmplifierDecay, group_AmplifierDecay);
@@ -287,7 +279,6 @@ void FrontPanelTab::setupGroupAmplifier()
 
 void FrontPanelTab::setupGroupMaster()
 {
-    group_Master.setTextLabelPosition(juce::Justification::left);
     
     setupRotarySlider(slider_MasterTune, group_MasterTune);
     setupRotarySlider(slider_MasterVolume, group_MasterVolume);

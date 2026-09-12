@@ -22,6 +22,7 @@
 
 #include "PluginProcessor.h"
 #include "ui/MainWidget.h"
+#include "ui/MidiDeviceComboBox.h"
 #include <memory>
 
 class MidiHandler;
@@ -31,33 +32,30 @@ class Pro800ManagerEditor  : public juce::AudioProcessorEditor, public juce::Mid
 public:
     Pro800ManagerEditor (MidiHandler *midiHandler, Pro800ManagerAudioProcessor&);
     ~Pro800ManagerEditor() override;
-    
+
     void paint (juce::Graphics&) override;
     void resized() override;
 
     void handleNoteOn(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
     void handleNoteOff(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
 
+    void handlePro800VersionUpdate() override;
+
+private:
     void refreshMidiDeviceLists();
     void connectMidiDevices();
 
-    void handlePro800VersionUpdate() override;
-
-    
-private:
     juce::TooltipWindow tooltipWindow { this, 500 };
 
-    MidiHandler *midiHandler;
-    
     juce::MidiKeyboardState keyboardState;
 
     juce::Label label_FirmwareVersion { "", "Not Connected" };
     juce::Label label_MidiChannel { "", "MIDI Channel:" };
     juce::Slider spinBox_MidiChannel { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
     juce::Label label_MidiInput { "", "MIDI Input:" };
-    juce::ComboBox combo_MidiInputList;
+    MidiDeviceComboBox combo_MidiInputList;
     juce::Label label_MidiOutput { "", "MIDI Output:" };
-    juce::ComboBox combo_MidiOutputList;
+    MidiDeviceComboBox combo_MidiOutputList;
     juce::TextButton button_RefreshMidi { "Refresh" };
     juce::TextButton button_ConnectMidi { "Connect" };
 

@@ -27,7 +27,6 @@ class SettingsTab : public juce::Component, public MidiComponent
 {
     public:
         SettingsTab(MidiHandler *midiHandler);
-        ~SettingsTab() override;
         virtual void handlePro800SettingsUpdate() override;
     
         void resized() override;

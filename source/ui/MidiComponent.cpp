@@ -77,6 +77,14 @@ MidiHandler &MidiComponent::getMidiHandler() const
     return *this->midiHandler;
 }
 
+void MidiComponent::addEnumItems(juce::ComboBox &comboBox, const std::vector<EnumItem> &items)
+{
+    for ( const auto &item : items )
+    {
+        comboBox.addItem(item.name, item.value + COMBO_BOX_ID_OFFSET);
+    }
+}
+
 void MidiComponent::sendMidiMessage(const juce::MidiMessage &message)
 {
     this->midiHandler->sendMidiMessage(message);
@@ -122,7 +130,6 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
             break;
         }
 
-        case MIDI_CC_MESSAGE:
         case MIDI_LOG_MESSAGE:
         case PRO800_UNKNOWN_MESSAGE:
         default:
@@ -246,7 +253,7 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
         comboBox->onChange = ([this, comboBox, ccNumber] {
-            int value = comboBox->getSelectedId() - 1; // -1 because ComboBox IDs start at 1
+            int value = comboBox->getSelectedId() - COMBO_BOX_ID_OFFSET;
 
             int programFieldNumber = comboBox->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE); // ensure property exists
             if ( programFieldNumber != PROGRAM_FIELD_NONE )
@@ -303,7 +310,7 @@ void MidiComponent::setComponentValue (juce::Component* component, int value, in
     }
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
-        comboBox->setSelectedId ((int) value + 1, juce::dontSendNotification); // +1 because ComboBox IDs start at 1
+        comboBox->setSelectedId (value + COMBO_BOX_ID_OFFSET, juce::dontSendNotification);
     }
 }
 

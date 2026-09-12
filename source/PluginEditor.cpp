@@ -19,27 +19,24 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "midi/MidiHandler.h"
 #include "midi/VersionMessage.h"
 
-#include <iostream>
-
-Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAudioProcessor& p) 
+Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAudioProcessor& p)
     : AudioProcessorEditor (&p), MidiComponent(handler, false, {MessageType::PRO800_VERSION_MESSAGE})
 {
-    this->midiHandler = handler;
-
     // midi connection area
     button_ConnectMidi.onClick = [this] { connectMidiDevices(); };
     button_RefreshMidi.onClick = [this] { refreshMidiDeviceLists(); };
 
     spinBox_MidiChannel.setRange(1, 16, 1);
     spinBox_MidiChannel.setValue(1);
-    this->midiHandler->setMidiChannel(1);
+    getMidiHandler().setMidiChannel(1);
 
     spinBox_MidiChannel.onValueChange = [this] {
         uint8_t channel = (uint8_t)spinBox_MidiChannel.getValue();
         this->keyboardPanel.setMidiChannel(channel);
-        this->midiHandler->setMidiChannel(channel);
+        getMidiHandler().setMidiChannel(channel);
     };
 
 
@@ -54,7 +51,7 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
     addAndMakeVisible(button_ConnectMidi);
 
     // main widget
-    tabBar = std::make_unique<MainWidget>(midiHandler);
+    tabBar = std::make_unique<MainWidget>(handler);
     addAndMakeVisible(tabBar.get());
 
 
@@ -62,7 +59,6 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
     keyboardState.addListener(this);
 
     keyboardPanel.setKeyPressBaseOctave(3);
-    keyboardPanel.setColour(juce::MidiKeyboardComponent::whiteNoteColourId, getLookAndFeel().findColour(juce::Slider::backgroundColourId));
     keyboardPanel.setColour(juce::MidiKeyboardComponent::whiteNoteColourId, getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
     keyboardPanel.setColour(juce::MidiKeyboardComponent::mouseOverKeyOverlayColourId, getLookAndFeel().findColour(juce::Slider::thumbColourId));
 
@@ -135,85 +131,27 @@ void Pro800ManagerEditor::resized()
 
 void Pro800ManagerEditor::handleNoteOn(juce::MidiKeyboardState* /*source*/, int midiChannel, int midiNoteNumber, float velocity)
 {
-    this->midiHandler->sendMidiMessage(juce::MidiMessage::noteOn (midiChannel, midiNoteNumber, velocity));
+    sendMidiMessage(juce::MidiMessage::noteOn (midiChannel, midiNoteNumber, velocity));
 }
 
 
 void Pro800ManagerEditor::handleNoteOff(juce::MidiKeyboardState* /*source*/, int midiChannel, int midiNoteNumber, float velocity)
 {
-    this->midiHandler->sendMidiMessage(juce::MidiMessage::noteOff (midiChannel, midiNoteNumber, velocity));
+    sendMidiMessage(juce::MidiMessage::noteOff (midiChannel, midiNoteNumber, velocity));
 }
     
 void Pro800ManagerEditor::refreshMidiDeviceLists()
 {
-    auto selectedInputId = combo_MidiInputList.getSelectedId();
-    auto selectedOutputId = combo_MidiOutputList.getSelectedId();
-    juce::String noneString = "None";
-
-    combo_MidiInputList.clear(juce::dontSendNotification);
-    combo_MidiInputList.addItem("None", noneString.hashCode());
-    combo_MidiInputList.setSelectedId(noneString.hashCode(), juce::dontSendNotification);
-
-    combo_MidiOutputList.clear(juce::dontSendNotification);    
-    combo_MidiOutputList.addItem("None", noneString.hashCode());
-    combo_MidiOutputList.setSelectedId(noneString.hashCode(), juce::dontSendNotification);
-
-    auto midiInputs = juce::MidiInput::getAvailableDevices();
-    for ( auto &input : midiInputs )
-    {
-        combo_MidiInputList.addItem(input.name, input.identifier.hashCode());
-        if ( input.identifier.hashCode() == selectedInputId )
-        {
-            combo_MidiInputList.setSelectedId(selectedInputId, juce::dontSendNotification);
-        }   
-    }
-
-    auto midiOutputs = juce::MidiOutput::getAvailableDevices();
-    for ( auto &output : midiOutputs )
-    {
-        combo_MidiOutputList.addItem(output.name, output.identifier.hashCode());
-        if ( output.identifier.hashCode() == selectedOutputId )
-        {
-            combo_MidiOutputList.setSelectedId(selectedOutputId, juce::dontSendNotification);
-        }
-    }
+    combo_MidiInputList.setDevices(juce::MidiInput::getAvailableDevices());
+    combo_MidiOutputList.setDevices(juce::MidiOutput::getAvailableDevices());
 }
 
 void Pro800ManagerEditor::connectMidiDevices()
 {
     label_FirmwareVersion.setText ("Not Connected", juce::NotificationType::dontSendNotification);
 
-    auto selectedInputId = combo_MidiInputList.getSelectedId();
-    auto selectedOutputId = combo_MidiOutputList.getSelectedId();
-
-    juce::String inputIdentifier;
-    juce::String outputIdentifier;
-
-    auto midiInputs = juce::MidiInput::getAvailableDevices();
-    for ( auto &input : midiInputs )
-    {
-        if ( input.identifier.hashCode() == selectedInputId )
-        {
-            inputIdentifier = input.identifier;
-            break;
-        }
-    }
-
-    auto midiOutputs = juce::MidiOutput::getAvailableDevices();
-    for ( auto &output : midiOutputs )
-    {
-        if ( output.identifier.hashCode() == selectedOutputId )
-        {
-            outputIdentifier = output.identifier;
-            break;
-        }
-    }
-
-    // connect via MidiHandler
-    if ( midiHandler != nullptr )
-    {
-        midiHandler->connectMidiDevices(inputIdentifier, outputIdentifier);
-    }
+    getMidiHandler().connectMidiDevices(combo_MidiInputList.getSelectedDeviceIdentifier(),
+                                        combo_MidiOutputList.getSelectedDeviceIdentifier());
 }
 
 void Pro800ManagerEditor::handlePro800VersionUpdate()

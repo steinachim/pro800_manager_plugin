@@ -18,13 +18,6 @@
 
 #include "ProgramMessage.h"
 
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-
-using namespace std;
-
 juce::MidiMessage ProgramMessage::request(int programNumber)
 {
     uint8_t programLSB = (programNumber & 0x7F);
@@ -98,16 +91,11 @@ uint16_t ProgramMessage::getProgramNumber() const
 
 std::string ProgramMessage::getProgramBankNumber() const
 {
-    uint16_t programNumber = getProgramNumber();
-    uint8_t bank = (uint8_t)(programNumber / 100); // 0-3 = A-D
-    uint8_t program = (uint8_t)(programNumber % 100); // 0-99
+    const uint16_t programNumber = getProgramNumber();
+    const int bank = programNumber / 100;    // 0-3 = A-D
+    const int program = programNumber % 100; // 0-99
 
-    char bankName = 'A' + (char)bank;
-
-    std::stringstream ss;
-    ss << bankName;
-    ss << std::setfill('0') << std::setw(2) << (int)program;
-    return ss.str();
+    return juce::String::formatted("%c%02d", 'A' + bank, program).toStdString();
 }
 
 void ProgramMessage::setProgramNumber(uint16_t programNumber)
@@ -195,45 +183,17 @@ int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
 
 juce::String ProgramMessage::toString() const
 {
-    std::stringstream ss;
-    ss << "Pro800 Program Dump: "
-       << getProgramBankNumber() << " - '" << getProgramName() << "'\n";
-
-    for ( auto param : PRO800_PROGRAM_FIELDS )
-    {
-        int value = getValue(param.first);
-        int maxValue = (1 << param.second.numBytes*8) - 1;
-
-        ss << param.second.name << ": " << getValue(param.first) << " (display: " << value * 999 / maxValue << ")\n";
-    }
-       
-    return ss.str();
+    juce::String header = "Pro800 Program Dump: ";
+    header << getProgramBankNumber() << " - '" << getProgramName() << "'\n";
+    return header + fieldsToString(PRO800_PROGRAM_FIELDS);
 }
 
 int ProgramMessage::getValue(Pro800ProgramField field) const
 {
-    if ( PRO800_PROGRAM_FIELDS.contains(field) )
-    {
-        Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
-        return Pro800DataMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
-    }
-    else
-    {
-        juce::Logger::writeToLog("ProgramMessage::getValue(): No getter for field defined: " + juce::String((int)field));
-    }
-
-    return 0;
+    return getFieldValue(PRO800_PROGRAM_FIELDS, field);
 }
 
 void ProgramMessage::setValue(Pro800ProgramField field, int value)
 {
-    if ( PRO800_PROGRAM_FIELDS.contains(field) )
-    {
-        Pro800Parameter param = PRO800_PROGRAM_FIELDS.at(field);
-        Pro800DataMessage::setValue(param.firstByte, param.numBytes, value);
-    }
-    else
-    {
-        juce::Logger::writeToLog("ProgramMessage::setValue(): No setter for field defined: " + juce::String((int)field));
-    }    
+    setFieldValue(PRO800_PROGRAM_FIELDS, field, value);
 }

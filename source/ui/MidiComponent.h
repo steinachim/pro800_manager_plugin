@@ -44,6 +44,18 @@ public:
 
     static constexpr int PROGRAM_SEND_INTERVAL_MS = 20; // pause between two program dumps sent to the synth
 
+    /** Combo box item ids are the enum (or CC) value plus this offset, because item ids must be non-zero. */
+    static constexpr int COMBO_BOX_ID_OFFSET = 1;
+
+    struct EnumItem
+    {
+        const char *name;
+        int value;
+    };
+
+    /** Adds the items to the combo box in the given order, with ids derived from the values (see COMBO_BOX_ID_OFFSET). */
+    static void addEnumItems(juce::ComboBox &comboBox, const std::vector<EnumItem> &items);
+
     MidiComponent(MidiHandler *midiHandler, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
     virtual ~MidiComponent();
 

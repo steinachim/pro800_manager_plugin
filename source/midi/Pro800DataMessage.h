@@ -18,8 +18,9 @@
 
 #pragma once
 
+#include <cmath>
+#include <map>
 #include <string>
-#include <memory>
 #include <vector>
 
 #include "Pro800MidiMessage.h"
@@ -58,4 +59,51 @@ protected:
 
     std::string getStringValue(size_t firstByte, size_t lastByte) const;
     void setStringValue(size_t firstByte, size_t lastByte, const std::string &newValue);
+
+    // Field-table based access, shared by the program and settings messages. FieldEnum is the
+    // message's field enum, fields the table that maps it to byte positions.
+
+    template <typename FieldEnum>
+    int getFieldValue(const std::map<FieldEnum, Pro800Parameter> &fields, FieldEnum field) const
+    {
+        const auto entry = fields.find(field);
+        if ( entry == fields.end() )
+        {
+            juce::Logger::writeToLog("Pro800DataMessage::getFieldValue(): no field defined for " + juce::String((int)field));
+            return 0;
+        }
+
+        const Pro800Parameter &param = entry->second;
+        return getValue(param.firstByte, param.numBytes, param.isSigned);
+    }
+
+    template <typename FieldEnum>
+    void setFieldValue(const std::map<FieldEnum, Pro800Parameter> &fields, FieldEnum field, int value)
+    {
+        const auto entry = fields.find(field);
+        if ( entry == fields.end() )
+        {
+            juce::Logger::writeToLog("Pro800DataMessage::setFieldValue(): no field defined for " + juce::String((int)field));
+            return;
+        }
+
+        const Pro800Parameter &param = entry->second;
+        setValue(param.firstByte, param.numBytes, value);
+    }
+
+    /** One line per field: "<name>: <raw value> (display: <value scaled to the synth's 0-999 display>)". */
+    template <typename FieldEnum>
+    juce::String fieldsToString(const std::map<FieldEnum, Pro800Parameter> &fields) const
+    {
+        juce::String result;
+        for ( const auto &[field, param] : fields )
+        {
+            const int value = getValue(param.firstByte, param.numBytes, param.isSigned);
+            const double maxValue = std::pow(256.0, param.numBytes) - 1.0; // double: 4-byte fields would overflow int
+            const int displayValue = juce::roundToInt(value * 999.0 / maxValue);
+
+            result << param.name << ": " << value << " (display: " << displayValue << ")\n";
+        }
+        return result;
+    }
 };

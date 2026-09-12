@@ -18,9 +18,6 @@
 
 #include "SettingsMessage.h"
 
-#include <sstream>
-#include <iostream>
-
 juce::MidiMessage SettingsMessage::request()
 {
     return Pro800DataMessage::request(ADDRESS_LOW, ADDRESS_HIGH);
@@ -38,44 +35,15 @@ bool SettingsMessage::isValid() const
 
 juce::String SettingsMessage::toString() const
 {
-    std::stringstream ss;
-    ss << "Pro800 Settings Dump:\n";
-
-    for ( auto param : PRO800_SETTINGS_FIELDS )
-    {
-        int value = getValue(param.first);
-        int maxValue = (1 << param.second.numBytes*8) - 1;
-
-        ss << param.second.name << ": " << getValue(param.first) << " (display: " << value * 999 / maxValue << ")\n";
-    }
-       
-    return ss.str();
+    return "Pro800 Settings Dump:\n" + fieldsToString(PRO800_SETTINGS_FIELDS);
 }
 
 void SettingsMessage::setValue(Pro800Settings setting, int value)
 {
-    if ( PRO800_SETTINGS_FIELDS.contains(setting) )
-    {
-        Pro800Parameter param = PRO800_SETTINGS_FIELDS.at(setting);
-        Pro800DataMessage::setValue(param.firstByte, param.numBytes, value);
-    }
-    else
-    {
-        juce::Logger::writeToLog("SettingsMessage::setValue(): No setter for field defined: " + juce::String((int)setting));
-    }    
+    setFieldValue(PRO800_SETTINGS_FIELDS, setting, value);
 }
 
 int SettingsMessage::getValue(Pro800Settings setting) const
 {
-    if ( PRO800_SETTINGS_FIELDS.contains(setting) )
-    {
-        Pro800Parameter param = PRO800_SETTINGS_FIELDS.at(setting);
-        return Pro800DataMessage::getValue(param.firstByte, param.numBytes, param.isSigned);
-    }
-    else
-    {
-        juce::Logger::writeToLog("SettingsMessage::getValue(): No getter for field defined: " + juce::String((int)setting));
-    }
-
-    return 0;
+    return getFieldValue(PRO800_SETTINGS_FIELDS, setting);
 }

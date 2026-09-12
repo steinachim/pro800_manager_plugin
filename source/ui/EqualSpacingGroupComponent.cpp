@@ -20,7 +20,7 @@
 
 EqualSpacingGroupComponent::EqualSpacingGroupComponent() : juce::GroupComponent()
 {
-    this->setTextLabelPosition(juce::Justification::centred);
+    this->setTextLabelPosition(juce::Justification::left); // every group in this plugin uses a left-aligned title
 }
 
 EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha, int rows, int cols) : EqualSpacingGroupComponent()
@@ -76,7 +76,7 @@ void EqualSpacingGroupComponent::addComponent(juce::Component *component, int ro
     addComponents( {component}, {rows}, {cols});
 }
 
-void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> rows, const juce::Array<int> cols)
+void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> &rows, const juce::Array<int> &cols)
 {
     for ( int i = 0; i < components.size(); i++ )
     {
@@ -85,21 +85,5 @@ void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component
         this->colSpan.set(components[i], i < cols.size() ? juce::jmax(1, cols[i]) : 1);
         this->children.add(components[i]);
         addAndMakeVisible(components[i]);
-    }
-}
-
-void EqualSpacingGroupComponent::removeComponent(juce::Component *component)
-{
-    removeComponents({component});
-}
-
-void EqualSpacingGroupComponent::removeComponents(juce::Array<juce::Component *> components)
-{
-    for ( auto *component : components)
-    {
-        removeChildComponent(component);
-        this->children.removeFirstMatchingValue(component);
-        rowSpan.remove(component);
-        colSpan.remove(component);
     }
 }
