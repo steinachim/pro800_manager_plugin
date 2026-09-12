@@ -35,7 +35,6 @@ struct Pro800PanelValues;
 class PanelMessage;
 class SettingsMessage;
 class SynthSession;
-class VersionMessage;
 class ProgramMessage;
 class Pro800MidiMessage;
 
@@ -44,17 +43,16 @@ class Pro800MidiMessage;
  *
  * A component registers with the MidiHandler for the message types it wants to receive (constructor
  * argument) and, if it mirrors program parameters, for incoming CCs (registerMidiCC). Its controls are
- * linked to a CC / program field / setting with setupMidiComponent(): moving a control sends the CC,
- * an incoming CC or a loaded program moves the control.
+ * linked to a CC / program field with setupMidiComponent(): moving a control sends the CC, an incoming
+ * CC or a loaded program moves the control. (The settings tab links its controls to the session instead.)
  */
 class MidiComponent
 {
 public:
-    // keys of the component properties that link a control to its CC / program field / setting
+    // keys of the component properties that link a control to its CC / program field
     static inline const juce::Identifier RADIO_VALUE_PROPERTY { "radioValue" };
     static inline const juce::Identifier MIDI_CC_PROPERTY { "midiCC" };
     static inline const juce::Identifier PROGRAM_FIELD_PROPERTY { "programField" };
-    static inline const juce::Identifier SETTINGS_FIELD_PROPERTY { "settingsField" };
 
     /** Combo box item ids are the enum (or CC) value plus this offset, because item ids must be non-zero. */
     static constexpr int COMBO_BOX_ID_OFFSET = 1;
@@ -103,15 +101,13 @@ protected:
     static Pro800ProgramField getProgramField (const juce::Component& component);
     static Pro800CCMessages getMidiCC (const juce::Component& component);
 
-    void setupMidiComponent (juce::Component* component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = Pro800Settings::NONE);
+    void setupMidiComponent (juce::Component* component, Pro800CCMessages midiCC, Pro800ProgramField programField);
 
     /** The synth's settings block as the session last read it (nullptr before the first read). */
     std::shared_ptr<SettingsMessage> getCurrentSettings() const;
 
     /** Changes one setting on the synth: the session patches its block, writes it and keeps the value until the synth confirms it. */
     void updateSettings (Pro800Settings setting, int value);
-
-    std::shared_ptr<VersionMessage>& getCurrentVersion();
 
     virtual void setComponentValue (juce::Component* component, int value, int maxValue = -1);
 
@@ -129,6 +125,4 @@ private:
 
     MidiHandler* midiHandler; // non-owning: lifetime managed by the audio processor
     SynthSession* synthSession; // non-owning: lifetime managed by the audio processor
-
-    std::shared_ptr<VersionMessage> currentVersion = std::shared_ptr<VersionMessage>();
 };

@@ -260,9 +260,6 @@ public:
 
     const SettingsWriteStatus& getSettingsWriteStatus() const { return this->settingsWriteStatus; }
 
-    /** The stored record of the preset the pointer names (nullptr if unknown or the slot is empty). */
-    std::shared_ptr<ProgramMessage> getPointerProgram() const { return this->pointerProgram; }
-
 private:
     using ReplyCallback = std::function<void (const juce::MidiMessage* reply)>;
     using SettingsCallback = std::function<void (std::shared_ptr<SettingsMessage> settings)>;
@@ -337,8 +334,7 @@ private:
     juce::String lastError;
 
     std::shared_ptr<SettingsMessage> settings;
-    std::shared_ptr<ProgramMessage> pointerProgram;
-    std::optional<int> pointerProgramReadFor; // the program pointerProgram (or its emptiness) was read for
+    std::optional<int> pointerProgramReadFor; // the program whose stored record (or emptiness) was last read for the pointer
     std::optional<Pro800PanelState> lastPanelState;
     /** The LFO shape as last seen here - from a record shown in the controls, or from a CC sent or received. */
     std::optional<int> currentLfoShape;

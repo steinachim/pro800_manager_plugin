@@ -24,7 +24,6 @@
 #include "../midi/Pro800FactoryResetMessage.h"
 #include "../midi/ProgramMessage.h"
 #include "../midi/SettingsMessage.h"
-#include "../midi/VersionMessage.h"
 #include "../session/SynthSession.h"
 
 #include "../tailoring/Pro800CCConstants.h"
@@ -108,7 +107,6 @@ void MidiComponent::handlePro800Message (MessageType type, const std::shared_ptr
             break;
 
         case MessageType::PRO800_VERSION:
-            this->currentVersion = std::dynamic_pointer_cast<VersionMessage> (message);
             handlePro800VersionUpdate();
             break;
 
@@ -199,12 +197,11 @@ void MidiComponent::handleMidiLog (const juce::MidiMessage& /*message*/, const j
     // do nothing by default
 }
 
-void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField)
+void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMessages midiCC, Pro800ProgramField programField)
 {
     // enums are stored as ints in the property set (juce::var has no enum type); see getProgramField()/getMidiCC()
     component->getProperties().set (MIDI_CC_PROPERTY, static_cast<int> (midiCC));
     component->getProperties().set (PROGRAM_FIELD_PROPERTY, static_cast<int> (programField));
-    component->getProperties().set (SETTINGS_FIELD_PROPERTY, static_cast<int> (settingsField));
 
     if (midiCC == Pro800CCMessages::NONE)
     {
@@ -292,11 +289,6 @@ std::shared_ptr<SettingsMessage> MidiComponent::getCurrentSettings() const
 void MidiComponent::updateSettings (Pro800Settings setting, int value)
 {
     this->synthSession->writeSetting (setting, value);
-}
-
-std::shared_ptr<VersionMessage>& MidiComponent::getCurrentVersion()
-{
-    return this->currentVersion;
 }
 
 void MidiComponent::setControlKnown (juce::Component* component, bool known)

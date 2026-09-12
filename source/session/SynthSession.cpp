@@ -209,7 +209,6 @@ void SynthSession::connect()
     this->pointer = Pointer();
     this->provenance = Provenance();
     this->settings = nullptr;
-    this->pointerProgram = nullptr;
     this->pointerProgramReadFor.reset();
     this->lastPanelState.reset();
     this->currentLfoShape.reset();
@@ -1067,7 +1066,6 @@ void SynthSession::updatePointer (bool mirrorIfChanged, bool isPolling, std::fun
     if (!program.has_value())
     {
         this->pointer.name.clear();
-        this->pointerProgram = nullptr;
         this->pointerProgramReadFor.reset();
         notify();
         then();
@@ -1083,7 +1081,6 @@ void SynthSession::updatePointer (bool mirrorIfChanged, bool isPolling, std::fun
 
     const bool mirror = mirrorIfChanged && changed && knownBefore;
     readProgram (*program, isPolling, [this, program, mirror, then] (std::shared_ptr<ProgramMessage> record, bool slotIsEmpty) {
-        this->pointerProgram = record;
         this->pointerProgramReadFor = (record != nullptr || slotIsEmpty) ? program : std::nullopt;
         this->pointer.name = record != nullptr ? record->getProgramName() : (slotIsEmpty ? "(empty)" : "");
 
@@ -1105,7 +1102,6 @@ void SynthSession::showStoredProgram (int program, std::function<void()> then)
 {
     readProgram (program, false, [this, program, then] (std::shared_ptr<ProgramMessage> record, bool slotIsEmpty) {
         this->pointer.program = program;
-        this->pointerProgram = record;
         this->pointerProgramReadFor = (record != nullptr || slotIsEmpty) ? std::optional<int> (program) : std::nullopt;
         this->pointer.name = record != nullptr ? record->getProgramName() : (slotIsEmpty ? "(empty)" : "");
 
