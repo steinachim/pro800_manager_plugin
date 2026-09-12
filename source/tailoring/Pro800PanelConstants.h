@@ -135,6 +135,74 @@ inline const std::map<Pro800PanelIndex, std::string> PRO800_PANEL_INDEX_NAMES =
     {Pro800PanelIndex::DIP_4,                        "DIP switch 4"},
 };
 
+/**
+ * The 26 live parameters read with 0x72 <index> (answered by 0x73 <index> <value>, 7-bit) and written with
+ * 0x73 <index> <value>: the physical knob positions. Like the panel switches they do not follow a preset load;
+ * a write reaches the edit buffer (audible at once) but not the stored record. The numbering is unrelated to
+ * the knobs' CC numbers.
+ */
+enum class Pro800LiveIndex : uint8_t
+{
+    AMP_RELEASE = 0x00,
+    AMP_SUSTAIN = 0x01,
+    AMP_DECAY = 0x02,
+    AMP_ATTACK = 0x03,
+    FILTER_RELEASE = 0x04,
+    FILTER_SUSTAIN = 0x05,
+    FILTER_DECAY = 0x06,
+    FILTER_ATTACK = 0x07,
+    FILTER_RESONANCE = 0x08,
+    FILTER_ENV_AMOUNT = 0x09,
+    OSC_A_FREQ = 0x0A,
+    OSC_B_FREQ = 0x0B,
+    OSC_B_FINE = 0x0C,
+    OSC_A_PULSE_WIDTH = 0x0D,
+    OSC_B_PULSE_WIDTH = 0x0E,
+    OSC_A_LEVEL = 0x0F,
+    GLIDE_TIME = 0x10,
+    LFO_FREQ = 0x11,
+    LFO_INITIAL_AMOUNT = 0x12, // the one index whose read-back does not match a write (a lossy curve)
+    MASTER_TUNE = 0x13,
+    MASTER_VOLUME = 0x14,
+    OSC_B_LEVEL = 0x15,
+    POLY_MOD_SOURCE_OSC_B = 0x16,
+    POLY_MOD_SOURCE_FILTER_ENV = 0x17,
+    NOISE_LEVEL = 0x18,
+    FILTER_CUTOFF = 0x19,
+
+    NUM_INDICES = 0x1A // this and everything above answers a failure status
+};
+
+inline const std::map<Pro800LiveIndex, std::string> PRO800_LIVE_INDEX_NAMES =
+{
+    {Pro800LiveIndex::AMP_RELEASE,                "Amp Release"},
+    {Pro800LiveIndex::AMP_SUSTAIN,                "Amp Sustain"},
+    {Pro800LiveIndex::AMP_DECAY,                  "Amp Decay"},
+    {Pro800LiveIndex::AMP_ATTACK,                 "Amp Attack"},
+    {Pro800LiveIndex::FILTER_RELEASE,             "Filter Release"},
+    {Pro800LiveIndex::FILTER_SUSTAIN,             "Filter Sustain"},
+    {Pro800LiveIndex::FILTER_DECAY,               "Filter Decay"},
+    {Pro800LiveIndex::FILTER_ATTACK,              "Filter Attack"},
+    {Pro800LiveIndex::FILTER_RESONANCE,           "Filter Resonance"},
+    {Pro800LiveIndex::FILTER_ENV_AMOUNT,          "Filter Env Amount"},
+    {Pro800LiveIndex::OSC_A_FREQ,                 "Osc A Frequency"},
+    {Pro800LiveIndex::OSC_B_FREQ,                 "Osc B Frequency"},
+    {Pro800LiveIndex::OSC_B_FINE,                 "Osc B Fine"},
+    {Pro800LiveIndex::OSC_A_PULSE_WIDTH,          "Osc A Pulse Width"},
+    {Pro800LiveIndex::OSC_B_PULSE_WIDTH,          "Osc B Pulse Width"},
+    {Pro800LiveIndex::OSC_A_LEVEL,                "Osc A Level"},
+    {Pro800LiveIndex::GLIDE_TIME,                 "Glide Time"},
+    {Pro800LiveIndex::LFO_FREQ,                   "LFO Mod Freq"},
+    {Pro800LiveIndex::LFO_INITIAL_AMOUNT,         "LFO Mod Initial Amount"},
+    {Pro800LiveIndex::MASTER_TUNE,                "Master Tune"},
+    {Pro800LiveIndex::MASTER_VOLUME,              "Master Volume"},
+    {Pro800LiveIndex::OSC_B_LEVEL,                "Osc B Level"},
+    {Pro800LiveIndex::POLY_MOD_SOURCE_OSC_B,      "Poly-Mod Source Osc B"},
+    {Pro800LiveIndex::POLY_MOD_SOURCE_FILTER_ENV, "Poly-Mod Source Filter Env"},
+    {Pro800LiveIndex::NOISE_LEVEL,                "Noise Level"},
+    {Pro800LiveIndex::FILTER_CUTOFF,              "Filter Cutoff"},
+};
+
 /** The four DIP switches and the weight each one reports when it is on. */
 inline const std::map<Pro800PanelIndex, int> PRO800_PANEL_DIP_WEIGHTS =
 {

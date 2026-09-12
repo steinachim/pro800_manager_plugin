@@ -18,6 +18,7 @@
 
 #include "MidiComponent.h"
 
+#include "../midi/LiveParameterMessage.h"
 #include "../midi/MidiHandler.h"
 #include "../midi/PanelMessage.h"
 #include "../midi/Pro800FactoryResetMessage.h"
@@ -28,6 +29,7 @@
 
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800CCUtils.h"
+#include "../tailoring/Pro800PanelState.h"
 
 MidiComponent::MidiComponent (MidiHandler* handler, SynthSession& session, bool registerMidiCC, const juce::Array<MessageType> messageTypes)
 {
@@ -143,6 +145,10 @@ void MidiComponent::handlePro800Message (MessageType type, const std::shared_ptr
             handlePro800PanelUpdate (std::dynamic_pointer_cast<PanelMessage> (message));
             break;
 
+        case MessageType::PRO800_LIVE_PARAMETER:
+            handlePro800LiveParameterUpdate (std::dynamic_pointer_cast<LiveParameterMessage> (message));
+            break;
+
         case MessageType::MIDI_LOG:
         case MessageType::PRO800_UNKNOWN:
         default:
@@ -197,6 +203,11 @@ void MidiComponent::handlePro800ProgramDump (const std::shared_ptr<ProgramMessag
 }
 
 void MidiComponent::handlePro800PanelUpdate (const std::shared_ptr<PanelMessage>& /*panelMessage*/)
+{
+    // do nothing by default
+}
+
+void MidiComponent::handlePro800LiveParameterUpdate (const std::shared_ptr<LiveParameterMessage>& /*liveParameterMessage*/)
 {
     // do nothing by default
 }
@@ -362,6 +373,39 @@ void MidiComponent::loadFromProgram (const ProgramMessage& program)
             {
                 int value = program.getValue (field);
                 setComponentValue (component, value, 65535);
+            }
+        }
+    }
+}
+void MidiComponent::loadFromPanel (const Pro800PanelValues& values)
+{
+    for (const auto& [midiCC, components] : this->registeredCCComponents)
+    {
+        for (auto* component : components)
+        {
+            const Pro800ProgramField field = getProgramField (*component);
+
+            if (field == Pro800ProgramField::LFO_DEST)
+            {
+                // the panel has the three on/off destination switches, not the LFO target of the Performance menu
+                const auto lfoDestination = values.fields.find (field);
+                const bool isSwitch = midiCC == Pro800CCMessages::LFO_MOD_DEST_FREQ_AB || midiCC == Pro800CCMessages::LFO_MOD_DEST_PW_AB
+                                      || midiCC == Pro800CCMessages::LFO_MOD_DEST_FILTER;
+                if (lfoDestination != values.fields.end() && isSwitch)
+                {
+                    setComponentValue (component, ProgramMessage::lfoDestinationValue ((uint8_t) lfoDestination->second, midiCC));
+                }
+            }
+            else if (field != Pro800ProgramField::NONE)
+            {
+                if (const auto value = values.fields.find (field); value != values.fields.end())
+                {
+                    setComponentValue (component, value->second, 65535);
+                }
+            }
+            else if (const auto ccValue = values.ccValues.find (midiCC); ccValue != values.ccValues.end())
+            {
+                setComponentValue (component, ccValue->second, 127);
             }
         }
     }

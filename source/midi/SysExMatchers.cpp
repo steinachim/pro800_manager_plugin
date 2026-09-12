@@ -18,6 +18,7 @@
 
 #include "SysExMatchers.h"
 
+#include "LiveParameterMessage.h"
 #include "PanelMessage.h"
 #include "Pro800DataMessage.h"
 #include "Pro800MidiMessage.h"
@@ -95,6 +96,22 @@ bool SysExMatchers::isPanelReplyFor (const juce::MidiMessage& message, uint8_t i
 
     const PanelMessage panel (message);
     return panel.isValid() && panel.getIndex() == index;
+}
+
+bool SysExMatchers::isLiveReplyFor (const juce::MidiMessage& message, uint8_t index)
+{
+    if (isStatusReply (message))
+    {
+        return true;
+    }
+
+    if (pro800Type (message) != LiveParameterMessage::RESPONSE_ID)
+    {
+        return false;
+    }
+
+    const LiveParameterMessage live (message);
+    return live.isValid() && live.getIndex() == index;
 }
 
 bool SysExMatchers::outrunsDeclaredVersion (const juce::MidiMessage& message)

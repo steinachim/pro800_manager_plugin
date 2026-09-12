@@ -24,6 +24,7 @@
 #include <initializer_list>
 #include <vector>
 
+#include "midi/LiveParameterMessage.h"
 #include "midi/PanelMessage.h"
 #include "midi/Pro800DataMessage.h"
 #include "midi/ProgramMessage.h"
@@ -97,6 +98,12 @@ namespace TestMessages
     inline std::vector<uint8_t> panelReply (uint8_t index, uint8_t value)
     {
         return sysEx ({ PanelMessage::RESPONSE_ID, index, value });
+    }
+
+    /** A knob position reply (0x73 <index> <value>), the answer to a 0x72 <index> request. */
+    inline std::vector<uint8_t> liveReply (uint8_t index, uint8_t value)
+    {
+        return sysEx ({ LiveParameterMessage::RESPONSE_ID, index, value });
     }
 
     inline std::vector<uint8_t> bytesOf (const juce::MidiMessage& message)

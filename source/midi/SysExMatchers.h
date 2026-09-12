@@ -54,6 +54,9 @@ public:
     /** A 0x71 reply echoing the index, or a status (the synth refuses indices it does not have). */
     static bool isPanelReplyFor (const juce::MidiMessage& message, uint8_t index);
 
+    /** A 0x73 reply echoing the index, or a status (the synth refuses indices it does not have). */
+    static bool isLiveReplyFor (const juce::MidiMessage& message, uint8_t index);
+
     /** A program dump whose payload is longer than a record of its declared preset version can be (docs/Pro800SysExMessages.md). */
     static bool outrunsDeclaredVersion (const juce::MidiMessage& message);
 };

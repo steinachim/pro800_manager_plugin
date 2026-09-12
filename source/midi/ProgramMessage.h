@@ -57,6 +57,9 @@ public:
 
     int getLfoDestinationValue (Pro800CCMessages ccNumber) const;
 
+    /** The CC value the LFO destination bitmask means for the given CC (the three on/off destinations, or LFO_TARGET). */
+    static int lfoDestinationValue (uint8_t lfoDestinations, Pro800CCMessages ccNumber);
+
     int getValue (Pro800ProgramField field) const;
     void setValue (Pro800ProgramField field, int value);
 

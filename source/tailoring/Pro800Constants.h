@@ -45,6 +45,7 @@ enum class MessageType
     PRO800_VERSION,
     PRO800_STATUS,
     PRO800_PROGRAM,
-    PRO800_PANEL     // 0x71: the state of one front-panel control (reply to 0x70)
+    PRO800_PANEL,    // 0x71: the state of one front-panel control (reply to 0x70)
+    PRO800_LIVE_PARAMETER // 0x73: the position of one knob (reply to 0x72)
 };
 // clang-format on

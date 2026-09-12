@@ -144,39 +144,46 @@ void ProgramMessage::setLfoDestinationEnabled (Pro800ProgramLfoDestinationBitMas
 
 int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
 {
+    return lfoDestinationValue ((uint8_t) getValue (Pro800ProgramField::LFO_DEST), ccNumber);
+}
+
+int ProgramMessage::lfoDestinationValue (uint8_t lfoDestinations, Pro800CCMessages ccNumber)
+{
+    const auto enabled = [lfoDestinations] (Pro800ProgramLfoDestinationBitMask destination) { return (lfoDestinations & destination) != 0; };
+
     if (ccNumber == Pro800CCMessages::LFO_MOD_DEST_FREQ_AB)
     {
-        return isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB) ? CC_ON : CC_OFF;
+        return enabled (PROGRAM_LFO_DEST_FREQ_AB) ? CC_ON : CC_OFF;
     }
 
     if (ccNumber == Pro800CCMessages::LFO_MOD_DEST_PW_AB)
     {
-        return isLfoDestinationEnabled (PROGRAM_LFO_DEST_PW_AB) ? CC_ON : CC_OFF;
+        return enabled (PROGRAM_LFO_DEST_PW_AB) ? CC_ON : CC_OFF;
     }
 
     if (ccNumber == Pro800CCMessages::LFO_MOD_DEST_FILTER)
     {
-        return isLfoDestinationEnabled (PROGRAM_LFO_DEST_FILTER) ? CC_ON : CC_OFF;
+        return enabled (PROGRAM_LFO_DEST_FILTER) ? CC_ON : CC_OFF;
     }
 
     if (ccNumber == Pro800CCMessages::LFO_TARGET)
     {
-        if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_A))
+        if (enabled (PROGRAM_LFO_DEST_FREQ_A))
         {
             return CC_LFO_TARGET_OSC_A;
         }
-        if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_B))
+        if (enabled (PROGRAM_LFO_DEST_FREQ_B))
         {
             return CC_LFO_TARGET_OSC_B;
         }
-        if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB_VCA))
+        if (enabled (PROGRAM_LFO_DEST_FREQ_AB_VCA))
         {
             return CC_LFO_TARGET_VCA;
         }
         return CC_LFO_TARGET_OSC_AB;
     }
 
-    juce::Logger::writeToLog ("ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " + juce::String (static_cast<int> (ccNumber)));
+    juce::Logger::writeToLog ("ProgramMessage::lfoDestinationValue(): Unsupported CC number: " + juce::String (static_cast<int> (ccNumber)));
     return 0;
 }
 

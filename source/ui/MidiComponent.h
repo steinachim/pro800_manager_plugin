@@ -29,7 +29,9 @@
 #include <memory>
 #include <vector>
 
+class LiveParameterMessage;
 class MidiHandler;
+struct Pro800PanelValues;
 class PanelMessage;
 class SettingsMessage;
 class SynthSession;
@@ -80,6 +82,7 @@ public:
     virtual void handlePro800VersionUpdate();
     virtual void handlePro800ProgramDump (const std::shared_ptr<ProgramMessage>& programMessage);
     virtual void handlePro800PanelUpdate (const std::shared_ptr<PanelMessage>& panelMessage);
+    virtual void handlePro800LiveParameterUpdate (const std::shared_ptr<LiveParameterMessage>& liveParameterMessage);
     /** isPolling: routine background traffic (the session keeping the current preset up to date), worth hiding from a log. */
     virtual void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix, bool isPolling);
 
@@ -94,6 +97,9 @@ public:
 
     /** Sets this component's CC-linked controls from the program. */
     virtual void loadFromProgram (const ProgramMessage& program);
+
+    /** Sets the CC-linked controls a panel reading determines; the others are left as they are. */
+    virtual void loadFromPanel (const Pro800PanelValues& values);
 
 protected:
     MidiHandler& getMidiHandler() const;
