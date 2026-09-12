@@ -55,7 +55,8 @@ int Pro800DataMessage::getValue (size_t firstByte, size_t numBytes, bool isSigne
         return 0;
     }
 
-    int value = 0;
+    // assembled unsigned: shifting a byte into the top position must not touch a sign bit on the way
+    uint32_t value = 0;
     size_t skippedBytes = 0;
     for (size_t i = 0; i < numBytes; i++)
     {
@@ -67,29 +68,29 @@ int Pro800DataMessage::getValue (size_t firstByte, size_t numBytes, bool isSigne
         }
 
         offset_byte += skippedBytes;
-        uint8_t byteValue = this->getUint8Value (DATA_START_POS + offset_byte);
+        uint32_t byteValue = this->getUint8Value (DATA_START_POS + offset_byte);
 
         size_t overflowByte = (offset_byte / 8) * 8;
         uint8_t overflowBit = (uint8_t) ((offset_byte % 8) - 1);
 
-        uint8_t overflowValue = this->getUint8Value (DATA_START_POS + overflowByte);
-        overflowValue = (overflowValue & (1 << overflowBit)) ? 1 : 0;
-
-        byteValue = byteValue | (uint8_t) (overflowValue << 7);
-
-        value = value | (byteValue << i * 8);
-
-        if (isSigned && overflowValue == 1)
+        if ((this->getUint8Value (DATA_START_POS + overflowByte) & (1u << overflowBit)) != 0)
         {
-            // propagate highest bit to top bytes
-            for (size_t j = i + 1; j < 4; j++)
-            {
-                value = value | (0xFF << j * 8);
-            }
+            byteValue |= 0x80;
         }
+
+        value |= byteValue << (i * 8);
     }
 
-    return value;
+    // two's complement: the highest bit of the *top* value byte is the sign, extended once over the bytes the
+    // value does not have. (A lower byte's high bit is just data.)
+    if (isSigned && numBytes < sizeof (value) && (value & (1u << (numBytes * 8 - 1))) != 0)
+    {
+        value |= ~((1u << (numBytes * 8)) - 1u);
+    }
+
+    // the interface is int: a 4-byte value above INT_MAX comes back as the same bit pattern (no field on the wire
+    // has been seen anywhere near it; the tuning fields are the only 4-byte ones)
+    return (int) value;
 }
 
 void Pro800DataMessage::setValue (size_t firstByte, size_t numBytes, int value)

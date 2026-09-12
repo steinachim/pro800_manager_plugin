@@ -108,6 +108,51 @@ TEST_CASE ("Pro800MidiMessage: copies are independent", "[midi]")
     REQUIRE (assigned.getProgramName() == "Assigned");
 }
 
+namespace
+{
+    /** A program dump with the raw value accessors exposed: fields of a width and signedness the tables do not have. */
+    struct RawDataMessage : public ProgramMessage
+    {
+        RawDataMessage() : ProgramMessage (programDump (0).data(), (int) programDump (0).size()) {}
+        using Pro800DataMessage::getValue;
+        using Pro800DataMessage::setValue;
+    };
+}
+
+TEST_CASE ("Pro800DataMessage: signed values of any width, and the full 4-byte range", "[midi]")
+{
+    RawDataMessage message;
+    const size_t at = 6; // Osc A Frequency's position: 6, 7, then over the overflow byte at 8 to 9 and 10
+
+    SECTION ("a signed value takes its sign from its top byte only")
+    {
+        // +128 as two bytes is 80 00: the low byte's high bit is data, not a sign
+        message.setValue (at, 2, 128);
+        REQUIRE (message.getValue (at, 2, true) == 128);
+        REQUIRE (message.getValue (at, 2, false) == 128);
+
+        message.setValue (at, 2, -2); // FE FF
+        REQUIRE (message.getValue (at, 2, true) == -2);
+        REQUIRE (message.getValue (at, 2, false) == 0xFFFE);
+
+        message.setValue (at, 1, -35); // Transpose's shape
+        REQUIRE (message.getValue (at, 1, true) == -35);
+        REQUIRE (message.getValue (at, 1, false) == 0xDD);
+
+        message.setValue (at, 3, -1);
+        REQUIRE (message.getValue (at, 3, true) == -1);
+        REQUIRE (message.getValue (at, 3, false) == 0xFFFFFF);
+    }
+
+    SECTION ("a 4-byte value with its top bit set keeps its bits")
+    {
+        message.setValue (at, 4, (int) 0xC0000001u);
+        REQUIRE ((uint32_t) message.getValue (at, 4, false) == 0xC0000001u);
+        REQUIRE (message.getValue (at, 4, true) == (int) 0xC0000001u);
+        REQUIRE (allDataBytesAre7Bit (message.getRawData()));
+    }
+}
+
 TEST_CASE ("Pro800MessageFactory: dispatches on the message type", "[midi][factory]")
 {
     SECTION ("version, status, settings and program responses")

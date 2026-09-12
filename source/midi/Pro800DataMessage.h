@@ -104,7 +104,8 @@ protected:
         {
             const int value = getValue (param.firstByte, param.numBytes, param.isSigned);
             const double maxValue = std::pow (256.0, param.numBytes) - 1.0; // double: 4-byte fields would overflow int
-            const int displayValue = juce::roundToInt (value * 999.0 / maxValue);
+            const double rawValue = param.isSigned ? (double) value : (double) (uint32_t) value; // a 4-byte field is unsigned all the way up
+            const int displayValue = juce::roundToInt (rawValue * 999.0 / maxValue);
 
             result << param.name << ": " << value << " (display: " << displayValue << ")\n";
         }
