@@ -1,6 +1,6 @@
 # Pro-800 Manager Plugin
 
-Plugin (VST3 / AU / AUv3) and standalone application for remote controlling the Behringer Pro-800 synthesizer and managing the saved presets (import/export/move/rename).
+Plugin (VST3 / AU / AUv3) and standalone application for remote controlling the Behringer Pro-800 synthesizer and managing the saved presets (import/export/move/copy/rename).
 
 The code is platform-independent and should work for Windows/Linux/MacOS without changes.
 

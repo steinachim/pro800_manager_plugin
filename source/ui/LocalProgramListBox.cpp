@@ -27,6 +27,11 @@ bool LocalProgramListBox::isInterestedInDragSource (const juce::DragAndDropTarge
     return interested;
 }
 
+/**
+ * Drag within the local list. Dropped onto an occupied slot, the two presets swap places (a move); dropped onto an
+ * empty slot, the preset is copied there and stays where it was - that is the way to duplicate a preset, so the
+ * asymmetry is deliberate. An empty slot dragged onto a preset replaces it with empty.
+ */
 void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
 {
     juce::StringArray sourceRows;
