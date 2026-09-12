@@ -35,6 +35,14 @@ class VersionMessage;
 class ProgramMessage;
 class Pro800MidiMessage;
 
+/**
+ * Base class for every UI component that talks to the synth.
+ *
+ * A component registers with the MidiHandler for the message types it wants to receive (constructor
+ * argument) and, if it mirrors program parameters, for incoming CCs (registerMidiCC). Its controls are
+ * linked to a CC / program field / setting with setupMidiComponent(): moving a control sends the CC,
+ * an incoming CC or a loaded program moves the control.
+ */
 class MidiComponent
 {
 public:
@@ -58,15 +66,17 @@ public:
     /** Adds the items to the combo box in the given order, with ids derived from the values (see COMBO_BOX_ID_OFFSET). */
     static void addEnumItems (juce::ComboBox& comboBox, const std::vector<EnumItem>& items);
 
+    /** registerMidiCC: receive incoming CCs and take part in loadProgram(); messageTypes: the Pro-800 messages to receive. */
     MidiComponent (MidiHandler* midiHandler, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
     virtual ~MidiComponent();
 
-    void handlePro800Message (MessageType type, std::shared_ptr<Pro800MidiMessage>& settingsMessage);
+    /** Dispatches a received Pro-800 message to the matching handlePro800*() callback. */
+    void handlePro800Message (MessageType type, const std::shared_ptr<Pro800MidiMessage>& message);
     void handleMidiCCMessage (Pro800CCMessages midiCC, uint8_t value);
 
     virtual void handlePro800SettingsUpdate();
     virtual void handlePro800VersionUpdate();
-    virtual void handlePro800ProgramDump (std::shared_ptr<ProgramMessage>& programMessage);
+    virtual void handlePro800ProgramDump (const std::shared_ptr<ProgramMessage>& programMessage);
     virtual void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix);
 
     void requestFactoryReset();

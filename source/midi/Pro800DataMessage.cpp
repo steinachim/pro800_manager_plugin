@@ -111,7 +111,7 @@ void Pro800DataMessage::setValue (size_t firstByte, size_t numBytes, int value)
     {
         uint8_t byteValue = (value >> i * 8) & 0xFF;
         uint8_t overflowBitValue = (byteValue & 0x80) >> 7;
-        byteValue &= 0x7F; // limit to 127, highest byte can never be set in sysex and is covered by overflowBitValue
+        byteValue &= 0x7F; // limit to 127: the highest bit is not allowed in SysEx data and goes into the overflow byte
 
         size_t offset_byte = firstByte + i;
         if (offset_byte % 8 == 0)

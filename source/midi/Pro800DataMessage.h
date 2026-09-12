@@ -42,7 +42,7 @@ public:
         0x00, 0x01, 0x24,      // Product ID (Pro-800)
         0x00,                  // CPU ID,
         RESPONSE_ID,           // command
-        0x7F, 0x7F,            // program number (invalid)
+        0x7F, 0x7F,            // program number, set via setProgramNumber()
         0xF7
     };
     // clang-format on
@@ -56,6 +56,8 @@ public:
 protected:
     uint8_t getResponseType() const override;
 
+    // Reads/writes a little-endian value at a position in the data block (see Pro800Parameter). The
+    // high bit of every value byte lives in the overflow byte that precedes it, so the message stays 7-bit.
     int getValue (size_t firstByte, size_t numBytes, bool isSigned = false) const;
     void setValue (size_t firstByte, size_t numBytes, int value);
 

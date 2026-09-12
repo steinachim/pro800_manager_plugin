@@ -22,13 +22,18 @@
 #include <cstdint>
 #include <string>
 
+/**
+ * Describes one field of a program or settings dump. Positions count from the start of the data block
+ * (after the address bytes) and include the overflow bytes that sit at every multiple of 8; numBytes
+ * counts value bytes only, so a value may straddle an overflow byte. See docs/Pro800SysExMessages.md.
+ */
 struct Pro800Parameter
 {
-    size_t firstByte;
-    uint8_t numBytes;
+    size_t firstByte; // position of the first value byte in the data block
+    uint8_t numBytes; // value bytes (1, 2 or 4), little-endian, overflow bytes not counted
     std::string name;
-    uint8_t numValues = 0; // 0 = continuous, used for enum values
-    bool isSigned = false; // for int values only
+    uint8_t numValues = 0; // number of enum values, 0 = continuous (see Pro800CCUtils for the CC mapping)
+    bool isSigned = false; // two's complement, int values only
 };
 
 // clang-format off

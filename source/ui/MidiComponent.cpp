@@ -111,7 +111,7 @@ void MidiComponent::loadProgram (const ProgramMessage& program)
     this->midiHandler->loadProgram (program);
 }
 
-void MidiComponent::handlePro800Message (MessageType type, std::shared_ptr<Pro800MidiMessage>& message)
+void MidiComponent::handlePro800Message (MessageType type, const std::shared_ptr<Pro800MidiMessage>& message)
 {
     switch (type)
     {
@@ -184,7 +184,7 @@ void MidiComponent::handlePro800VersionUpdate()
     // do nothing by default
 }
 
-void MidiComponent::handlePro800ProgramDump (std::shared_ptr<ProgramMessage>& /*programMessage&*/)
+void MidiComponent::handlePro800ProgramDump (const std::shared_ptr<ProgramMessage>& /*programMessage*/)
 {
     // do nothing by default
 }

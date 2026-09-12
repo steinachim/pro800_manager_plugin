@@ -1,6 +1,6 @@
 # Pro-800 Manager Plugin
 
-Plugin (VST / AU) and standalone application for remote controlling the Behringer Pro-800 synthesizer and managing the saved presets (import/export/move/rename).
+Plugin (VST3 / AU / AUv3) and standalone application for remote controlling the Behringer Pro-800 synthesizer and managing the saved presets (import/export/move/rename).
 
 The code is platform-independent and should work for Windows/Linux/MacOS without changes.
 
@@ -36,7 +36,20 @@ The code is platform-independent and should work for Windows/Linux/MacOS without
     
        git submodule update --init --recursive
 
-1. Run the build
+1. Configure and build (out of source; the first configure also downloads Catch2 for the tests)
 
-       cmake .
-       make
+       cmake -B build -DCMAKE_BUILD_TYPE=Release
+       cmake --build build
+
+1. Run the unit tests (they cover the MIDI protocol layer in `source/midi`)
+
+       ctest --test-dir build --output-on-failure
+
+## Contributing
+ - The code is formatted with `clang-format` (see `.clang-format`); CI checks it. To format locally with the same version:
+
+       pip install clang-format==22.1.8
+       clang-format -i $(git ls-files 'source/*.cpp' 'source/*.h' 'tests/*.cpp' 'tests/*.h')
+
+   Hand-aligned tables are wrapped in `// clang-format off` / `on`.
+ - The MIDI protocol is documented in [docs/](docs/); the byte tables there must match `source/tailoring/`.

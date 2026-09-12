@@ -18,9 +18,7 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
-#include <vector>
 
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800ProgramConstants.h"
@@ -34,6 +32,7 @@ public:
     static constexpr uint8_t SUPPORTED_PRESET_VERSION = 111;
     static constexpr size_t PROGRAM_MESSAGE_SIZE = 210; // complete size of a SUPPORTED_PRESET_VERSION program dump
 
+    /** Requests the dump of one program (0 .. NUM_PROGRAMS - 1). */
     static juce::MidiMessage request (int programNumber);
 
     ProgramMessage();
@@ -44,6 +43,7 @@ public:
     virtual bool isValid() const override;
 
     uint16_t getProgramNumber() const;
+    /** The program number as shown on the synth: bank letter A-D and slot 00-99, e.g. "B07". */
     std::string getProgramBankNumber() const;
     void setProgramNumber (uint16_t programNumber);
 

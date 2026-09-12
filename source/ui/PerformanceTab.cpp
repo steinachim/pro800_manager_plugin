@@ -72,9 +72,9 @@ void PerformanceTab::setupGroupLFO()
     // 1 - LFO
 
     // note: LFO Target is a royal pain since it's not a simple one-to-one mapping and
-    //       it is cobbeled together from multiple CCs but only one program bit field (!).
-    //       To make life easier for me, this is still using CC identifiers and be translate
-    //       the program field backwards when settings values.
+    //       it is cobbled together from multiple CCs but only one program bit field (!).
+    //       To make life easier for me, this is still using CC identifiers and we translate
+    //       the program field backwards when setting values.
     //
     //       see: Pro800ProgramLfoDestinationBitMask.
 

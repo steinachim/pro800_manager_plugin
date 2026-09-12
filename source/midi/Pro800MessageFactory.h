@@ -24,5 +24,10 @@
 class Pro800MessageFactory
 {
 public:
+    /**
+     * Parses a received message into the matching Pro800MidiMessage subclass. Returns nullptr if it is
+     * not a well-formed Pro-800 SysEx message at all, and a plain Pro800MidiMessage (PRO800_UNKNOWN)
+     * for message types this plugin does not know.
+     */
     static std::shared_ptr<Pro800MidiMessage> createMidiMessage (const juce::MidiMessage& message);
 };

@@ -62,8 +62,8 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     // 8 = overflow
     {Pro800Settings::PRESET_MODE,             {9, 1, "Preset Mode"}}, // see: Pro800SettingsPresetMode
     {Pro800Settings::MIDI_RX_CHANNEL,         {10, 1, "MIDI RX Channel"}}, // see: Pro800SettingsMidiReceiveChannel
-    {Pro800Settings::VOICE_KILL,              {11, 1, "Voice Kill"}}, // voices 1-7, bitwise // 14
-    {Pro800Settings::MIDI_TX_CHANNEL,         {12, 1, "MIDI TC Channel"}}, // see: Pro800SettingsMidiTransmitChannel
+    {Pro800Settings::VOICE_KILL,              {11, 1, "Voice Kill"}}, // one bit per voice (bit 0 = voice 1)
+    {Pro800Settings::MIDI_TX_CHANNEL,         {12, 1, "MIDI TX Channel"}}, // see: Pro800SettingsMidiTransmitChannel
     {Pro800Settings::SYNC_SOURCE,             {13, 1, "Sync Source"}}, // see: Pro800SettingsSyncSource
     // 14 = unknown
     {Pro800Settings::SYNC_CLOCK_BPM,          {15, 2, "Sync Clock BPM"}}, 

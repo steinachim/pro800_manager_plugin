@@ -37,7 +37,7 @@ public:
 
     void resized() override;
 
-    virtual void handlePro800ProgramDump (std::shared_ptr<ProgramMessage>& programMessage) override;
+    virtual void handlePro800ProgramDump (const std::shared_ptr<ProgramMessage>& programMessage) override;
 
 private:
     using ProgramList = std::vector<std::shared_ptr<ProgramMessage>>;

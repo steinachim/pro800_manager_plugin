@@ -179,9 +179,9 @@ void FrontPanelTab::setupGroupLFO()
     setupRotarySlider(slider_LFOInitialAmount, group_LFOInitialAmount);
 
     // note: LFO Destination is a royal pain since it's not a simple one-to-one mapping and
-    //       it is cobbeled together from multiple CCs but only one program bit field (!).
+    //       it is cobbled together from multiple CCs but only one program bit field (!).
     //       To make life easier for me, this is still using CC identifiers and we translate
-    //       the program field backwards when settings values.
+    //       the program field backwards when setting values.
     //
     //       see: Pro800ProgramLfoDestinationBitMask.
     checkBox_LFODestFreqAB.setButtonText("Freq A-B");

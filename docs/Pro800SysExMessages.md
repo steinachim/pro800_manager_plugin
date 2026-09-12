@@ -20,7 +20,7 @@ Often, if a request requires dedicated response, the command bytes will be seque
 ## Known message types
 |message type|parameters | description |
 |--   |--|--|
-|0x01 |status | Status Message: parameter  is `0x00` on success, `0x01` on failure
+|0x01 |echo, status | Status Message. Like the version reply it starts with an echoed parameter byte, so the status is at message offset 0x0A: `0x00` on success, `0x01` on failure (as implemented in `StatusMessage`)
 |0x02 |-  | Unknown (responds with `03 00`)
 |0x03 |-  | Unknown (responds with Status OK)
 |0x04 |-  | Unknown (responds with `05 50 30 45 39 49 00`)
@@ -264,6 +264,6 @@ The contents are the following:
 |40 | 1 | overflow
 |41 | 1 | Aftertouch VCA Polarity<br> --> 0 = rise, 1 = fall, 2 = both
 |42 | 1 | Aftertouch VCF Polarity<br> --> 0 = rise, 1 = fall, 2 = both
-|43 | 1 | Transpose"<br> --> range: -12 - +12
+|43 | 1 | Transpose<br> --> range: -12 - +12
 |44 | 1 | Local Enable<br> --> 0 = OFF, 1 = ON
 |45 | 1 | Soft Thru<br> --> 0 = OFF, 1 = ON

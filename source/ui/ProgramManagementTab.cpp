@@ -155,7 +155,7 @@ void ProgramManagementTab::resized()
     progressBar_Transfer.setBounds (area.reduced (4, 0));
 }
 
-void ProgramManagementTab::handlePro800ProgramDump (std::shared_ptr<ProgramMessage>& programMessage)
+void ProgramManagementTab::handlePro800ProgramDump (const std::shared_ptr<ProgramMessage>& programMessage)
 {
     model_ProgramListSynth->updateElement (programMessage);
 }

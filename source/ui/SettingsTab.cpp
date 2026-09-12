@@ -59,7 +59,7 @@ void SettingsTab::handlePro800SettingsUpdate()
 
     for (const auto& [setting, component] : this->settingsListeners)
     {
-        // special case handling for weird UI cases
+        // voice kill is one byte with one bit per voice, shown as 8 checkboxes
         if (setting == Pro800Settings::VOICE_KILL)
         {
             uint8_t value = (uint8_t) settingsMessage->getValue (Pro800Settings::VOICE_KILL);
@@ -374,7 +374,7 @@ void SettingsTab::setupSettingsComponent (Pro800Settings setting, juce::Componen
 {
     this->settingsListeners[setting] = component;
 
-    // special case handling for weird UI cases
+    // voice kill is one byte with one bit per voice, shown as 8 checkboxes (see handlePro800SettingsUpdate)
     if (setting == Pro800Settings::VOICE_KILL)
     {
         juce::ToggleButton* checkBox = dynamic_cast<juce::ToggleButton*> (component);
