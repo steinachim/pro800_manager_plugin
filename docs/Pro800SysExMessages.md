@@ -216,7 +216,7 @@ only in preset version 111 and newer:
 |193 | 1 | Voice Spread Enable
 |194 | 1 | Key Tracking Ref Note
 |195 | 1 | Glide Mode
-|196 | 2 | Pitchbend Range
+|196 | 2 | Pitchbend Range<br> --> 0-31 semitones, stored scaled to 0-65535 like the other 2-byte parameters (24 semitones = 50737)
 
 
 ## Settings messages
