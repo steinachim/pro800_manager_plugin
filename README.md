@@ -17,6 +17,10 @@ The code is platform-independent and should work for Windows/Linux/MacOS without
 
    https://cdn.mediavalet.com/aunsw/musictribe/q3-BVIpZck-zi_hAUX2V2Q/McqR_H7pVkW5V21CKYq9Pg/Original/Preset-Structure-Document_BE_0718-ABF_PRO800.pdf
 
+ - The reverse-engineering notes the protocol documentation in `docs/` is distilled from (bench sessions, captures, a Python CLI):
+
+   https://github.com/steinachim/reverse_engineering (folder `pro800/`)
+
 ## Documentation
  - [Pro-800 CC Messages](docs/Pro800CCMessages.md)
  - [Pro-800 SysEx Messages](docs/Pro800SysExMessages.md)
@@ -25,7 +29,8 @@ The code is platform-independent and should work for Windows/Linux/MacOS without
  - Binaries are currently not signed
  - Most parameter values have the range [0, 65535] internally in the synth and in the presets (even if only the range [0-999] is displayed). CC values only cover the range [0,127], so getting / setting values will be at a lower granularity.
  - Setting the VCA/VCF envelope speeds is not working properly because of a bug in the Pro-800 firmware that is hard to work around. The CC values for setting the speed externally are the opposite to what they are when changed on the synth directly. See also the corresponding forum thread: https://community.musictribe.com/discussion/behringer/96/109/330871/pro-800-cc-values-for-vcf-and-vca-speeds---firmware-bug
- - I have not found a way to get the complete current state from the synth. Easiest workaround: Load a preset from the software, it will apply the current settings to all the UI elements.
+ - The synth cannot report the sound it is currently playing (its edit buffer). What it can report is the *stored* preset records, the preset it is on, its settings, and the physical positions of its knobs and switches - which are not the sound, because loading a preset does not move them. The plugin therefore shows in its status line what its controls currently represent (`B05 as stored`, `+ edits`, `unknown`), and offers Load and Revert to put the controls and the synth on a known, stored preset. Controls whose value has not come from anywhere yet are dimmed.
+ - The MIDI channel is read from the synth after connecting (including the rear DIP switches); pick one by hand only if that fails. If the synth's own MIDI channel is set to OFF it ignores notes and CC, and the plugin says so.
  - The UI is... historically grown... and I am not a UI/UX designer. For the moment it serves its purpose
  - Testing on different platforms is minimal. I'm mainly working on MacOS, so that will most likely work best. Windows/Linux builds are provided by autmated GitHub workflows and are not guaranteed to be tested.
 

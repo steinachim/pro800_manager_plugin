@@ -2,21 +2,41 @@
 
 ### Selecting a preset
 
-Not a SysEx message: a preset is loaded with plain channel-voice MIDI, a
-**bank select followed by a program change**.
+One way is plain channel-voice MIDI, a **bank select followed by a program
+change**:
 
     CC 0 (BANK_SELECT), value 0-3      -> bank A-D
     Program Change, value 0-99         -> slot within that bank
 
 Program Change alone only reaches 0-127 and so cannot address all 400 presets;
-the bank select is what makes the other three banks reachable.
+the bank select is what makes the other three banks reachable. The synth keeps
+the bank as a latch that the front panel shares, and reports nothing when the
+player changes it by hand - so send the bank select every time rather than
+tracking it.
 
 Neither message is acknowledged - nothing comes back either way - so a preset
 change sent on the wrong MIDI channel fails **silently**. The channel to use is
 the synth's `MIDI RX Channel` setting (see the settings message in
-[Pro800SysExMessages.md](Pro800SysExMessages.md)); note that when that setting
-reads 1, the channel comes from the rear DIP switches and the synth does not
-report which one they select.
+[Pro800SysExMessages.md](Pro800SysExMessages.md)); when that setting reads 1
+the channel comes from the rear DIP switches, which can be read with the
+`0x70` message (indices `0x28`-`0x2B`, the sum is the 0-based channel). Two
+more costs of this path: any channel-voice message makes the synth lose the
+next SysEx request (it has to be re-sent), and a program change discards
+unsaved edits on the synth like any preset change.
+
+The plugin therefore selects presets the other way, **through the settings
+block**: writing `Current Preset Number` and `Current Bank` and then sending
+the reload message `0x32 00` needs no MIDI channel at all and can be confirmed
+by reading the block back. See "Selecting a preset via the settings block" in
+[Pro800SysExMessages.md](Pro800SysExMessages.md).
+
+### Knobs: CC numbers versus live-parameter indices
+
+The 26 front-panel knobs can also be read and written over SysEx (`0x72` /
+`0x73`, see [Pro800SysExMessages.md](Pro800SysExMessages.md)). That index space
+is **unrelated** to the CC numbers below - Filter Cutoff is CC 15 but live index
+`0x19`, Amp Release is CC 22 but index `0x00` - so the two cannot be unified.
+Both are 7-bit; the CC is the one the synth itself transmits when a knob moves.
 
 ### Values of enumerated parameters
 
