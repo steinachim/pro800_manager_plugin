@@ -499,7 +499,7 @@ void SettingsTab::setupSettingsComponent (Pro800Settings setting, juce::Componen
 {
     this->settingsListeners[setting] = component;
 
-    // voice kill is one byte with one bit per voice, shown as 8 checkboxes (see handlePro800SettingsUpdate)
+    // voice kill is one byte with one bit per voice, shown as 8 checkboxes (see refreshFromSettings())
     if (setting == Pro800Settings::VOICE_KILL)
     {
         juce::ToggleButton* checkBox = dynamic_cast<juce::ToggleButton*> (component);

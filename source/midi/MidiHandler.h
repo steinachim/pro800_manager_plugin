@@ -44,8 +44,8 @@ struct Pro800PanelValues;
  * Threading:
  *  - Incoming MIDI arrives on the MIDI driver thread. It is queued and delivered to the components
  *    on the message thread via the AsyncUpdater, so the components never see another thread.
- *  - sendMidiMessage() may be called from the message thread or from the background sender thread.
- *  - Everything else (device connection, component registration) is message-thread only.
+ *  - sendMidiMessage() may be called from any thread: the devices are swapped under deviceLock.
+ *  - Everything else (device connection, component registration, the exchange) is message-thread only.
  */
 class MidiHandler : public juce::MidiInputCallback, private juce::AsyncUpdater
 {
@@ -81,7 +81,7 @@ public:
     /** The channel incoming channel-voice messages are accepted on; 0 = every channel. */
     void setInboundChannel (uint8_t channel);
 
-    /** Closes the current devices and opens the given ones (empty identifier = none). Cancels background sending and pending exchanges. */
+    /** Closes the current devices and opens the given ones (empty identifier = none). Cancels the pending exchanges. */
     void connectMidiDevices (const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier);
     bool hasOpenDevices() const;
 
@@ -166,7 +166,7 @@ private:
 
     juce::ListenerList<Listener> listeners;
 
-    // guards midiInput/midiOutput against sendMidiMessage() running on the sender thread
+    // guards midiInput/midiOutput against sendMidiMessage() running on another thread
     juce::CriticalSection deviceLock;
     std::unique_ptr<juce::MidiInput> midiInput;
     std::unique_ptr<juce::MidiOutput> midiOutput;

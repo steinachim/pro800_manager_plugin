@@ -603,12 +603,6 @@ TEST_CASE ("SynthSession: aligning is refused when the synth would not hear the 
 //==============================================================================
 namespace
 {
-    /** "B05" for 105, as the synth's own display writes it. */
-    juce::String programLabelForTest (int program)
-    {
-        return juce::String::formatted ("%c%02d", 'A' + program / SettingsMessage::PROGRAMS_PER_BANK, program % SettingsMessage::PROGRAMS_PER_BANK);
-    }
-
     /** How many program reads (0x77 at a program address) the synth was asked for. */
     int programReads (const FakePro800& synth)
     {
