@@ -21,6 +21,7 @@
 #include "../tailoring/Pro800Constants.h"
 #include <juce_audio_basics/juce_audio_basics.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
@@ -29,8 +30,10 @@
 class Pro800MidiMessage
 {
 public:
+    // constant-initialised on purpose: it is read while other translation units build their own statics, and a
+    // header with a dynamic initialiser (a std::vector, say) is not guaranteed to be ready by then
     // clang-format off
-    static inline const std::vector<uint8_t> PRO800_HEADER = {
+    static constexpr std::array<uint8_t, 7> PRO800_HEADER = {
         0x00, 0x20, 0x32,      // Brand ID (Behringer)
         0x00, 0x01, 0x24,      // Product ID (Pro-800)
         0x00                   // CPU ID

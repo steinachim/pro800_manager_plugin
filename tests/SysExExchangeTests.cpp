@@ -96,8 +96,8 @@ TEST_CASE ("SysExExchange: a lost request is sent again and the retry's reply co
     h.exchange.enqueue (h.request ("version", SysExMatchers::isVersionReply, 100, 1));
     REQUIRE (h.sent.size() == 1);
 
-    h.messageThread.runFor (150); // past the first timeout, well before the retry's
-    REQUIRE (h.sent.size() == 2);
+    // past the first timeout; the retry's own timeout cannot run while the loop is not
+    REQUIRE (h.messageThread.runUntil ([&h] { return h.sent.size() == 2; }, 2000));
     REQUIRE (h.completed.empty());
 
     REQUIRE (h.exchange.offerInbound (toMidi (versionReply)));
@@ -110,18 +110,19 @@ TEST_CASE ("SysExExchange: after the last retry the request completes with no re
     Harness h;
     h.exchange.enqueue (h.request ("version", SysExMatchers::isVersionReply, 10, 3));
 
-    h.messageThread.runFor (150);
+    REQUIRE (h.messageThread.runUntil ([&h] { return h.completed.size() == 1; }, 2000));
     REQUIRE (h.sent.size() == 4); // the first attempt plus three retries
-    REQUIRE (h.completed.size() == 1);
     REQUIRE (h.completed[0].second.empty());
     REQUIRE_FALSE (h.exchange.isBusy());
+
+    h.messageThread.runFor (50);
+    REQUIRE (h.sent.size() == 4); // and nothing more once it has given up
 
     SECTION ("zero retries means exactly one attempt")
     {
         h.exchange.enqueue (h.request ("once", SysExMatchers::isVersionReply, 10, 0));
-        h.messageThread.runFor (60);
+        REQUIRE (h.messageThread.runUntil ([&h] { return h.completed.size() == 2; }, 2000));
         REQUIRE (h.sent.size() == 5);
-        REQUIRE (h.completed.size() == 2);
     }
 }
 

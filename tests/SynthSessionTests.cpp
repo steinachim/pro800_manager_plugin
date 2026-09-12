@@ -211,12 +211,13 @@ TEST_CASE ("SynthSession: a selection the synth never shows is reported and not 
     bench.synth.ignoreSettingsWrites = true;
 
     bench.session.selectProgram (105);
-    bench.messageThread.runFor (3500);
+
+    // look the moment the confirm window closes: the next poll reads the synth's own pointer and confirms that one
+    REQUIRE (bench.messageThread.runUntil ([&bench] { return bench.session.getLastError().contains ("B05"); }, 6000));
 
     REQUIRE_FALSE (bench.session.isBusy());
     REQUIRE (bench.synth.reloads == 0);
     REQUIRE (bench.session.getPointer().freshness == SynthSession::PointerFreshness::UNCONFIRMED);
-    REQUIRE (bench.session.getLastError().contains ("B05"));
 }
 
 TEST_CASE ("SynthSession: reverting reloads and shows the stored record", "[session]")

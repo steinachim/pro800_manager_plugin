@@ -20,9 +20,11 @@
 
 #include <juce_events/juce_events.h>
 
+#include <functional>
+
 namespace TestMessages
 {
-    /** A message thread for the duration of a test: timers and async updates run on it while runFor() is called. */
+    /** A message thread for the duration of a test: timers and async updates run on it while runFor() or runUntil() is called. */
     struct MessageThread
     {
         MessageThread() { juce::MessageManager::getInstance(); }
@@ -36,6 +38,28 @@ namespace TestMessages
         void runFor (int milliseconds)
         {
             juce::MessageManager::getInstance()->runDispatchLoopUntil (milliseconds);
+        }
+
+        /**
+         * Runs the loop until the condition holds, checking between dispatches, and returns whether it did within
+         * maxMilliseconds. Prefer this to runFor() with a margin: a CI runner can stall for longer than any margin,
+         * and once this returns nothing more runs - a timer due next cannot fire before the test looks.
+         */
+        bool runUntil (const std::function<bool()>& condition, int maxMilliseconds)
+        {
+            const auto deadline = juce::Time::getMillisecondCounter() + (juce::uint32) maxMilliseconds;
+
+            while (!condition())
+            {
+                if (juce::Time::getMillisecondCounter() >= deadline)
+                {
+                    return false;
+                }
+
+                runFor (1);
+            }
+
+            return true;
         }
     };
 }
