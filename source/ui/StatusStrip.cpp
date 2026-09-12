@@ -28,6 +28,8 @@ StatusStrip::StatusStrip (SynthSession& session) : synthSession (session)
                               "Does not change the synth's panel mode.");
     button_Revert.onClick = [this] { revert(); };
 
+    button_AlignWithPanel.onClick = [this] { synthSession.alignWithPanel(); };
+
     button_FixChannel.onClick = [this] {
         if (onFixChannel)
         {
@@ -37,6 +39,7 @@ StatusStrip::StatusStrip (SynthSession& session) : synthSession (session)
 
     addAndMakeVisible (label_Preset);
     addAndMakeVisible (label_Controls);
+    addAndMakeVisible (button_AlignWithPanel);
     addAndMakeVisible (button_Revert);
     addAndMakeVisible (label_Status);
     addChildComponent (button_FixChannel);
@@ -64,6 +67,8 @@ void StatusStrip::resized()
     // buttons at the right edge
     const int buttonWidth = 130;
     button_Revert.setBounds (area.removeFromRight (buttonWidth).reduced (0, 4));
+    area.removeFromRight (8);
+    button_AlignWithPanel.setBounds (area.removeFromRight (buttonWidth).reduced (0, 4));
     if (button_FixChannel.isVisible())
     {
         area.removeFromRight (8);
@@ -138,13 +143,23 @@ void StatusStrip::synthSessionChanged()
         controlsText += " - Load or Revert to sync";
     }
     label_Controls.setText (controlsText, juce::dontSendNotification);
-    label_Controls.setColour (juce::Label::textColourId,
-        provenance.basis == SynthSession::Provenance::Basis::PANEL && !provenance.panelIsSound ? juce::Colours::orange
-                                                                                               : getLookAndFeel().findColour (juce::Label::textColourId));
+    label_Controls.setColour (juce::Label::textColourId, getLookAndFeel().findColour (juce::Label::textColourId));
 
     // revert: only when a stored preset is known to point at
     button_Revert.setButtonText (pointer.program.has_value() ? "Revert to " + pointer.label() : "Revert");
     button_Revert.setEnabled (synthSession.canStartAction() && pointer.program.has_value() && pointer.freshness == Freshness::CONFIRMED);
+
+    // align: reads the synth's knobs and switches and sends them back, so that what is heard is what the panel says
+    button_AlignWithPanel.setEnabled (synthSession.canStartAction());
+    const juce::String ccProblem = connected ? synthSession.reasonCCWouldNotArrive() : juce::String();
+    button_AlignWithPanel.setTooltip (
+        ccProblem.isNotEmpty()
+            ? "Not possible right now: " + ccProblem + "."
+            : juce::String ("Reads where the synth's knobs and switches physically sit, shows them here and sends them back, so that what you hear is "
+                            "what the panel says. (Loading a preset does not move the panel, so the two normally disagree.)\n\n"
+                            "The LFO shape is a best effort: the synth reports only which side its two-position shape switch is on, so the shape shown "
+                            "here decides the pair (Tri/Pulse, Sine/Random, Saw/Noise) and the switch picks within it.\n\n"
+                            "The stored preset is not changed - Revert puts it back."));
 
     // activity, or the channel problem, or the last error
     juce::String statusText;

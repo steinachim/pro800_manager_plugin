@@ -24,6 +24,8 @@
 
 #include "midi/MidiHandler.h"
 #include "session/SynthSession.h"
+#include "tailoring/Pro800PanelState.h"
+#include "ui/MidiComponent.h"
 
 using namespace TestMessages;
 
@@ -42,6 +44,7 @@ namespace
             synth.setSetting (Pro800Settings::MIDI_RX_CHANNEL, SETTINGS_MIDI_RX_3);
             synth.setSetting (Pro800Settings::MIDI_TX_CHANNEL, SETTINGS_MIDI_TX_3);
             synth.setSetting (Pro800Settings::BRIGHTNESS, 5);
+            synth.setSetting (Pro800Settings::MIDI_CC_MODE, SETTINGS_MIDI_MODE_TX_RX);
             synth.setSetting (Pro800Settings::PRESET_NUM, 143);
             synth.setSetting (Pro800Settings::CURRENT_BANK, 1);
             synth.storeProgram (143, "Strings");
@@ -320,4 +323,186 @@ TEST_CASE ("SynthSession: a select and a settings change in flight do not undo e
     REQUIRE (bench.synth.getSetting (Pro800Settings::BRIGHTNESS) == 11);
     REQUIRE (bench.session.getPointer().program == 105);
     REQUIRE (bench.session.getSettings()->getValue (Pro800Settings::BRIGHTNESS) == 11);
+}
+
+//==============================================================================
+namespace
+{
+    /** A component with one slider per knob kind, like the Front Panel tab: what a panel reading has to fill. */
+    struct PanelMirror : public MidiComponent
+    {
+        PanelMirror (MidiHandler& handler, SynthSession& session) : MidiComponent (&handler, session, true)
+        {
+            cutoff.setRange (0, 65535, 1);
+            masterVolume.setRange (0, 127, 1);
+            setupMidiComponent (&cutoff, Pro800CCMessages::FILTER_CUTOFF, Pro800ProgramField::FILTER_CUTOFF);
+            setupMidiComponent (&masterVolume, Pro800CCMessages::MASTER_VOLUME, Pro800ProgramField::NONE);
+            setupMidiComponent (&oscASync, Pro800CCMessages::OSC_A_SYNC, Pro800ProgramField::OSC_A_SYNC);
+            setupMidiComponent (&lfoDestFilter, Pro800CCMessages::LFO_MOD_DEST_FILTER, Pro800ProgramField::LFO_DEST);
+            setupMidiComponent (&lfoShape, Pro800CCMessages::LFO_MOD_SHAPE, Pro800ProgramField::LFO_SHAPE);
+            for (int shape = 0; shape < PROGRAM_LFO_SHAPE_NUM_VALUES; shape++)
+            {
+                lfoShape.addItem (juce::String (shape), shape + MidiComponent::COMBO_BOX_ID_OFFSET);
+            }
+        }
+
+        juce::Slider cutoff, masterVolume;
+        juce::ToggleButton oscASync, lfoDestFilter;
+        juce::ComboBox lfoShape;
+    };
+}
+
+TEST_CASE ("SynthSession: aligning sends the panel to the synth and shows it here", "[session][panel]")
+{
+    Bench bench;
+    PanelMirror mirror (bench.midiHandler, bench.session);
+    bench.connect();
+
+    bench.synth.knobs[(uint8_t) Pro800LiveIndex::FILTER_CUTOFF] = 127;
+    bench.synth.knobs[(uint8_t) Pro800LiveIndex::MASTER_VOLUME] = 100;
+    bench.synth.panel[(uint8_t) Pro800PanelIndex::SWITCH_OSC_A_SYNC] = 1;
+    bench.synth.panel[(uint8_t) Pro800PanelIndex::SWITCH_LFO_DEST_FILTER] = 1;
+
+    REQUIRE (mirror.cutoff.getAlpha() < 1.0f); // unknown until something sets it
+
+    bench.session.alignWithPanel();
+    REQUIRE (bench.session.isBusy());
+    bench.messageThread.runFor (800);
+
+    REQUIRE_FALSE (bench.session.isBusy());
+    REQUIRE (bench.session.getLastPanelState().has_value());
+    REQUIRE (bench.session.getLastPanelState()->live.size() == (size_t) Pro800LiveIndex::NUM_INDICES);
+    REQUIRE (bench.session.getLastPanelState()->panel.size() == (size_t) Pro800PanelIndex::NUM_INDICES);
+
+    SECTION ("the panel went to the synth as CC, on its own channel")
+    {
+        const auto ccs = bench.synth.receivedCCs();
+        REQUIRE (ccs.at ((int) Pro800CCMessages::FILTER_CUTOFF) == 127);
+        REQUIRE (ccs.at ((int) Pro800CCMessages::MASTER_VOLUME) == 100);
+        REQUIRE (ccs.at ((int) Pro800CCMessages::AMP_RELEASE) == 0);
+        REQUIRE (ccs.at ((int) Pro800CCMessages::OSC_A_SYNC) == CC_ON);
+        REQUIRE (ccs.at ((int) Pro800CCMessages::LFO_MOD_DEST_FILTER) == CC_ON);
+        REQUIRE (ccs.at ((int) Pro800CCMessages::LFO_MOD_DEST_FREQ_AB) == CC_OFF);
+        REQUIRE (ccs.count ((int) Pro800CCMessages::LFO_MOD_SHAPE) == 0); // no previous shape to resolve it against
+
+        for (const auto& bytes : bench.synth.received)
+        {
+            if (bytes.size() == 3 && (bytes[0] & 0xF0) == 0xB0)
+            {
+                REQUIRE ((bytes[0] & 0x0F) == 2); // channel 3, as the synth reports
+            }
+        }
+    }
+
+    SECTION ("the controls show it, and it is not counted as an edit made here")
+    {
+        REQUIRE ((int) mirror.cutoff.getValue() == 65535);
+        REQUIRE (mirror.cutoff.getAlpha() > 0.99f);
+        REQUIRE ((int) mirror.masterVolume.getValue() == 100);
+        REQUIRE (mirror.oscASync.getToggleState());
+        REQUIRE (mirror.lfoDestFilter.getToggleState());
+
+        const auto& provenance = bench.session.getProvenance();
+        REQUIRE (provenance.basis == SynthSession::Provenance::Basis::PANEL);
+        REQUIRE_FALSE (provenance.isEdited());
+        REQUIRE (provenance.describe() == "aligned with the panel");
+    }
+
+    SECTION ("the synth's echo of what we just sent is not mistaken for a knob movement there")
+    {
+        bench.midiHandler.handleIncomingMidiMessage (nullptr, juce::MidiMessage::controllerEvent (3, (int) Pro800CCMessages::FILTER_CUTOFF, 127));
+        bench.messageThread.runFor (50);
+        REQUIRE_FALSE (bench.session.getProvenance().editedOnSynth);
+
+        // a movement the synth reports that we did not send is one
+        bench.midiHandler.handleIncomingMidiMessage (nullptr, juce::MidiMessage::controllerEvent (3, (int) Pro800CCMessages::FILTER_RESONANCE, 40));
+        bench.messageThread.runFor (50);
+        REQUIRE (bench.session.getProvenance().editedOnSynth);
+    }
+
+    SECTION ("the one thing that did not work is named, and only that")
+    {
+        REQUIRE (bench.session.getLastError().contains ("LFO shape"));
+        REQUIRE (bench.session.getLastError().length() < 100); // it shares one line with everything else
+    }
+}
+
+TEST_CASE ("SynthSession: aligning resolves the LFO shape from the switch and the shape selected before", "[session][panel]")
+{
+    Bench bench;
+    PanelMirror mirror (bench.midiHandler, bench.session);
+    bench.connect();
+
+    // the shape the session knows about is what the switch is resolved against: here, one the plugin just sent
+    bench.midiHandler.sendMidiCCMessage (Pro800CCMessages::LFO_MOD_SHAPE, 66); // Sine, which names the Sine/Random pair
+
+    // the switch is on its Tri/Sine/Saw side, so Sine stays
+    bench.synth.panel[(uint8_t) Pro800PanelIndex::SWITCH_LFO_SHAPE] = 1;
+    bench.session.alignWithPanel();
+    bench.messageThread.runFor (800);
+
+    REQUIRE (bench.synth.receivedCCs().at ((int) Pro800CCMessages::LFO_MOD_SHAPE) == 66); // Sine, per docs/Pro800CCMessages.md
+    REQUIRE (mirror.lfoShape.getSelectedId() - MidiComponent::COMBO_BOX_ID_OFFSET == PROGRAM_LFO_SHAPE_SINE);
+
+    SECTION ("the other switch position is the pair's other shape")
+    {
+        bench.synth.panel[(uint8_t) Pro800PanelIndex::SWITCH_LFO_SHAPE] = 0;
+        bench.session.alignWithPanel();
+        bench.messageThread.runFor (800);
+
+        REQUIRE (bench.synth.receivedCCs().at ((int) Pro800CCMessages::LFO_MOD_SHAPE) == 44); // Random
+    }
+}
+
+TEST_CASE ("SynthSession: the shape the switch is resolved against comes from the preset last shown here", "[session][panel]")
+{
+    Bench bench;
+    PanelMirror mirror (bench.midiHandler, bench.session);
+
+    ProgramMessage brass (toMidi (programDump (105)));
+    brass.setValue (Pro800ProgramField::LFO_SHAPE, PROGRAM_LFO_SHAPE_NOISE);
+    brass.setProgramName ("Brass");
+    bench.synth.programs[105] = brass.getRawData();
+
+    bench.connect();
+    bench.session.selectProgram (105); // shows the record, so its shape is what the session knows
+    bench.messageThread.runFor (1200);
+
+    bench.synth.panel[(uint8_t) Pro800PanelIndex::SWITCH_LFO_SHAPE] = 1; // the Tri/Sine/Saw side
+    bench.session.alignWithPanel();
+    bench.messageThread.runFor (800);
+
+    REQUIRE (bench.synth.receivedCCs().at ((int) Pro800CCMessages::LFO_MOD_SHAPE) == 110); // Noise's partner Saw
+    REQUIRE (bench.session.getLastError().isEmpty()); // nothing to report
+}
+
+TEST_CASE ("SynthSession: aligning is refused when the synth would not hear the CC", "[session][panel]")
+{
+    SECTION ("MIDI CC Mode does not receive")
+    {
+        Bench bench;
+        bench.synth.setSetting (Pro800Settings::MIDI_CC_MODE, SETTINGS_MIDI_MODE_TX);
+        bench.connect();
+        const size_t sentBefore = bench.synth.received.size();
+
+        bench.session.alignWithPanel();
+        bench.messageThread.runFor (300);
+
+        REQUIRE (bench.session.getLastError().contains ("CC Mode"));
+        REQUIRE (bench.synth.received.size() == sentBefore); // not even the panel was read
+        REQUIRE (bench.session.getProvenance().basis == SynthSession::Provenance::Basis::UNKNOWN);
+    }
+
+    SECTION ("the synth's MIDI channel is OFF")
+    {
+        Bench bench;
+        bench.synth.setSetting (Pro800Settings::MIDI_RX_CHANNEL, SETTINGS_MIDI_RX_OFF);
+        bench.connect();
+
+        bench.session.alignWithPanel();
+        bench.messageThread.runFor (300);
+
+        REQUIRE (bench.session.getLastError().contains ("OFF"));
+        REQUIRE (bench.synth.receivedCCs().empty());
+    }
 }

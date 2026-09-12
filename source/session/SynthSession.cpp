@@ -18,6 +18,7 @@
 
 #include "SynthSession.h"
 
+#include "../midi/LiveParameterMessage.h"
 #include "../midi/PanelMessage.h"
 #include "../midi/Pro800MessageFactory.h"
 #include "../midi/ProgramMessage.h"
@@ -25,6 +26,7 @@
 #include "../midi/SettingsMessage.h"
 #include "../midi/StatusMessage.h"
 #include "../midi/VersionMessage.h"
+#include "../tailoring/Pro800CCUtils.h"
 
 #include <algorithm>
 
@@ -162,7 +164,7 @@ juce::String SynthSession::Provenance::describe() const
         case Basis::STORED:
             return programLabel (this->program.value_or (0)) + (edits.isEmpty() ? " as stored" : edits);
         case Basis::PANEL:
-            return (this->panelIsSound ? "panel positions = sound (manual mode)" : "panel positions (not the sound)") + edits;
+            return "aligned with the panel" + edits;
         case Basis::UNKNOWN:
         default:
             return "unknown" + edits;
@@ -209,6 +211,8 @@ void SynthSession::connect()
     this->settings = nullptr;
     this->pointerProgram = nullptr;
     this->pointerProgramReadFor.reset();
+    this->lastPanelState.reset();
+    this->currentLfoShape.reset();
     this->pendingWrites.clear();
     this->failedWrites.clear();
     this->writeDebounce.stopTimer();
@@ -562,12 +566,134 @@ void SynthSession::setManualReceiveChannel (std::optional<int> channel)
     notify();
 }
 
-void SynthSession::notePanelMirrored (bool panelIsSound)
+juce::String SynthSession::reasonCCWouldNotArrive() const
 {
-    this->provenance = Provenance();
-    this->provenance.basis = Provenance::Basis::PANEL;
-    this->provenance.panelIsSound = panelIsSound;
-    notify();
+    if (!this->channels.sendChannel().has_value())
+    {
+        return "the synth's MIDI channel is " + juce::String (this->channels.rx.toString()) + ", so it ignores CC";
+    }
+
+    if (this->settings != nullptr && this->settings->isValid())
+    {
+        const int ccMode = this->settings->getValue (Pro800Settings::MIDI_CC_MODE);
+        if (ccMode != SETTINGS_MIDI_MODE_RX && ccMode != SETTINGS_MIDI_MODE_TX_RX)
+        {
+            return "the synth's MIDI CC Mode does not receive CC";
+        }
+    }
+
+    return {};
+}
+
+void SynthSession::alignWithPanel()
+{
+    if (!canStartAction())
+    {
+        return;
+    }
+
+    if (const auto reason = reasonCCWouldNotArrive(); reason.isNotEmpty())
+    {
+        fail ("Cannot align with the panel: " + reason + ". Change it in the Settings tab and try again.");
+        return;
+    }
+
+    setActivity ("Reading the panel...");
+
+    readPanelState ([this, previousLfoShape = this->currentLfoShape] (std::optional<Pro800PanelState> state) {
+        if (!state.has_value())
+        {
+            setActivity ("");
+            fail ("The synth stopped answering while its panel was being read; nothing was changed.");
+            return;
+        }
+
+        this->lastPanelState = state;
+
+        // send first, then show: the sends are what make the sound agree with the panel, and they set the
+        // "edited here" flag that the provenance below deliberately starts from again
+        const auto ccValues = Pro800PanelConversion::toCCValues (*state, previousLfoShape);
+        const auto channel = this->channels.sendChannel().value_or (Pro800ChannelResolver::CHANNEL_FOR_ALL);
+
+        std::vector<juce::MidiMessage> messages;
+        messages.reserve (ccValues.size());
+        for (const auto& [cc, value] : ccValues)
+        {
+            messages.push_back (juce::MidiMessage::controllerEvent (channel, static_cast<int> (cc), value));
+        }
+
+        setActivity ("Sending the panel to the synth...");
+        this->midiHandler.sendChannelVoiceBurst (messages);
+
+        this->midiHandler.mirrorPanel (Pro800PanelConversion::toValues (*state, previousLfoShape));
+
+        this->provenance = Provenance();
+        this->provenance.basis = Provenance::Basis::PANEL;
+        setActivity ("");
+
+        // the shape switch carries one bit, and without a shape to resolve it against there is nothing to send;
+        // everything else worked, so this is the only thing worth a word (the button's tooltip carries the rest)
+        if (ccValues.count (Pro800CCMessages::LFO_MOD_SHAPE) == 0)
+        {
+            warn ("Aligned, except the LFO shape - select one and align again.");
+        }
+    });
+}
+
+void SynthSession::readPanelState (std::function<void (std::optional<Pro800PanelState>)> callback)
+{
+    readPanelStep (0, std::make_shared<Pro800PanelState>(), std::move (callback));
+}
+
+void SynthSession::readPanelStep (size_t step, std::shared_ptr<Pro800PanelState> state, std::function<void (std::optional<Pro800PanelState>)> callback)
+{
+    // first every panel index, then every knob
+    const size_t numPanel = (size_t) Pro800PanelIndex::NUM_INDICES;
+    const size_t numLive = (size_t) Pro800LiveIndex::NUM_INDICES;
+
+    if (step >= numPanel + numLive)
+    {
+        callback (*state);
+        return;
+    }
+
+    if (step < numPanel)
+    {
+        const auto index = (uint8_t) step;
+        const auto matcher = [index] (const juce::MidiMessage& m) { return SysExMatchers::isPanelReplyFor (m, index); };
+        sendRequest (PanelMessage::request (index), matcher, "panel read", SysExExchange::DEFAULT_RETRIES, false, [this, step, state, callback, index] (const juce::MidiMessage* reply) {
+            if (reply == nullptr)
+            {
+                callback (std::nullopt);
+                return;
+            }
+
+            const PanelMessage panel (*reply);
+            if (panel.isValid()) // a status means the synth refuses the index: leave it out
+            {
+                state->panel[static_cast<Pro800PanelIndex> (index)] = panel.getValue();
+            }
+            readPanelStep (step + 1, state, callback);
+        });
+        return;
+    }
+
+    const auto index = (uint8_t) (step - numPanel);
+    const auto matcher = [index] (const juce::MidiMessage& m) { return SysExMatchers::isLiveReplyFor (m, index); };
+    sendRequest (LiveParameterMessage::request (index), matcher, "knob read", SysExExchange::DEFAULT_RETRIES, false, [this, step, state, callback, index] (const juce::MidiMessage* reply) {
+        if (reply == nullptr)
+        {
+            callback (std::nullopt);
+            return;
+        }
+
+        const LiveParameterMessage live (*reply);
+        if (live.isValid())
+        {
+            state->live[static_cast<Pro800LiveIndex> (index)] = live.getValue();
+        }
+        readPanelStep (step + 1, state, callback);
+    });
 }
 
 //==============================================================================
@@ -781,6 +907,7 @@ void SynthSession::updatePointer (bool mirrorIfChanged, bool isPolling, std::fun
 
         if (mirror && record != nullptr)
         {
+            this->currentLfoShape = record->getValue (Pro800ProgramField::LFO_SHAPE);
             this->midiHandler.mirrorProgram (*record);
             this->provenance = Provenance();
             this->provenance.basis = Provenance::Basis::STORED;
@@ -803,6 +930,7 @@ void SynthSession::showStoredProgram (int program, std::function<void()> then)
         this->provenance = Provenance();
         if (record != nullptr)
         {
+            this->currentLfoShape = record->getValue (Pro800ProgramField::LFO_SHAPE);
             this->midiHandler.mirrorProgram (*record);
             this->provenance.basis = Provenance::Basis::STORED;
             this->provenance.program = program;
@@ -934,6 +1062,13 @@ void SynthSession::fail (const juce::String& error)
     notify();
 }
 
+void SynthSession::warn (const juce::String& note)
+{
+    juce::Logger::writeToLog ("[INFO] SynthSession: " + note);
+    this->lastError = note;
+    notify();
+}
+
 void SynthSession::notify()
 {
     this->listeners.call ([] (Listener& l) { l.synthSessionChanged(); });
@@ -953,6 +1088,8 @@ void SynthSession::timerCallback()
 
 void SynthSession::channelVoiceSent (const juce::MidiMessage& message)
 {
+    noteLfoShapeFromCC (message);
+
     if (message.isController() && !this->provenance.editedInApp)
     {
         this->provenance.editedInApp = true;
@@ -962,9 +1099,20 @@ void SynthSession::channelVoiceSent (const juce::MidiMessage& message)
 
 void SynthSession::channelVoiceReceived (const juce::MidiMessage& message)
 {
+    noteLfoShapeFromCC (message);
+
     if (message.isController() && !this->provenance.editedOnSynth)
     {
         this->provenance.editedOnSynth = true;
         notify();
+    }
+}
+
+void SynthSession::noteLfoShapeFromCC (const juce::MidiMessage& message)
+{
+    // whoever changed the shape - the plugin's own combo, an align, or the synth - said so with this CC
+    if (message.isController() && message.getControllerNumber() == static_cast<int> (Pro800CCMessages::LFO_MOD_SHAPE))
+    {
+        this->currentLfoShape = Pro800CCUtils::programEnumValueFromCC (message.getControllerValue(), PROGRAM_LFO_SHAPE_NUM_VALUES);
     }
 }

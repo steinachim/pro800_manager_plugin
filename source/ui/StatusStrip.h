@@ -49,6 +49,7 @@ private:
 
     juce::Label label_Preset;
     juce::Label label_Controls;
+    juce::TextButton button_AlignWithPanel { "Align with panel" };
     juce::TextButton button_Revert { "Revert" };
     juce::Label label_Status;
     juce::TextButton button_FixChannel { "Fix in Settings" };

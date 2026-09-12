@@ -20,6 +20,7 @@
 
 #include "../midi/MidiHandler.h"
 #include "../tailoring/Pro800ChannelResolver.h"
+#include "../tailoring/Pro800PanelState.h"
 #include "../tailoring/Pro800SettingsConstants.h"
 
 #include <juce_events/juce_events.h>
@@ -107,11 +108,10 @@ public:
         std::optional<int> program; // STORED: the record the controls were set from
         bool editedInApp = false; // a control was moved here since
         bool editedOnSynth = false; // the synth reported a knob movement since
-        bool panelIsSound = false; // PANEL: the user vouched that the synth is in manual mode
 
         bool isEdited() const { return editedInApp || editedOnSynth; }
 
-        /** e.g. "B05 as stored", "B05 + edits (in app)", "unknown" */
+        /** e.g. "B05 as stored", "B05 + edits (in app)", "aligned with the panel", "unknown" */
         juce::String describe() const;
     };
 
@@ -185,8 +185,28 @@ public:
     /** nullopt = accept what the synth transmits on; 0 = every channel; 1-16 = that channel. */
     void setManualReceiveChannel (std::optional<int> channel);
 
-    /** Front Panel tab, phase 3: the controls were set from the physical panel. */
-    void notePanelMirrored (bool panelIsSound);
+    /**
+     * Reads the physical control surface (every 0x70 index and the 26 knobs), shows it in the Front Panel
+     * controls and sends it to the synth as CC, so that what the synth plays is what the panel - and the
+     * plugin - shows. Without that last step the two disagree: a preset load does not move the knobs, so a
+     * knob's position is not what is heard until it is touched.
+     *
+     * The shape switch is resolved against the LFO shape last seen here (see
+     * Pro800PanelConversion::lfoShapeFromSwitch()); the shape is left alone while none is known.
+     *
+     * Needs a synth that receives CC (MIDI CC Mode RX or Send & Receive) on a known channel; refuses with an
+     * explanation otherwise, since the sound would silently stay as it was.
+     */
+    void alignWithPanel();
+
+    /** Reads the control surface without touching the controls; nullopt if the synth stopped answering. */
+    void readPanelState (std::function<void (std::optional<Pro800PanelState>)> callback);
+
+    /** The last panel reading of this connection, if any. */
+    const std::optional<Pro800PanelState>& getLastPanelState() const { return this->lastPanelState; }
+
+    /** Why the synth would not hear a CC right now (so alignWithPanel() and the Front Panel controls do nothing), or empty if it would. */
+    juce::String reasonCCWouldNotArrive() const;
 
     //==============================================================================
     // state
@@ -228,6 +248,8 @@ private:
     void readProgram (int program, bool isPolling, ProgramCallback callback);
     void readDipSwitches (std::function<void (std::optional<int> dipSum)> callback);
     void readDipSwitch (size_t which, std::shared_ptr<std::map<Pro800PanelIndex, int>> values, std::function<void (std::optional<int> dipSum)> callback);
+    void readPanelStep (size_t step, std::shared_ptr<Pro800PanelState> state, std::function<void (std::optional<Pro800PanelState>)> callback);
+
     void writeSettings (std::shared_ptr<SettingsMessage> newSettings, std::function<void (bool accepted)> callback);
     void sendReload (std::function<void (bool accepted)> callback);
 
@@ -256,6 +278,8 @@ private:
     void applyChannels();
     void setActivity (const juce::String& newActivity);
     void fail (const juce::String& error);
+    /** Like fail(), for something that worked but is worth knowing about; shown in the same place. */
+    void warn (const juce::String& note);
     void notify();
 
     void timerCallback() override;
@@ -277,6 +301,10 @@ private:
     std::shared_ptr<SettingsMessage> settings;
     std::shared_ptr<ProgramMessage> pointerProgram;
     std::optional<int> pointerProgramReadFor; // the program pointerProgram (or its emptiness) was read for
+    std::optional<Pro800PanelState> lastPanelState;
+    /** The LFO shape as last seen here - from a record shown in the controls, or from a CC sent or received. */
+    std::optional<int> currentLfoShape;
+    void noteLfoShapeFromCC (const juce::MidiMessage& message);
     int pollFailures = 0;
 
     struct PendingWrite

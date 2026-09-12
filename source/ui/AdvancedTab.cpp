@@ -20,6 +20,8 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/Pro800Hazards.h"
 #include "../midi/Pro800MessageFactory.h"
+#include "../session/SynthSession.h"
+#include "../tailoring/Pro800ChannelResolver.h"
 
 AdvancedTab::AdvancedTab (MidiHandler* midiHandler, SynthSession& synthSession)
     : Component(), MidiComponent (midiHandler, synthSession, false, { MessageType::MIDI_LOG, MessageType::PRO800_VERSION })
@@ -77,6 +79,10 @@ AdvancedTab::AdvancedTab (MidiHandler* midiHandler, SynthSession& synthSession)
 
     checkBox_allowHazards.setTooltip ("Send the messages the Pro-800 must normally never receive: factory reset (7D), bootloader (03 30), "
                                       "the broken 32 xx state, the deafening channel write (0E) and the name-blanking 50. Off again after every connect.");
+
+    button_readPanel.setTooltip ("Reads every 0x70 panel index and every 0x72 knob and prints them decoded - the reverse engineer's view of the control surface");
+    button_readPanel.onClick = [this] { logPanelReading(); };
+    addAndMakeVisible (button_readPanel);
 
     addAndMakeVisible (codeEditor_midiMessageLog);
 
@@ -154,6 +160,58 @@ void AdvancedTab::sendInputMessage()
     sendMidiMessage (juce::MidiMessage (bytes.data(), (int) bytes.size()));
 }
 
+void AdvancedTab::logPanelReading()
+{
+    if (!getSynthSession().canStartAction())
+    {
+        addLogMessage ("Not connected, or the synth is busy: the panel cannot be read now");
+        return;
+    }
+
+    checkBox_enableLogging.setToggleState (true, juce::dontSendNotification);
+
+    getSynthSession().readPanelState ([safeThis = juce::Component::SafePointer<AdvancedTab> (this)] (std::optional<Pro800PanelState> state) {
+        if (safeThis == nullptr)
+        {
+            return;
+        }
+
+        if (!state.has_value())
+        {
+            safeThis->addLogMessage ("Panel reading aborted: the synth stopped answering");
+            return;
+        }
+
+        juce::String text = "Panel reading (0x70 indices, then 0x72 knobs):";
+        for (const auto& [index, value] : state->panel)
+        {
+            const auto name = PRO800_PANEL_INDEX_NAMES.find (index);
+            text << "\n  0x" << juce::String::toHexString ((int) index).paddedLeft ('0', 2) << "  " << (name != PRO800_PANEL_INDEX_NAMES.end() ? name->second : "?") << " = " << value;
+        }
+
+        std::map<Pro800PanelIndex, int> dips;
+        for (const auto& [index, weight] : PRO800_PANEL_DIP_WEIGHTS)
+        {
+            if (state->panel.count (index))
+            {
+                dips[index] = state->panel.at (index);
+            }
+        }
+        if (const auto sum = Pro800ChannelResolver::dipChannelFromPanel (dips))
+        {
+            text << "\n  DIP switches select MIDI channel " << (*sum + 1);
+        }
+
+        for (const auto& [index, value] : state->live)
+        {
+            const auto name = PRO800_LIVE_INDEX_NAMES.find (index);
+            text << "\n  0x" << juce::String::toHexString ((int) index).paddedLeft ('0', 2) << "  " << (name != PRO800_LIVE_INDEX_NAMES.end() ? name->second : "?") << " = " << value;
+        }
+
+        safeThis->addLogMessage (text);
+    });
+}
+
 AdvancedTab::~AdvancedTab()
 {
 }
@@ -165,6 +223,7 @@ void AdvancedTab::resized()
 
     auto logTopArea = area.removeFromTop (buttonHeight).reduced (4);
     button_clearLog.setBounds (logTopArea.removeFromRight (100));
+    button_readPanel.setBounds (logTopArea.removeFromRight (150).withTrimmedRight (8));
     checkBox_hidePolling.setBounds (logTopArea.removeFromRight (120));
     checkBox_enableLogging.setBounds (logTopArea);
     codeEditor_midiMessageLog.setBounds (area.removeFromTop (area.getHeight() - buttonHeight).reduced (4));

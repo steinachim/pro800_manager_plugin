@@ -359,6 +359,14 @@ void MidiHandler::sendChannelVoice (const juce::MidiMessage& message)
     this->listeners.call ([&] (Listener& l) { l.channelVoiceSent (message); });
 }
 
+void MidiHandler::sendChannelVoiceBurst (const std::vector<juce::MidiMessage>& messages)
+{
+    for (const auto& message : messages)
+    {
+        sendChannelVoice (message);
+    }
+}
+
 bool MidiHandler::channelVoiceSentWithin (int milliseconds) const
 {
     return juce::Time::getMillisecondCounterHiRes() - this->lastChannelVoiceSentAt < milliseconds;
@@ -375,6 +383,15 @@ void MidiHandler::mirrorProgram (const ProgramMessage& program)
     for (auto* component : ccComponents)
     {
         component->loadFromProgram (program);
+    }
+}
+
+void MidiHandler::mirrorPanel (const Pro800PanelValues& values)
+{
+    const juce::Array<MidiComponent*> ccComponents (this->midiCCComponents);
+    for (auto* component : ccComponents)
+    {
+        component->loadFromPanel (values);
     }
 }
 

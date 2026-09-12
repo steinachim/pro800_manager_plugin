@@ -36,6 +36,7 @@
 
 class MidiComponent;
 class ProgramMessage;
+struct Pro800PanelValues;
 
 /**
  * Owns the MIDI devices and dispatches everything that is sent or received to the registered
@@ -114,6 +115,13 @@ public:
      */
     void sendChannelVoice (const juce::MidiMessage& message);
 
+    /**
+     * Sends several channel-voice messages at once, all remembered for echo suppression. This is the shape of
+     * traffic the synth's own knobs produce, and a few dozen three-byte messages are less than one program dump,
+     * so they go out without pacing.
+     */
+    void sendChannelVoiceBurst (const std::vector<juce::MidiMessage>& messages);
+
     /** True if a channel-voice message went out within the last milliseconds: the next SysEx request is likely to need its retry. */
     bool channelVoiceSentWithin (int milliseconds) const;
 
@@ -122,6 +130,9 @@ public:
      * for the sound it is playing). Sends nothing.
      */
     void mirrorProgram (const ProgramMessage& program);
+
+    /** Sets the controls the physical panel determines (see Pro800PanelConversion). Sends nothing. */
+    void mirrorPanel (const Pro800PanelValues& values);
 
     /** Sends a request and calls back with the reply (see SysExExchange). Message thread only. */
     void exchange (SysExExchange::Request request);

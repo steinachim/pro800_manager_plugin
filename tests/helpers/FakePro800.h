@@ -20,6 +20,7 @@
 
 #include "TestMessages.h"
 
+#include "midi/LiveParameterMessage.h"
 #include "midi/MidiHandler.h"
 #include "midi/PanelMessage.h"
 #include "midi/ProgramMessage.h"
@@ -57,6 +58,7 @@ namespace TestMessages
         std::vector<uint8_t> settings; // the settings block as readable now (a complete 0x78 message)
         std::map<int, std::vector<uint8_t>> programs; // stored records by program number (complete 0x78 messages)
         std::map<uint8_t, int> panel; // 0x70 index -> value
+        std::map<uint8_t, int> knobs; // 0x72 index -> value (0-127)
 
         int settingsCommitLagMs = 0; // how long after a settings write the new block becomes readable
         bool ignoreSettingsWrites = false; // accept them with OK but never commit (a menu open on the synth, say)
@@ -87,6 +89,20 @@ namespace TestMessages
             ProgramMessage program (toMidi (programDump ((uint16_t) number)));
             program.setProgramName (name);
             programs[number] = program.getRawData();
+        }
+
+        /** Every CC the plugin sent, as controller number -> the last value sent for it. */
+        std::map<int, int> receivedCCs() const
+        {
+            std::map<int, int> ccs;
+            for (const auto& bytes : received)
+            {
+                if (bytes.size() == 3 && (bytes[0] & 0xF0) == 0xB0)
+                {
+                    ccs[bytes[1]] = bytes[2];
+                }
+            }
+            return ccs;
         }
 
         /** The index in `received` of the first message of the given type (and address bytes, if given), or -1. */
@@ -202,6 +218,20 @@ namespace TestMessages
                     else
                     {
                         reply (panelReply (index, (uint8_t) (panel.count (index) ? panel.at (index) : 0)));
+                    }
+                    break;
+                }
+
+                case LiveParameterMessage::REQUEST_ID:
+                {
+                    const uint8_t index = param (0);
+                    if (index >= (uint8_t) Pro800LiveIndex::NUM_INDICES)
+                    {
+                        reply (statusReply (0x01));
+                    }
+                    else
+                    {
+                        reply (sysEx ({ LiveParameterMessage::RESPONSE_ID, index, (uint8_t) (knobs.count (index) ? knobs.at (index) : 0) }));
                     }
                     break;
                 }
