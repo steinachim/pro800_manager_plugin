@@ -260,7 +260,7 @@ The contents are the following. Ranges marked "on the front panel" are what the 
 |36 | 1 | Sync In Start-Stop<br> --> 0 = OFF, 1 = ON
 |37 | 1 | Sync In PPQN<br> --> 0 = 1PPS, 1 = 1PPQN, 2 = 2PPQN, 3 = 4PPQN, 4 = 24PPQN, 5 = 48PPQN
 |38 | 1 | Sync Clock Note Length<br> --> range: 1-100 on the front panel (5-100 was observed earlier, unverified)
-|39 | 1 | Sync Clock Swing<br> --> range: 50-95 on the front panel (SysEx might accept 5-95, unverified)
+|39 | 1 | Sync Clock Swing<br> --> range: 50-95 on the front panel. Any value 0-127 can be set via SysEx, is read back unchanged and is even shown on the display; whether values outside 50-95 have an audible effect is unknown
 |40 | 1 | overflow
 |41 | 1 | Aftertouch VCA Polarity<br> --> 0 = rise, 1 = fall, 2 = both
 |42 | 1 | Aftertouch VCF Polarity<br> --> 0 = rise, 1 = fall, 2 = both

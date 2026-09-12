@@ -88,7 +88,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::SYNC_IN_START_STOP,      {36, 1, "Sync In Start-Stop"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::SYNC_IN_PPQN,            {37, 1, "Sync In PPQN"}}, // see: Pro800SettingsSyncInPPQN
     {Pro800Settings::SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 1-100 on the front panel
-    {Pro800Settings::SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 50-95 on the front panel
+    {Pro800Settings::SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 50-95 on the front panel; 0-127 is stored and displayed, effect unknown
     // 40 = overflow
     {Pro800Settings::AFTERTOUCH_VCA_POLARITY, {41, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity
     {Pro800Settings::AFTERTOUCH_VCF_POLARITY, {42, 1, "Aftertouch VCF Polarity"}}, // see: Pro800SettingsPolarity
