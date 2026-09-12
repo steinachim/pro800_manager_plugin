@@ -23,7 +23,7 @@
 #include "midi/VersionMessage.h"
 
 Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler* handler, Pro800ManagerAudioProcessor& p)
-    : AudioProcessorEditor (&p), MidiComponent (handler, p.getSynthSession(), false), statusStrip (p.getSynthSession())
+    : AudioProcessorEditor (&p), midiHandler (*handler), synthSession (p.getSynthSession()), statusStrip (synthSession)
 {
     // midi connection area
     button_ConnectMidi.onClick = [this] { connectMidiDevices(); };
@@ -47,11 +47,11 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler* handler, Pro800ManagerAud
     combo_ReceiveChannel.setTooltip ("Auto reads the synth's MIDI TX Channel after connecting; pick a number (or All) only if that fails or you know better.");
     combo_MidiChannel.onChange = [this] {
         const int id = combo_MidiChannel.getSelectedId();
-        getSynthSession().setManualChannel (id == CHANNEL_ITEM_AUTO ? std::nullopt : std::optional<int> (id));
+        synthSession.setManualChannel (id == CHANNEL_ITEM_AUTO ? std::nullopt : std::optional<int> (id));
     };
     combo_ReceiveChannel.onChange = [this] {
         const int id = combo_ReceiveChannel.getSelectedId();
-        getSynthSession().setManualReceiveChannel (id == CHANNEL_ITEM_AUTO ? std::nullopt : std::optional<int> (id == CHANNEL_ITEM_ALL ? 0 : id));
+        synthSession.setManualReceiveChannel (id == CHANNEL_ITEM_AUTO ? std::nullopt : std::optional<int> (id == CHANNEL_ITEM_ALL ? 0 : id));
     };
 
     label_Connection.setTooltip ("Connect: identifies the synth, reads its settings and follows the preset it is on");
@@ -77,7 +77,7 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler* handler, Pro800ManagerAud
     addAndMakeVisible (statusStrip);
 
     // main widget
-    tabBar = std::make_unique<MainWidget> (handler, getSynthSession());
+    tabBar = std::make_unique<MainWidget> (handler, synthSession);
     addAndMakeVisible (tabBar.get());
 
     // keyboard at the bottom
@@ -104,13 +104,13 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler* handler, Pro800ManagerAud
 
     refreshMidiDeviceLists();
 
-    getSynthSession().addListener (this);
+    synthSession.addListener (this);
     synthSessionChanged();
 }
 
 Pro800ManagerEditor::~Pro800ManagerEditor()
 {
-    getSynthSession().removeListener (this);
+    synthSession.removeListener (this);
     keyboardState.removeListener (this);
 }
 
@@ -169,12 +169,12 @@ void Pro800ManagerEditor::resized()
 
 void Pro800ManagerEditor::handleNoteOn (juce::MidiKeyboardState* /*source*/, int midiChannel, int midiNoteNumber, float velocity)
 {
-    getMidiHandler().sendChannelVoice (juce::MidiMessage::noteOn (midiChannel, midiNoteNumber, velocity));
+    midiHandler.sendChannelVoice (juce::MidiMessage::noteOn (midiChannel, midiNoteNumber, velocity));
 }
 
 void Pro800ManagerEditor::handleNoteOff (juce::MidiKeyboardState* /*source*/, int midiChannel, int midiNoteNumber, float velocity)
 {
-    getMidiHandler().sendChannelVoice (juce::MidiMessage::noteOff (midiChannel, midiNoteNumber, velocity));
+    midiHandler.sendChannelVoice (juce::MidiMessage::noteOff (midiChannel, midiNoteNumber, velocity));
 }
 
 void Pro800ManagerEditor::refreshMidiDeviceLists()
@@ -196,18 +196,18 @@ void Pro800ManagerEditor::refreshMidiDeviceLists()
 
 void Pro800ManagerEditor::connectMidiDevices()
 {
-    getSynthSession().disconnect();
-    getMidiHandler().connectMidiDevices (combo_MidiInputList.getSelectedDeviceIdentifier(),
+    synthSession.disconnect();
+    midiHandler.connectMidiDevices (combo_MidiInputList.getSelectedDeviceIdentifier(),
         combo_MidiOutputList.getSelectedDeviceIdentifier());
 
     // a fresh connection derives the channels from the synth again
     combo_MidiChannel.setSelectedId (CHANNEL_ITEM_AUTO, juce::dontSendNotification);
     combo_ReceiveChannel.setSelectedId (CHANNEL_ITEM_AUTO, juce::dontSendNotification);
-    getSynthSession().setManualChannel (std::nullopt);
-    getSynthSession().setManualReceiveChannel (std::nullopt);
+    synthSession.setManualChannel (std::nullopt);
+    synthSession.setManualReceiveChannel (std::nullopt);
     warnedFirmwareVersion.clear();
 
-    getSynthSession().connect();
+    synthSession.connect();
 }
 
 void Pro800ManagerEditor::synthSessionChanged()
@@ -217,14 +217,14 @@ void Pro800ManagerEditor::synthSessionChanged()
     // connection badge
     juce::String connectionText;
     juce::Colour connectionColour = getLookAndFeel().findColour (juce::Label::textColourId);
-    switch (getSynthSession().getConnectionState())
+    switch (synthSession.getConnectionState())
     {
         case State::PROBING:
             connectionText = "Connecting...";
             break;
         case State::CONNECTED:
-            connectionText = "Pro-800 " + getSynthSession().getFirmwareVersion();
-            if (!getSynthSession().isFirmwareSupported())
+            connectionText = "Pro-800 " + synthSession.getFirmwareVersion();
+            if (!synthSession.isFirmwareSupported())
             {
                 connectionText += " - unsupported firmware";
                 connectionColour = juce::Colours::orange;
@@ -242,16 +242,16 @@ void Pro800ManagerEditor::synthSessionChanged()
     label_Connection.setText (connectionText, juce::dontSendNotification);
     label_Connection.setColour (juce::Label::textColourId, connectionColour);
 
-    if (getSynthSession().isConnected() && !getSynthSession().isFirmwareSupported())
+    if (synthSession.isConnected() && !synthSession.isFirmwareSupported())
     {
         warnAboutUnsupportedFirmware();
     }
 
     // channel combos: the Auto items name the channels the synth reports
-    const auto& channels = getSynthSession().getChannels();
+    const auto& channels = synthSession.getChannels();
     combo_MidiChannel.changeItemText (CHANNEL_ITEM_AUTO, channels.automatic ? channels.describe() : juce::String ("Auto"));
     combo_MidiChannel.setSelectedId (channels.automatic ? CHANNEL_ITEM_AUTO : channels.manualChannel, juce::dontSendNotification);
-    const bool synthIsDeaf = getSynthSession().isConnected() && !channels.sendChannel().has_value();
+    const bool synthIsDeaf = synthSession.isConnected() && !channels.sendChannel().has_value();
     combo_MidiChannel.setColour (juce::ComboBox::textColourId,
         synthIsDeaf ? juce::Colours::orange : getLookAndFeel().findColour (juce::ComboBox::textColourId));
 
@@ -276,7 +276,7 @@ void Pro800ManagerEditor::synthSessionChanged()
 
 void Pro800ManagerEditor::warnAboutUnsupportedFirmware()
 {
-    const juce::String version = getSynthSession().getFirmwareVersion();
+    const juce::String version = synthSession.getFirmwareVersion();
     if (version == warnedFirmwareVersion)
     {
         return; // once per connection

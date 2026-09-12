@@ -23,14 +23,13 @@
 #include "PluginProcessor.h"
 #include "session/SynthSession.h"
 #include "ui/MainWidget.h"
-#include "ui/MidiComponent.h"
 #include "ui/MidiDeviceComboBox.h"
 #include "ui/StatusStrip.h"
 #include <memory>
 
 class MidiHandler;
 
-class Pro800ManagerEditor : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, public MidiComponent, private SynthSession::Listener
+class Pro800ManagerEditor : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, private SynthSession::Listener
 {
 public:
     Pro800ManagerEditor (MidiHandler* midiHandler, Pro800ManagerAudioProcessor&);
@@ -58,6 +57,10 @@ private:
     void warnAboutUnsupportedFirmware();
 
     juce::String warnedFirmwareVersion; // the unsupported version already shown in a dialog
+
+    // both owned by the processor, which outlives the editor
+    MidiHandler& midiHandler;
+    SynthSession& synthSession;
 
     juce::TooltipWindow tooltipWindow { this, 500 };
 
