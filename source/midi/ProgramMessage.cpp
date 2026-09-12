@@ -42,8 +42,10 @@ ProgramMessage::ProgramMessage (const uint8_t* newRawData, int newRawDataSize) :
 void ProgramMessage::upgradeOlderPresetVersion()
 {
     // Presets stored by older firmwares (preset version < SUPPORTED_PRESET_VERSION) are shorter,
-    // because the trailing fields did not exist yet. Grow them to the current layout (new fields = 0)
-    // and stamp the current version so that all getters/setters work on them.
+    // because the trailing fields did not exist yet. Grow them to the current layout, give the fields
+    // the old record did not have the values the synth itself fills in when it converts one
+    // (PRO800_PROGRAM_UPGRADE_DEFAULTS), and stamp the current version so that all getters/setters
+    // work on them.
     //
     // Anything that is not a well-formed program dump carrying a version byte is left untouched;
     // in particular the 12-byte "empty slot" placeholder must stay invalid.
@@ -74,6 +76,17 @@ void ProgramMessage::upgradeOlderPresetVersion()
     setUint8Value (PROGRAM_MESSAGE_SIZE - 1, 0xF7);
 
     setValue (Pro800ProgramField::PRESET_VERSION, SUPPORTED_PRESET_VERSION);
+
+    // only the fields that lay beyond the old record's end: a version 110 record already carries its own
+    // LFO Aftertouch Amount, and a version 109 one ends wherever its name does
+    for (const auto& [field, value] : PRO800_PROGRAM_UPGRADE_DEFAULTS)
+    {
+        const size_t fieldPos = DATA_START_POS + PRO800_PROGRAM_FIELDS.at (field).firstByte;
+        if (fieldPos >= oldSize - 1) // the old 0xF7 sat at oldSize - 1
+        {
+            setValue (field, value);
+        }
+    }
 }
 
 bool ProgramMessage::isValid() const

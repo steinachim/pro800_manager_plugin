@@ -138,6 +138,27 @@ A record longer than its own version allows cannot have come from the synth as
 one message (see "Transport behaviour"). The synth writes the newest format when
 it saves; format 109 is what factory presets arrive in.
 
+**How the synth converts an older record** (measured: factory preset A00 "Organ I",
+version 109, 193 bytes, stored through the front panel to A99 and both dumped):
+every field the old record had is kept byte for byte, the version byte becomes
+111, the record runs to its full 210 bytes, and the fields the old layout did
+not have are filled as follows:
+
+| Field | Value the synth writes |
+|--|--|
+| LFO Aftertouch Amount | 0 |
+| Voice Spread Enable | 0 (off) |
+| Key Tracking Ref Note | 3 (C4) |
+| Glide Mode | 0 (time) |
+| Pitchbend Range | 24576 = 12 × 2048 (12 semitones, see the version 111 table) |
+
+The front-panel save also blanks the name (a known firmware issue). The plugin
+converts an older record the same way when it reads one
+(`ProgramMessage::upgradeOlderPresetVersion()`, values in
+`PRO800_PROGRAM_UPGRADE_DEFAULTS`), except that it keeps the name; so a record
+read, upgraded and written back sounds like one the synth converted itself, and
+an exported `.syx` holds the converted record, not the bytes the synth sent.
+
 The message structure is the following:
 * Pro800 header as described above
 * LSB of program number
@@ -266,7 +287,7 @@ only in preset version 111 and newer:
 |193 | 1 | Voice Spread Enable
 |194 | 1 | Key Tracking Ref Note
 |195 | 1 | Glide Mode
-|196 | 2 | Pitchbend Range<br> --> 0-31 semitones, stored scaled to 0-65535 like the other 2-byte parameters (24 semitones = 50737). Note: the `0x11` message writes the same field as `param × 2048` (24 semitones = 49152, RE §2) — two writers, two scales; to be re-measured and aligned
+|196 | 2 | Pitchbend Range<br> --> 0-31 semitones, stored scaled to 0-65535 like the other 2-byte parameters (24 semitones = 50737). Note: the `0x11` message writes the same field as `param × 2048` (24 semitones = 49152, RE §2), and so does the synth itself when it converts an older record (12 semitones = 24576, see "How the synth converts an older record") — two writers, two scales; the CC path's 50737 is the one to re-measure
 
 
 ## Settings messages

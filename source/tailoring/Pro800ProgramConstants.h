@@ -386,4 +386,20 @@ inline const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS
     {Pro800ProgramField::PITCHBEND_RANGE,           {196, 2, "Pitchbend Range"}},
    
 };
+
+/**
+ * What the synth itself puts into the fields an older record does not have when it saves that record in the current
+ * layout (measured: a version 109 factory preset stored through the front panel comes back as 111 with every existing
+ * field unchanged and these values appended, see docs/Pro800SysExMessages.md). ProgramMessage fills an upgraded record
+ * the same way, so that a preset written back through the plugin sounds like one the synth converted on its own.
+ * The pitch bend range is 12 semitones on the scale the 0x11 message uses (semitones x 2048).
+ */
+inline const std::map<Pro800ProgramField, int> PRO800_PROGRAM_UPGRADE_DEFAULTS =
+{
+    {Pro800ProgramField::LFO_AFTERTOUCH_AMOUNT, 0},
+    {Pro800ProgramField::VOICE_SPREAD_ENABLE,   PROGRAM_OFF},
+    {Pro800ProgramField::KEY_TRACKING_REF_NOTE, PROGRAM_KEYBOARD_TRACKING_REF_C4},
+    {Pro800ProgramField::GLIDE_MODE,            PROGRAM_GLIDE_MODE_TIME},
+    {Pro800ProgramField::PITCHBEND_RANGE,       12 * 2048},
+};
 // clang-format on
