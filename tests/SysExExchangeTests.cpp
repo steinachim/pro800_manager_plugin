@@ -18,6 +18,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include "helpers/MessageThread.h"
 #include "helpers/TestMessages.h"
 
 #include "midi/SysExExchange.h"
@@ -29,23 +30,6 @@ using namespace TestMessages;
 
 namespace
 {
-    /** A message thread for the duration of a test: SysExExchange runs its timeouts on it. */
-    struct MessageThread
-    {
-        MessageThread() { juce::MessageManager::getInstance(); }
-
-        ~MessageThread()
-        {
-            juce::DeletedAtShutdown::deleteAll(); // the timer thread's shutdown detector, like shutdownJuce_GUI() does
-            juce::MessageManager::deleteInstance();
-        }
-
-        void runFor (int milliseconds)
-        {
-            juce::MessageManager::getInstance()->runDispatchLoopUntil (milliseconds);
-        }
-    };
-
     struct Harness
     {
         MessageThread messageThread;

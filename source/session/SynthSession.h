@@ -115,16 +115,35 @@ public:
         juce::String describe() const;
     };
 
+    /** How a settings change the user made is getting on. */
+    struct SettingsWriteStatus
+    {
+        enum class State { IDLE,
+            SAVING,
+            FAILED };
+
+        State state = State::IDLE;
+        juce::String message; // "Saving MIDI Input Channel...", or what did not land
+        std::vector<Pro800Settings> changedOnSynth; // fields the synth changed by itself (front panel), for a few seconds
+    };
+
     struct Listener
     {
         virtual ~Listener() = default;
 
         /** Something above changed: read the getters. Message thread. */
         virtual void synthSessionChanged() = 0;
+
+        /** The settings block's content changed (read from the synth, or a write that did not land was undone). */
+        virtual void synthSessionSettingsChanged() {}
     };
 
     /** How often the settings block is read to follow the synth's own preset changes. */
     static constexpr int POLL_INTERVAL_MS = 1500;
+    /** Rapid setting changes (spin-box clicks) are written as one block write after this pause. */
+    static constexpr int WRITE_DEBOUNCE_MS = 300;
+    /** How long a "changed on the synth" notice stays. */
+    static constexpr int CHANGED_ON_SYNTH_NOTICE_MS = 5000;
     /** A settings write commits on the synth's own cycle: about one in fourteen only shows ~1.6 s later. */
     static constexpr int WRITE_CONFIRM_WINDOW_MS = 2500;
     static constexpr int WRITE_CONFIRM_STEP_MS = 300;
@@ -154,8 +173,9 @@ public:
     void refresh();
 
     /**
-     * Changes one setting on the synth: patches the block, writes it back whole (there is no per-field write) and
-     * keeps the value against stale read-backs until the synth confirms it or WRITE_CONFIRM_WINDOW_MS pass.
+     * Changes one setting on the synth: patches the block, writes it back whole (there is no per-field write) after
+     * a short debounce, then reads back until the synth shows the value or WRITE_CONFIRM_WINDOW_MS pass. Meanwhile
+     * the value is kept against stale read-backs; a value that never lands is undone in the block and reported.
      */
     void writeSetting (Pro800Settings setting, int value);
 
@@ -192,6 +212,8 @@ public:
     /** The settings block as last read (nullptr before the first read). */
     std::shared_ptr<SettingsMessage> getSettings() const { return this->settings; }
 
+    const SettingsWriteStatus& getSettingsWriteStatus() const { return this->settingsWriteStatus; }
+
     /** The stored record of the preset the pointer names (nullptr if unknown or the slot is empty). */
     std::shared_ptr<ProgramMessage> getPointerProgram() const { return this->pointerProgram; }
 
@@ -226,6 +248,11 @@ private:
     void applySettings (std::shared_ptr<SettingsMessage> newSettings, std::optional<int> dipSum);
     /** Re-applies every pending write to a freshly read block: our value is the truth until the synth shows it, or the window closes. */
     void protectPendingWrites (SettingsMessage& newSettings);
+    /** Sends the block with every pending value and starts reading back. */
+    void flushPendingWrites();
+    /** Reads the block every WRITE_CONFIRM_STEP_MS while writes are pending, then reports what did not land. */
+    void verifyPendingWrites();
+    void notifySettingsChanged();
     void applyChannels();
     void setActivity (const juce::String& newActivity);
     void fail (const juce::String& error);
@@ -256,8 +283,27 @@ private:
     {
         int value;
         double deadline;
+        bool written = false; // false while still waiting for the debounce
+        int readBack = 0; // what the synth showed instead, once the window has closed
     };
     std::map<Pro800Settings, PendingWrite> pendingWrites;
+    std::vector<std::pair<Pro800Settings, PendingWrite>> failedWrites; // collected by protectPendingWrites(), reported by verifyPendingWrites()
+    SettingsWriteStatus settingsWriteStatus;
+    bool verifyingWrites = false;
+
+    struct DebounceTimer : public juce::Timer
+    {
+        std::function<void()> onFire;
+        void timerCallback() override
+        {
+            stopTimer();
+            if (onFire)
+            {
+                onFire();
+            }
+        }
+    };
+    DebounceTimer writeDebounce;
 
     // declared last: every callback checks the weak reference, so nothing runs into a destroyed session
     JUCE_DECLARE_WEAK_REFERENCEABLE (SynthSession)

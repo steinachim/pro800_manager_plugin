@@ -24,13 +24,17 @@
 #include "../midi/SettingsMessage.h"
 #include "../session/SynthSession.h"
 
-SettingsTab::SettingsTab (MidiHandler* midiHandler, SynthSession& synthSession) : Component(), MidiComponent (midiHandler, synthSession, false, { MessageType::PRO800_SETTINGS })
+SettingsTab::SettingsTab (MidiHandler* midiHandler, SynthSession& synthSession) : Component(), MidiComponent (midiHandler, synthSession, false)
 {
     button_RefreshSettings.onClick = [this] {
         getSynthSession().refresh();
     };
+    button_RefreshSettings.setTooltip ("Reads the settings block again now. The plugin reads it every few seconds anyway, so this is rarely needed.");
+
+    label_WriteStatus.setJustificationType (juce::Justification::centredLeft);
 
     addAndMakeVisible (button_RefreshSettings);
+    addAndMakeVisible (label_WriteStatus);
 
     setupGroupConnections();
     setupGroupTranspose();
@@ -43,20 +47,44 @@ SettingsTab::SettingsTab (MidiHandler* midiHandler, SynthSession& synthSession) 
     setupGroupMiscellaneous();
     setupGroupSync();
     setupGroupFactoryReset();
+    setupGroupCurrentPreset();
 
-    setSettingsGroupsEnabled (false);
+    getSynthSession().addListener (this);
+    synthSessionChanged();
+    synthSessionSettingsChanged();
 }
 
-void SettingsTab::handlePro800SettingsUpdate()
+SettingsTab::~SettingsTab()
+{
+    getSynthSession().removeListener (this);
+}
+
+//==============================================================================
+void SettingsTab::synthSessionChanged()
+{
+    const auto settings = getCurrentSettings();
+    const bool connected = getSynthSession().isConnected();
+    setSettingsGroupsEnabled (connected && settings != nullptr && settings->isValid(), connected);
+    button_RefreshSettings.setEnabled (connected);
+
+    updateCurrentPresetGroup();
+    updateChannelItems();
+    updateStatusLabel();
+}
+
+void SettingsTab::synthSessionSettingsChanged()
+{
+    refreshFromSettings();
+    updateChannelItems();
+}
+
+void SettingsTab::refreshFromSettings()
 {
     std::shared_ptr<SettingsMessage> settingsMessage = getCurrentSettings();
     if (!settingsMessage || !settingsMessage->isValid())
     {
-        setSettingsGroupsEnabled (false);
         return;
     }
-
-    setSettingsGroupsEnabled (true);
 
     for (const auto& [setting, component] : this->settingsListeners)
     {
@@ -78,6 +106,87 @@ void SettingsTab::handlePro800SettingsUpdate()
     }
 }
 
+void SettingsTab::updateCurrentPresetGroup()
+{
+    const auto& pointer = getSynthSession().getPointer();
+    const bool known = getSynthSession().isConnected() && pointer.program.has_value();
+
+    value_CurrentPreset.setText (known ? pointer.label() + (pointer.name.empty() ? juce::String() : " \"" + juce::String (pointer.name) + "\"") : juce::String ("-"),
+        juce::dontSendNotification);
+    value_CurrentBank.setText (known ? juce::String::charToString ((juce::juce_wchar) ('A' + *pointer.program / SettingsMessage::PROGRAMS_PER_BANK)) : juce::String ("-"),
+        juce::dontSendNotification);
+}
+
+void SettingsTab::updateChannelItems()
+{
+    using Kind = Pro800MidiChannel::Kind;
+    const auto& channels = getSynthSession().getChannels();
+
+    // the DIP-switch items say which channel the switches select, once the synth has been asked
+    const auto dipText = [&] (const Pro800MidiChannel& channel) {
+        return channel.kind == Kind::DIP && channel.channel > 0 ? "Dip Switches (= channel " + juce::String (channel.channel) + ")" : juce::String ("Dip Switches");
+    };
+    combo_ConnectionsMidiInputChannel.changeItemText (SETTINGS_MIDI_RX_DIPS + COMBO_BOX_ID_OFFSET, dipText (channels.rx));
+    combo_ConnectionsMidiOutputChannel.changeItemText (SETTINGS_MIDI_TX_DIPS + COMBO_BOX_ID_OFFSET, dipText (channels.tx));
+
+    // a value outside the documented range (the synth stores anything and then ignores MIDI) gets an item of its own,
+    // so that the combo can show it; it cannot be chosen, only replaced
+    const auto showInvalid = [] (juce::ComboBox& combo, const Pro800MidiChannel& channel) {
+        if (channel.kind != Kind::INVALID)
+        {
+            return;
+        }
+
+        const int itemId = channel.raw + COMBO_BOX_ID_OFFSET;
+        if (combo.indexOfItemId (itemId) < 0)
+        {
+            combo.addItem ("Invalid value (" + juce::String (channel.raw) + ") - synth ignores MIDI", itemId);
+            combo.setItemEnabled (itemId, false);
+        }
+        combo.setSelectedId (itemId, juce::dontSendNotification);
+    };
+    if (channels.readFromSynth)
+    {
+        showInvalid (combo_ConnectionsMidiInputChannel, channels.rx);
+        showInvalid (combo_ConnectionsMidiOutputChannel, channels.tx);
+    }
+
+    const bool deaf = channels.readFromSynth && (channels.rx.kind == Kind::OFF || channels.rx.kind == Kind::INVALID);
+    combo_ConnectionsMidiInputChannel.setColour (juce::ComboBox::textColourId, deaf ? juce::Colours::orange : getLookAndFeel().findColour (juce::ComboBox::textColourId));
+    combo_ConnectionsMidiInputChannel.setTooltip (deaf ? "The synth ignores notes, program changes and CC on this setting" : juce::String());
+}
+
+void SettingsTab::updateStatusLabel()
+{
+    using State = SynthSession::SettingsWriteStatus::State;
+    const auto& status = getSynthSession().getSettingsWriteStatus();
+
+    juce::String text;
+    juce::Colour colour = getLookAndFeel().findColour (juce::Label::textColourId);
+
+    if (status.state == State::SAVING)
+    {
+        text = status.message;
+    }
+    else if (status.state == State::FAILED)
+    {
+        text = status.message;
+        colour = juce::Colours::orange;
+    }
+    else if (!status.changedOnSynth.empty())
+    {
+        juce::StringArray names;
+        for (const auto setting : status.changedOnSynth)
+        {
+            names.add (PRO800_SETTINGS_FIELDS.at (setting).name);
+        }
+        text = "Changed on the synth: " + names.joinIntoString (", ");
+    }
+
+    label_WriteStatus.setText (text, juce::dontSendNotification);
+    label_WriteStatus.setColour (juce::Label::textColourId, colour);
+}
+
 void SettingsTab::resized()
 {
     const int refreshHeight = 30;
@@ -91,8 +200,8 @@ void SettingsTab::resized()
     auto middleColumn = area.withLeft (groupWidth).withRight (2 * groupWidth);
     auto rightColumn = area.withLeft (2 * groupWidth);
 
-    // the button sits above the right column; the other columns leave the same space so that the groups line up
-    leftColumn.removeFromTop (refreshHeight);
+    // the button sits above the right column, the write status above the other two
+    label_WriteStatus.setBounds (leftColumn.removeFromTop (refreshHeight).withRight (middleColumn.getRight()).withTrimmedRight (8));
     middleColumn.removeFromTop (refreshHeight);
     button_RefreshSettings.setBounds (rightColumn.removeFromTop (refreshHeight));
 
@@ -110,6 +219,7 @@ void SettingsTab::resized()
 
     this->group_Sync.setBounds (leftColumn.removeFromTop (6 * elementHeight));
     this->group_FactoryReset.setBounds (middleColumn.removeFromTop (6 * elementHeight));
+    this->group_CurrentPreset.setBounds (rightColumn.removeFromTop (6 * elementHeight));
 }
 
 // clang-format off
@@ -355,20 +465,34 @@ void SettingsTab::setupGroupFactoryReset()
     addAndMakeVisible(group_FactoryReset);
 }
 
-// clang-format on
-void SettingsTab::setSettingsGroupsEnabled (bool enable)
+void SettingsTab::setupGroupCurrentPreset()
 {
-    this->group_Connections.setEnabled (enable);
-    this->group_Transpose.setEnabled (enable);
+    this->group_CurrentPreset.addComponents( {
+        &label_CurrentPreset, &value_CurrentPreset,
+        &label_CurrentBank,   &value_CurrentBank
+    });
+    this->group_CurrentPreset.addComponent(&label_CurrentPresetHint, 1, 2);
+
+    label_CurrentPresetHint.setFont(juce::FontOptions(13.0f, juce::Font::italic));
+
+    addAndMakeVisible(group_CurrentPreset);
+}
+
+// clang-format on
+void SettingsTab::setSettingsGroupsEnabled (bool settingsAvailable, bool connected)
+{
+    this->group_Connections.setEnabled (settingsAvailable);
+    this->group_Transpose.setEnabled (settingsAvailable);
     this->group_PresetDump.setEnabled (false); // not implemented
-    this->group_Voices.setEnabled (enable);
+    this->group_Voices.setEnabled (settingsAvailable);
     this->group_Tuning.setEnabled (false); // not implemented
     this->group_RetuneEncoder.setEnabled (false); // not implemented
-    this->group_Display.setEnabled (enable);
-    this->group_AutoTune.setEnabled (enable);
-    this->group_Miscellaneous.setEnabled (enable);
-    this->group_Sync.setEnabled (enable);
-    this->group_FactoryReset.setEnabled (true); // always enabled (does not depend on settings)
+    this->group_Display.setEnabled (settingsAvailable);
+    this->group_AutoTune.setEnabled (settingsAvailable);
+    this->group_Miscellaneous.setEnabled (settingsAvailable);
+    this->group_Sync.setEnabled (settingsAvailable);
+    this->group_FactoryReset.setEnabled (connected); // needs no settings, but a synth to reset
+    this->group_CurrentPreset.setEnabled (connected);
 }
 
 void SettingsTab::setupSettingsComponent (Pro800Settings setting, juce::Component* component)

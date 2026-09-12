@@ -142,7 +142,21 @@ void MidiHandler::connectMidiDevices (const juce::String& inputDeviceIdentifier,
 bool MidiHandler::hasOpenDevices() const
 {
     const juce::ScopedLock lock (this->deviceLock);
-    return this->midiInput != nullptr && this->midiOutput != nullptr;
+    return this->testOutput != nullptr || (this->midiInput != nullptr && this->midiOutput != nullptr);
+}
+
+void MidiHandler::setTestTransport (std::function<void (const juce::MidiMessage&)> output)
+{
+    cancelBackgroundSending();
+    cancelExchanges();
+
+    {
+        const juce::ScopedLock lock (this->deviceLock);
+        this->testOutput = std::move (output);
+    }
+
+    this->portOpenedAt = juce::Time::getMillisecondCounterHiRes() - PORT_OPEN_BURST_MS; // no burst window in tests
+    this->recentChannelVoice.clear();
 }
 
 //==============================================================================
@@ -392,6 +406,13 @@ void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
 void MidiHandler::sendMidiMessage (const juce::MidiMessage& message, bool isPolling)
 {
     const juce::ScopedLock lock (this->deviceLock);
+
+    if (this->testOutput != nullptr)
+    {
+        queueEvent (MidiEvent { message, true, isPolling });
+        this->testOutput (message);
+        return;
+    }
 
     if (!this->midiOutput)
     {

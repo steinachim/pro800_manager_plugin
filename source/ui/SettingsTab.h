@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "../session/SynthSession.h"
 #include "MidiComponent.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -25,15 +26,30 @@
 
 #include <map>
 
-class SettingsTab : public juce::Component, public MidiComponent
+/**
+ * The synth's global settings. The session owns the block: every control change goes to
+ * SynthSession::writeSetting() (debounced, written whole, read back until the synth shows it), and the
+ * controls follow the session's block, which the session keeps fresh by polling.
+ */
+class SettingsTab : public juce::Component, public MidiComponent, private SynthSession::Listener
 {
 public:
     SettingsTab (MidiHandler* midiHandler, SynthSession& synthSession);
-    virtual void handlePro800SettingsUpdate() override;
+    ~SettingsTab() override;
 
     void resized() override;
 
 private:
+    // SynthSession::Listener
+    void synthSessionChanged() override;
+    void synthSessionSettingsChanged() override;
+
+    /** Sets every control from the session's settings block. */
+    void refreshFromSettings();
+    void updateCurrentPresetGroup();
+    void updateChannelItems();
+    void updateStatusLabel();
+
     void setupGroupConnections();
     void setupGroupTranspose();
     void setupGroupPresetDump();
@@ -45,13 +61,16 @@ private:
     void setupGroupMiscellaneous();
     void setupGroupSync();
     void setupGroupFactoryReset();
+    void setupGroupCurrentPreset();
 
-    void setSettingsGroupsEnabled (bool enable);
+    /** settingsAvailable: the block has been read (enables the settings groups); connected: enables what only needs the synth. */
+    void setSettingsGroupsEnabled (bool settingsAvailable, bool connected);
 
     void setupSettingsComponent (Pro800Settings setting, juce::Component* component);
     std::map<Pro800Settings, juce::Component*> settingsListeners;
 
     juce::TextButton button_RefreshSettings { "Refresh Settings" };
+    juce::Label label_WriteStatus; // "Saving Brightness...", what did not land, "Changed on the synth: ..."
 
     EqualSpacingGroupComponent group_Connections { "1 - Connections", 255, 10, 2 };
     juce::Label label_ConnectionsMidiInputChannel { "", "MIDI Input Channel" };
@@ -130,6 +149,14 @@ private:
 
     EqualSpacingGroupComponent group_FactoryReset { "0 - Factory Reset", 255, 5 };
     juce::TextButton button_FactoryReset { "Factory Reset" };
+
+    // read-only: the selection pointer (Current Preset Number / Current Bank), followed by the session
+    EqualSpacingGroupComponent group_CurrentPreset { "Current Preset", 255, 5, 2 };
+    juce::Label label_CurrentPreset { "", "Preset" };
+    juce::Label value_CurrentPreset;
+    juce::Label label_CurrentBank { "", "Bank" };
+    juce::Label value_CurrentBank;
+    juce::Label label_CurrentPresetHint { "", "Selected on the synth, or with Load in Program Management" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SettingsTab)
 };

@@ -28,6 +28,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <map>
 #include <memory>
 #include <variant>
@@ -92,6 +93,12 @@ public:
     void connectMidiDevices (const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier);
     bool hasOpenDevices() const;
 
+    /**
+     * For tests: a stand-in for the MIDI devices. Everything sent goes to `output` instead of a device (nullptr
+     * restores the devices); replies are injected with handleIncomingMidiMessage(). Counts as open devices.
+     */
+    void setTestTransport (std::function<void (const juce::MidiMessage&)> output);
+
     void registerMidiCCComponent (MidiComponent* component);
     void unregisterMidiCCComponent (MidiComponent* component);
 
@@ -145,10 +152,10 @@ public:
     /** Stops a running background sequence; returns once the sender thread has stopped. */
     void cancelBackgroundSending();
 
-private:
-    // MidiInputCallback (MIDI driver thread)
+    // MidiInputCallback (MIDI driver thread; also the injection point of the test transport)
     void handleIncomingMidiMessage (juce::MidiInput* source, const juce::MidiMessage& message) override;
 
+private:
     // AsyncUpdater (message thread)
     void handleAsyncUpdate() override;
 
@@ -199,6 +206,7 @@ private:
     juce::CriticalSection deviceLock;
     std::unique_ptr<juce::MidiInput> midiInput;
     std::unique_ptr<juce::MidiOutput> midiOutput;
+    std::function<void (const juce::MidiMessage&)> testOutput;
 
     juce::Array<MidiComponent*> midiCCComponents;
     std::map<MessageType, juce::Array<MidiComponent*>> midiComponents;

@@ -26,6 +26,8 @@
 #include "../midi/StatusMessage.h"
 #include "../midi/VersionMessage.h"
 
+#include <algorithm>
+
 namespace
 {
     juce::String programLabel (int program)
@@ -177,6 +179,7 @@ SynthSession::~SynthSession()
 {
     this->masterReference.clear(); // from here on no callback reaches this object
     stopTimer();
+    this->writeDebounce.stopTimer();
     this->midiHandler.removeListener (this);
     this->midiHandler.cancelExchanges();
 }
@@ -207,6 +210,9 @@ void SynthSession::connect()
     this->pointerProgram = nullptr;
     this->pointerProgramReadFor.reset();
     this->pendingWrites.clear();
+    this->failedWrites.clear();
+    this->writeDebounce.stopTimer();
+    this->settingsWriteStatus = SettingsWriteStatus();
     this->lastError.clear();
 
     if (!this->midiHandler.hasOpenDevices())
@@ -291,6 +297,10 @@ void SynthSession::disconnect()
     this->pointer = Pointer();
     this->provenance = Provenance();
     this->activity.clear();
+    this->writeDebounce.stopTimer();
+    this->pendingWrites.clear();
+    this->failedWrites.clear();
+    this->settingsWriteStatus = SettingsWriteStatus();
     notify();
 }
 
@@ -425,14 +435,106 @@ void SynthSession::writeSetting (Pro800Settings setting, int value)
 
     // the block the components look at is patched in place, so they show the new value right away
     this->settings->setValue (setting, value);
-    this->pendingWrites[setting] = { value, juce::Time::getMillisecondCounterHiRes() + WRITE_CONFIRM_WINDOW_MS };
+    this->pendingWrites[setting] = { value, juce::Time::getMillisecondCounterHiRes() + WRITE_DEBOUNCE_MS + WRITE_CONFIRM_WINDOW_MS };
 
-    const juce::String name = PRO800_SETTINGS_FIELDS.at (setting).name;
-    writeSettings (std::make_shared<SettingsMessage> (*this->settings), [this, name] (bool accepted) {
+    // one block write for a run of changes (a spin box fires per click)
+    this->writeDebounce.onFire = [weak = juce::WeakReference<SynthSession> (this)] {
+        if (weak != nullptr)
+        {
+            weak->flushPendingWrites();
+        }
+    };
+    this->writeDebounce.startTimer (WRITE_DEBOUNCE_MS);
+
+    this->settingsWriteStatus.state = SettingsWriteStatus::State::SAVING;
+    this->settingsWriteStatus.message = "Saving " + juce::String (PRO800_SETTINGS_FIELDS.at (setting).name) + "...";
+    this->settingsWriteStatus.changedOnSynth.clear();
+    notify();
+}
+
+void SynthSession::flushPendingWrites()
+{
+    if (this->settings == nullptr || this->pendingWrites.empty())
+    {
+        return;
+    }
+
+    juce::StringArray names;
+    const double deadline = juce::Time::getMillisecondCounterHiRes() + WRITE_CONFIRM_WINDOW_MS;
+    for (auto& [setting, pending] : this->pendingWrites)
+    {
+        if (!pending.written)
+        {
+            pending.written = true;
+            pending.deadline = deadline;
+            names.add (PRO800_SETTINGS_FIELDS.at (setting).name);
+        }
+    }
+
+    writeSettings (std::make_shared<SettingsMessage> (*this->settings), [this, names] (bool accepted) {
         if (!accepted)
         {
-            fail ("The synth did not accept the new " + name + ".");
+            fail ("The synth did not accept the new " + names.joinIntoString (", ") + ".");
         }
+    });
+
+    verifyPendingWrites();
+}
+
+void SynthSession::verifyPendingWrites()
+{
+    if (this->verifyingWrites)
+    {
+        return; // the running loop picks up whatever was added meanwhile
+    }
+    this->verifyingWrites = true;
+
+    juce::Timer::callAfterDelay (WRITE_CONFIRM_STEP_MS, [weak = juce::WeakReference<SynthSession> (this)] {
+        if (weak == nullptr)
+        {
+            return;
+        }
+
+        weak->readSettings (false, [weak] (std::shared_ptr<SettingsMessage> newSettings) {
+            if (weak == nullptr)
+            {
+                return;
+            }
+
+            weak->verifyingWrites = false;
+
+            if (newSettings != nullptr)
+            {
+                weak->applySettings (newSettings); // confirms or expires the pending writes
+            }
+
+            const bool stillPending = std::any_of (weak->pendingWrites.begin(), weak->pendingWrites.end(), [] (const auto& entry) { return entry.second.written; });
+            if (stillPending || weak->writeDebounce.isTimerRunning())
+            {
+                weak->verifyPendingWrites();
+                return;
+            }
+
+            // everything has either landed or given up
+            auto& status = weak->settingsWriteStatus;
+            if (weak->failedWrites.empty())
+            {
+                status.state = SettingsWriteStatus::State::IDLE;
+                status.message.clear();
+            }
+            else
+            {
+                juce::StringArray what;
+                for (const auto& [setting, pending] : weak->failedWrites)
+                {
+                    what.add (juce::String (PRO800_SETTINGS_FIELDS.at (setting).name) + " = " + juce::String (pending.value) + " (it reads back " + juce::String (pending.readBack) + ")");
+                }
+                status.state = SettingsWriteStatus::State::FAILED;
+                status.message = "The synth did not take " + what.joinIntoString (", ") + ". Is a settings menu open on the synth?";
+                weak->failedWrites.clear();
+            }
+            weak->notify();
+        });
     });
 }
 
@@ -730,15 +832,52 @@ void SynthSession::applySettings (std::shared_ptr<SettingsMessage> newSettings)
 
 void SynthSession::applySettings (std::shared_ptr<SettingsMessage> newSettings, std::optional<int> dipSum)
 {
-    if (newSettings != this->settings)
+    const bool freshRead = (newSettings != this->settings);
+    if (freshRead)
     {
+        // the front panel is a second writer to this block: closing a settings menu on the synth commits its value
+        std::vector<Pro800Settings> changedOnSynth;
+        if (this->settings != nullptr && this->settings->isValid())
+        {
+            for (const auto& [setting, parameter] : PRO800_SETTINGS_FIELDS)
+            {
+                if (setting != Pro800Settings::PRESET_NUM && setting != Pro800Settings::CURRENT_BANK && this->pendingWrites.count (setting) == 0
+                    && newSettings->getValue (setting) != this->settings->getValue (setting))
+                {
+                    changedOnSynth.push_back (setting);
+                }
+            }
+        }
+
         protectPendingWrites (*newSettings);
+
+        if (!changedOnSynth.empty() && this->settingsWriteStatus.state == SettingsWriteStatus::State::IDLE)
+        {
+            this->settingsWriteStatus.changedOnSynth = changedOnSynth;
+            juce::Timer::callAfterDelay (CHANGED_ON_SYNTH_NOTICE_MS, [weak = juce::WeakReference<SynthSession> (this)] {
+                if (weak != nullptr)
+                {
+                    weak->settingsWriteStatus.changedOnSynth.clear();
+                    weak->notify();
+                }
+            });
+        }
     }
     this->settings = newSettings;
     this->channels.rx = Pro800ChannelResolver::resolveRx (newSettings->getValue (Pro800Settings::MIDI_RX_CHANNEL), dipSum);
     this->channels.tx = Pro800ChannelResolver::resolveTx (newSettings->getValue (Pro800Settings::MIDI_TX_CHANNEL), dipSum);
     this->channels.readFromSynth = true;
     applyChannels();
+
+    if (freshRead)
+    {
+        notifySettingsChanged();
+    }
+}
+
+void SynthSession::notifySettingsChanged()
+{
+    this->listeners.call ([] (Listener& l) { l.synthSessionSettingsChanged(); });
 }
 
 void SynthSession::protectPendingWrites (SettingsMessage& newSettings)
@@ -747,21 +886,25 @@ void SynthSession::protectPendingWrites (SettingsMessage& newSettings)
 
     for (auto it = this->pendingWrites.begin(); it != this->pendingWrites.end();)
     {
-        const auto& [setting, pending] = *it;
+        auto& [setting, pending] = *it;
+        const int readBack = newSettings.getValue (setting);
 
-        if (newSettings.getValue (setting) == pending.value)
+        if (pending.written && readBack == pending.value)
         {
             it = this->pendingWrites.erase (it); // the synth shows it: confirmed
         }
-        else if (now >= pending.deadline)
+        else if (pending.written && now >= pending.deadline)
         {
             juce::Logger::writeToLog ("[WARNING] SynthSession: the synth never showed the new " + juce::String (PRO800_SETTINGS_FIELDS.at (setting).name)
-                                      + " (" + juce::String (pending.value) + "); it reads " + juce::String (newSettings.getValue (setting)));
-            it = this->pendingWrites.erase (it);
+                                      + " (" + juce::String (pending.value) + "); it reads " + juce::String (readBack));
+            pending.readBack = readBack;
+            this->failedWrites.emplace_back (setting, pending);
+            it = this->pendingWrites.erase (it); // the block keeps what the synth shows
         }
         else
         {
-            // a read within the synth's commit lag: keep what we wrote, or the next settings change would write the old value back
+            // not sent yet, or a read within the synth's commit lag: keep what we wrote, or the next settings change
+            // would write the old value back
             newSettings.setValue (setting, pending.value);
             ++it;
         }
@@ -799,7 +942,7 @@ void SynthSession::notify()
 //==============================================================================
 void SynthSession::timerCallback()
 {
-    if (!isConnected() || isBusy() || this->midiHandler.isExchangeBusy() || this->midiHandler.isBackgroundSending()
+    if (!isConnected() || isBusy() || this->verifyingWrites || this->midiHandler.isExchangeBusy() || this->midiHandler.isBackgroundSending()
         || this->midiHandler.channelVoiceSentWithin (CHANNEL_VOICE_QUIET_MS))
     {
         return;
