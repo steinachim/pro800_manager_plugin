@@ -22,6 +22,7 @@
 
 #include "PluginProcessor.h"
 #include "ui/MainWidget.h"
+#include "ui/MidiComponent.h"
 #include "ui/MidiDeviceComboBox.h"
 #include <memory>
 

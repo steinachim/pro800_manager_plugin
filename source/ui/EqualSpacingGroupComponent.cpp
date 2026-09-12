@@ -1,4 +1,4 @@
-/** 
+/**
  * Pro800 Manager Plugin
  * Copyright (C) 2025 Achim Stein
  *
@@ -47,27 +47,28 @@ void EqualSpacingGroupComponent::resized()
 {
     auto area = getLocalBounds().reduced(10);
     area.removeFromTop(15);
-    
-    int fullWidth = area.getWidth();
-    int fullHeight = area.getHeight();
 
-    int colWidth = fullWidth/numCols;
-    int rowHeight = fullHeight/numRows;
+    const int fullWidth = area.getWidth();
+    const int fullHeight = area.getHeight();
+
+    const int colWidth = fullWidth / numCols;
+    const int rowHeight = fullHeight / numRows;
 
     int col = 0;
     int row = 0;
-    for( auto *widget : children )
+    for ( auto *widget : getChildren() )
     {
-       int widgetHeight = (int)(fullHeight * rowSpan[widget] / numRows);
-       int widgetWidth = (int)(fullWidth * colSpan[widget] / numCols);
-       widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight).reduced(innerMargin));
+        const Span span = spanOf(widget);
+        const int widgetHeight = fullHeight * span.rows / numRows;
+        const int widgetWidth = fullWidth * span.cols / numCols;
+        widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight).reduced(innerMargin));
 
-       col+= colSpan[widget];
-       if ( col >= numCols ) // >=: a span that overshoots the row must still wrap
-       {
-        col = 0;
-        row+= rowSpan[widget];
-       }
+        col += span.cols;
+        if ( col >= numCols ) // >=: a span that overshoots the row must still wrap
+        {
+            col = 0;
+            row += span.rows;
+        }
     }
 }
 
@@ -76,14 +77,31 @@ void EqualSpacingGroupComponent::addComponent(juce::Component *component, int ro
     addComponents( {component}, {rows}, {cols});
 }
 
-void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> &rows, const juce::Array<int> &cols)
+void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> &rowSpans, const juce::Array<int> &colSpans)
 {
     for ( int i = 0; i < components.size(); i++ )
     {
-        // spans default to 1 where no (or no more) values were given; juce::Array returns 0 for a missing index
-        this->rowSpan.set(components[i], i < rows.size() ? juce::jmax(1, rows[i]) : 1);
-        this->colSpan.set(components[i], i < cols.size() ? juce::jmax(1, cols[i]) : 1);
-        this->children.add(components[i]);
+        // spans default to 1 where no (or no more) values were given
+        Span span;
+        span.rows = i < rowSpans.size() ? juce::jmax(1, rowSpans[i]) : 1;
+        span.cols = i < colSpans.size() ? juce::jmax(1, colSpans[i]) : 1;
+
+        this->spans[components[i]] = span;
         addAndMakeVisible(components[i]);
+    }
+}
+
+EqualSpacingGroupComponent::Span EqualSpacingGroupComponent::spanOf(juce::Component *component) const
+{
+    const auto entry = this->spans.find(component);
+    return entry != this->spans.end() ? entry->second : Span();
+}
+
+void EqualSpacingGroupComponent::childrenChanged()
+{
+    const auto &children = getChildren();
+    for ( auto entry = this->spans.begin(); entry != this->spans.end(); )
+    {
+        entry = children.contains(entry->first) ? std::next(entry) : this->spans.erase(entry);
     }
 }

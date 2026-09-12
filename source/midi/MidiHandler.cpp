@@ -267,6 +267,27 @@ void MidiHandler::sendProgramChange (uint8_t program)
     sendMidiMessage(juce::MidiMessage::programChange (midiChannel, (int) program));
 }
 
+void MidiHandler::loadProgram(const ProgramMessage& program)
+{
+    const uint16_t programNumber = program.getProgramNumber();
+    const auto bank = (uint8_t) (programNumber / 100);
+    const auto programInBank = (uint8_t) (programNumber % 100);
+
+    sendMidiCCMessage(Pro800CCMessages::BANK_SELECT, bank);
+    sendProgramChange(programInBank);
+
+    if ( !program.isValid() )
+    {
+        return; // an empty placeholder: the synth has the real data, our controls have nothing to show
+    }
+
+    const juce::Array<MidiComponent *> ccComponents(this->midiCCComponents);
+    for ( auto *component : ccComponents )
+    {
+        component->loadFromProgram(program);
+    }
+}
+
 void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
 {
     const juce::ScopedLock lock(this->deviceLock);

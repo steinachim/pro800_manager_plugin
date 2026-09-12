@@ -19,28 +19,15 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "MidiComponent.h"
 
 class MidiHandler;
 
+/** The tab bar holding the plugin's pages. The tabs talk to each other through the MidiHandler, not through this class. */
 class MainWidget : public juce::TabbedComponent
 {
 public:
-    MainWidget(MidiHandler *midiHandler);
-    ~MainWidget() override;
-
-    void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
+    explicit MainWidget(MidiHandler *midiHandler);
 
 private:
-    enum TabIds
-    {
-      TAB_FRONTPANEL = 0,
-      TAB_PERFORMANCE,
-      TAB_SETTINGS,
-      TAB_PROGRAM,
-      TAB_ADVANCED
-    };
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWidget)
-
 };

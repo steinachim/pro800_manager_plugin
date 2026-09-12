@@ -107,13 +107,9 @@ void MidiComponent::requestProgramDump()
     this->midiHandler->requestProgramDump();
 }
 
-void MidiComponent::loadProgram(uint16_t programNumber)
+void MidiComponent::loadProgram(const ProgramMessage &program)
 {
-    uint8_t program = programNumber % 100; // range 0-99
-    uint8_t bank = (uint8_t)(programNumber / 100);
-    
-    this->midiHandler->sendMidiCCMessage(Pro800CCMessages::BANK_SELECT, bank);
-    this->midiHandler->sendProgramChange(program);
+    this->midiHandler->loadProgram(program);
 }
 
 void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800MidiMessage> &message)
@@ -325,7 +321,7 @@ void MidiComponent::setComponentValue (juce::Component* component, int value, in
     }
 }
 
-void MidiComponent::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
+void MidiComponent::loadFromProgram(const ProgramMessage &program)
 {
     for (const auto &[midiCC, components] : this->registeredCCComponents)
     {
@@ -335,12 +331,12 @@ void MidiComponent::loadFromProgram(const std::shared_ptr<ProgramMessage> &progr
 
             if (field == Pro800ProgramField::LFO_DEST)
             {
-                int value = programMessage->getLfoDestinationValue (getMidiCC(*component));
+                int value = program.getLfoDestinationValue (getMidiCC(*component));
                 setComponentValue (component, value);
             }
             else if (field != Pro800ProgramField::NONE)
             {
-                int value = programMessage->getValue (field);
+                int value = program.getValue (field);
                 setComponentValue (component, value, 65535);
             }
         }

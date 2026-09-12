@@ -22,9 +22,8 @@
 #include "../midi/Pro800MessageFactory.h"
 #include "ProgramModel.h"
 
-ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget *parent) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM})
+ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM})
 {
-    this->mainWidget = parent;
     model_ProgramListSynth = std::make_unique<ProgramModel>(ProgramModel::SYNTH, &listBox_ProgramListSynth);
     model_ProgramListLocal = std::make_unique<ProgramModel>(ProgramModel::LOCAL, &listBox_ProgramListLocal);
     listBox_ProgramListSynth.setModel(model_ProgramListSynth.get());
@@ -243,13 +242,7 @@ void ProgramManagementTab::loadSelectedProgram()
         return;
     }
 
-    // the synth has the real data even if our list only holds a placeholder, so always switch programs
-    loadProgram(programMessage->getProgramNumber());
-
-    if ( programMessage->isValid() )
-    {
-        this->mainWidget->loadFromProgram(programMessage);
-    }
+    loadProgram(*programMessage);
 }
 
 //==============================================================================

@@ -71,7 +71,8 @@ public:
 
     void requestFactoryReset();
     void requestProgramDump();
-    void loadProgram(uint16_t programNumber);
+    /** Switches the synth to the program and updates the mirroring controls, see MidiHandler::loadProgram(). */
+    void loadProgram(const ProgramMessage &program);
 
     /** Writes the programs to the synth, paced in the background so that the UI stays responsive. */
     void sendPrograms(const std::vector<std::shared_ptr<ProgramMessage>> &programs);
@@ -79,7 +80,8 @@ public:
     /** Sends an arbitrary message to the synth immediately. */
     void sendMidiMessage(const juce::MidiMessage &message);
 
-    virtual void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
+    /** Sets this component's CC-linked controls from the program. */
+    virtual void loadFromProgram(const ProgramMessage &program);
 
 protected:
     MidiHandler &getMidiHandler() const;

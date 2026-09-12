@@ -18,9 +18,6 @@
 
 #include "MainWidget.h"
 
-#include "../midi/MidiHandler.h"
-#include "../midi/VersionMessage.h"
-
 #include "FrontPanelTab.h"
 #include "SettingsTab.h"
 #include "AdvancedTab.h"
@@ -31,29 +28,10 @@ MainWidget::MainWidget(MidiHandler *midiHandler) : TabbedComponent(juce::TabbedB
 {
     auto colour = findColour (juce::ResizableWindow::backgroundColourId);
 
-    addTab("Front Panel", colour, new FrontPanelTab(midiHandler), true, TAB_FRONTPANEL);
-    addTab("Performance", colour, new PerformanceTab(midiHandler), true, TAB_PERFORMANCE);
-    addTab("Settings", colour, new SettingsTab(midiHandler), true, TAB_SETTINGS);
-    addTab("Program Management", colour, new ProgramManagementTab(midiHandler, this), true, TAB_PROGRAM);
-    addTab("Advanced", colour, new AdvancedTab(midiHandler), true, TAB_ADVANCED);
-}
-
-MainWidget::~MainWidget()
-{
-    
-}
-
-void MainWidget::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
-{
-    auto* frontPanelTab = dynamic_cast<FrontPanelTab*>(getTabContentComponent(TAB_FRONTPANEL));
-    if ( frontPanelTab != nullptr )
-    {
-        frontPanelTab->loadFromProgram(programMessage);
-    }
-
-    auto* performanceTab = dynamic_cast<PerformanceTab*>(getTabContentComponent(TAB_PERFORMANCE));
-    if ( performanceTab != nullptr )
-    {
-        performanceTab->loadFromProgram(programMessage);
-    }
+    // the tabs are owned by this TabbedComponent (deleteComponentWhenNotNeeded = true)
+    addTab("Front Panel",        colour, new FrontPanelTab(midiHandler),        true);
+    addTab("Performance",        colour, new PerformanceTab(midiHandler),       true);
+    addTab("Settings",           colour, new SettingsTab(midiHandler),          true);
+    addTab("Program Management", colour, new ProgramManagementTab(midiHandler), true);
+    addTab("Advanced",           colour, new AdvancedTab(midiHandler),          true);
 }

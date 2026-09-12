@@ -32,6 +32,7 @@
 #include <vector>
 
 class MidiComponent;
+class ProgramMessage;
 
 /**
  * Owns the MIDI devices and dispatches everything that is sent or received to the registered
@@ -79,6 +80,13 @@ public:
 
     void sendMidiCCMessage(Pro800CCMessages midiCC, uint8_t value);
     void sendProgramChange (uint8_t program);
+
+    /**
+     * Switches the synth to the program's slot and, if the program is valid, sets the controls of all
+     * CC components from it. (The Pro-800 cannot be asked for its current state, so the controls are
+     * updated from the data we have.)
+     */
+    void loadProgram(const ProgramMessage& program);
 
     /** Sends immediately. Thread-safe. */
     void sendMidiMessage(const juce::MidiMessage& message);

@@ -22,7 +22,6 @@
 
 #include "MidiComponent.h"
 #include "LocalProgramListBox.h"
-#include "MainWidget.h"
 #include "../midi/MidiHandler.h"
 
 #include <memory>
@@ -33,7 +32,7 @@ class ProgramModel;
 class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private MidiHandler::Listener
 {
 public:
-    ProgramManagementTab(MidiHandler *handler, MainWidget *parent);
+    explicit ProgramManagementTab(MidiHandler *handler);
     virtual ~ProgramManagementTab() override;
 
     void resized() override;
@@ -88,8 +87,6 @@ private:
     std::unique_ptr<ProgramModel> model_ProgramListLocal;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
-
-    MainWidget *mainWidget = nullptr; // non-owning: MainWidget owns this tab
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ProgramManagementTab)
 };
