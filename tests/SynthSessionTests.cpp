@@ -248,6 +248,25 @@ TEST_CASE ("SynthSession: a preset selected on the synth is followed, and counts
     REQUIRE (bench.session.getProvenance().program == 7);
 }
 
+TEST_CASE ("SynthSession: a preset selected on the synth after a Load is followed too", "[session][select]")
+{
+    // the pointer written by a Load is protected against stale read-backs only until the synth shows it; once it
+    // has, the block read by each poll is the synth's own again, including a preset picked on its front panel
+    Bench bench;
+    bench.connect();
+
+    bench.session.selectProgram (105);
+    REQUIRE (bench.messageThread.runUntil ([&bench] { return !bench.session.isBusy(); }, 4000));
+    REQUIRE (bench.session.getPointer().program == 105);
+
+    bench.synth.setSetting (Pro800Settings::PRESET_NUM, 7);
+    bench.synth.setSetting (Pro800Settings::CURRENT_BANK, 0);
+
+    REQUIRE (bench.messageThread.runUntil ([&bench] { return bench.session.getPointer().program == 7; }, 2 * SynthSession::POLL_INTERVAL_MS + 2000));
+    REQUIRE (bench.session.getPointer().name == "Flute");
+    REQUIRE (bench.session.getSettings()->getValue (Pro800Settings::PRESET_NUM) == 7);
+}
+
 TEST_CASE ("SynthSession: a synth that stops answering ends the connection instead of being polled forever", "[session]")
 {
     Bench bench;

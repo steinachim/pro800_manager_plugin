@@ -339,10 +339,13 @@ void SynthSession::selectProgram (int program)
         this->settings->setCurrentProgram (program);
         auto patched = std::make_shared<SettingsMessage> (*this->settings);
 
-        // until the synth shows the new pointer, a settings change must not write the old one back
+        // until the synth shows the new pointer, a settings change must not write the old one back. Marked as
+        // written: only a written entry is confirmed or expired by protectPendingWrites(), and one that never is
+        // would put this pointer back over every block read from then on - a preset picked on the synth's own
+        // panel would go unnoticed.
         const double deadline = juce::Time::getMillisecondCounterHiRes() + WRITE_CONFIRM_WINDOW_MS;
-        this->pendingWrites[Pro800Settings::PRESET_NUM] = { patched->getValue (Pro800Settings::PRESET_NUM), deadline };
-        this->pendingWrites[Pro800Settings::CURRENT_BANK] = { patched->getValue (Pro800Settings::CURRENT_BANK), deadline };
+        this->pendingWrites[Pro800Settings::PRESET_NUM] = { patched->getValue (Pro800Settings::PRESET_NUM), deadline, true };
+        this->pendingWrites[Pro800Settings::CURRENT_BANK] = { patched->getValue (Pro800Settings::CURRENT_BANK), deadline, true };
 
         this->pointer.freshness = PointerFreshness::PENDING;
         notify();
