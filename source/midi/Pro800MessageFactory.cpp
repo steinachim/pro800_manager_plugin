@@ -43,7 +43,7 @@ std::shared_ptr<Pro800MidiMessage> Pro800MessageFactory::createMidiMessage(const
         // note: SettingsMessage is a program message with a specific address
         const size_t addressLowPos = Pro800MidiMessage::POS_MESSAGE_TYPE + 1;
         const size_t addressHighPos = Pro800MidiMessage::POS_MESSAGE_TYPE + 2;
-        if ( rawData.size() <= addressHighPos )
+        if ( !pro800Message->isDataPosition(addressHighPos) )
         {
             // too short to carry an address: neither a settings nor a program dump
             return pro800Message;

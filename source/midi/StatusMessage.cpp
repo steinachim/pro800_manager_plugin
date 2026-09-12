@@ -30,8 +30,7 @@ StatusMessage::StatusMessage(const juce::MidiMessage &message) : Pro800MidiMessa
 
 bool StatusMessage::isValid() const
 {
-    // the status byte must exist, i.e. the message must be longer than its position
-    return Pro800MidiMessage::isValid() && (getRawDataSize() > POS_STATUS_BYTE);
+    return Pro800MidiMessage::isValid() && isDataPosition(POS_STATUS_BYTE);
 }
 
 juce::String StatusMessage::toString() const

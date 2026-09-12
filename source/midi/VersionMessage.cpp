@@ -32,8 +32,7 @@ VersionMessage::VersionMessage(const juce::MidiMessage &message) : Pro800MidiMes
 
 bool VersionMessage::isValid() const
 {
-    // the last version byte must exist, i.e. the message must be longer than its position
-    return Pro800MidiMessage::isValid() && (getRawDataSize() > VERSION_FIELD_3);
+    return Pro800MidiMessage::isValid() && isDataPosition(VERSION_FIELD_3);
 }
 
 juce::String VersionMessage::toString() const

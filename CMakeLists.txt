@@ -144,5 +144,8 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 # IPP support, comment out to disable
 include(PamplejuceIPP)
 
+# Unit tests (Catch2) in /tests, run with ctest or the Tests executable
+include(Tests)
+
 # Output some config for CI (like our PRODUCT_NAME)
 include(GitHubENV)

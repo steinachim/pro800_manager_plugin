@@ -61,6 +61,11 @@ size_t Pro800MidiMessage::getRawDataSize() const
     return this->rawData.size();
 }
 
+bool Pro800MidiMessage::isDataPosition(size_t position) const
+{
+    return position > 0 && position + 1 < this->rawData.size();
+}
+
 bool Pro800MidiMessage::isValid() const
 {
     if( this->rawData.size() <= POS_MESSAGE_TYPE )// long enough to at least have a response type?

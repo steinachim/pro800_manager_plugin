@@ -1,4 +1,4 @@
-/** 
+/**
  * Pro800 Manager Plugin
  * Copyright (C) 2025 Achim Stein
  *
@@ -16,22 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  **/
 
-#pragma once
+#include <catch2/catch_session.hpp>
 
-#include "StatusMessage.h"
-
-class Pro800FactoryResetMessage : public Pro800MidiMessage
+int main(int argc, char *argv[])
 {
-public:
-    static constexpr uint8_t REQUEST_ID = 0x7D;
-    static constexpr uint8_t RESPONSE_ID = StatusMessage::RESPONSE_ID;
-
-    static juce::MidiMessage request()
-    {
-        return makeRequest({REQUEST_ID, 0x00});
-    }
-
-private:
-    // request only, no dedicated response: not meant to be instantiated
-    Pro800FactoryResetMessage() = delete;
-};
+    return Catch::Session().run(argc, argv);
+}

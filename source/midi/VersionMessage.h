@@ -25,8 +25,8 @@
 class VersionMessage : public Pro800MidiMessage
 {
 public:
-    static const unsigned char REQUEST_ID = 0x08;
-    static const unsigned char RESPONSE_ID = 0x09;
+    static constexpr uint8_t REQUEST_ID = 0x08;
+    static constexpr uint8_t RESPONSE_ID = 0x09;
 
     static juce::MidiMessage request();
 

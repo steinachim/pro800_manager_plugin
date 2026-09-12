@@ -28,12 +28,12 @@
 class Pro800DataMessage : public Pro800MidiMessage
 {
 public:
-    static const uint8_t REQUEST_ID = 0x77;
-    static const uint8_t RESPONSE_ID = 0x78;
+    static constexpr uint8_t REQUEST_ID = 0x77;
+    static constexpr uint8_t RESPONSE_ID = 0x78;
 
-    static const uint8_t ADDRESS_LSB_POS = 0x09;
-    static const uint8_t ADDRESS_MSB_POS = 0x0A;
-    static const uint8_t DATA_START_POS = 0x0B;
+    static constexpr size_t ADDRESS_LSB_POS = 0x09;
+    static constexpr size_t ADDRESS_MSB_POS = 0x0A;
+    static constexpr size_t DATA_START_POS = 0x0B;
    
     const static inline std::vector<uint8_t> EMPTY_MESSAGE = {
         0xF0,

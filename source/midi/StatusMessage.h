@@ -32,7 +32,7 @@ public:
         STATUS_INVALID = 0xFF
     };
 
-    static const uint8_t RESPONSE_ID = 0x01;
+    static constexpr uint8_t RESPONSE_ID = 0x01;
 
     explicit StatusMessage(const juce::MidiMessage &message);
     virtual MessageType getMessageType() const override { return MessageType::PRO800_STATUS_MESSAGE;}
@@ -49,5 +49,5 @@ protected:
 private:
     static const std::map<Status, const char *> STATUS_STRING;
 
-    static const int POS_STATUS_BYTE = 0x0A;
+    static constexpr size_t POS_STATUS_BYTE = 0x0A;
 };

@@ -28,10 +28,10 @@
 class SettingsMessage : public Pro800DataMessage
 {
 public:
-    static const unsigned short SETTINGS_MESSAGE_SIZE = 58;
+    static constexpr size_t SETTINGS_MESSAGE_SIZE = 58;
 
-    static const unsigned char ADDRESS_LOW = 0x7E;
-    static const unsigned char ADDRESS_HIGH = 0x03;
+    static constexpr uint8_t ADDRESS_LOW = 0x7E;
+    static constexpr uint8_t ADDRESS_HIGH = 0x03;
 
     static juce::MidiMessage request();
 

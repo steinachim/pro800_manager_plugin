@@ -58,6 +58,9 @@ public:
     const std::vector<uint8_t> &getRawData() const;
     size_t getRawDataSize() const;
 
+    /** True if the position holds a data byte, i.e. lies strictly between the leading F0 and the trailing F7. */
+    bool isDataPosition(size_t position) const;
+
 protected:
     // builds a complete SysEx request: F0 <PRO800_HEADER> <payload> F7
     static juce::MidiMessage makeRequest(std::initializer_list<uint8_t> payload);
