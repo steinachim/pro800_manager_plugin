@@ -75,43 +75,73 @@ std::optional<int> Pro800ChannelResolver::dipChannelFromPanel (const std::map<Pr
     return sum;
 }
 
-static Pro800MidiChannel resolve (int raw, std::optional<int> dipSum, Pro800MidiChannel::Kind kindForZero, bool offIsValid)
+namespace
 {
-    Pro800MidiChannel result;
-    result.raw = raw;
-
-    if (raw == SETTINGS_MIDI_RX_ALL)
+    Pro800MidiChannel fromDips (int raw, std::optional<int> dipSum)
     {
-        result.kind = kindForZero;
-    }
-    else if (raw == SETTINGS_MIDI_RX_DIPS)
-    {
+        Pro800MidiChannel result;
+        result.raw = raw;
         result.kind = Pro800MidiChannel::Kind::DIP;
         result.channel = dipSum.has_value() ? *dipSum + 1 : 0;
-    }
-    else if (raw >= SETTINGS_MIDI_RX_1 && raw <= SETTINGS_MIDI_RX_16)
-    {
-        result.kind = Pro800MidiChannel::Kind::CHANNEL;
-        result.channel = raw - SETTINGS_MIDI_RX_1 + 1;
-    }
-    else if (offIsValid && raw == SETTINGS_MIDI_RX_OFF)
-    {
-        result.kind = Pro800MidiChannel::Kind::OFF;
-    }
-    else
-    {
-        result.kind = Pro800MidiChannel::Kind::INVALID;
+        return result;
     }
 
-    return result;
+    Pro800MidiChannel fixedChannel (int raw, int channel)
+    {
+        Pro800MidiChannel result;
+        result.raw = raw;
+        result.kind = Pro800MidiChannel::Kind::CHANNEL;
+        result.channel = channel;
+        return result;
+    }
+
+    Pro800MidiChannel plain (int raw, Pro800MidiChannel::Kind kind)
+    {
+        Pro800MidiChannel result;
+        result.raw = raw;
+        result.kind = kind;
+        return result;
+    }
 }
 
 Pro800MidiChannel Pro800ChannelResolver::resolveRx (int raw, std::optional<int> dipSum)
 {
-    return resolve (raw, dipSum, Pro800MidiChannel::Kind::ALL, true);
+    using Kind = Pro800MidiChannel::Kind;
+
+    if (raw == SETTINGS_MIDI_RX_ALL)
+    {
+        return plain (raw, Kind::ALL);
+    }
+    if (raw == SETTINGS_MIDI_RX_DIPS)
+    {
+        return fromDips (raw, dipSum);
+    }
+    if (raw >= SETTINGS_MIDI_RX_1 && raw <= SETTINGS_MIDI_RX_16)
+    {
+        return fixedChannel (raw, raw - SETTINGS_MIDI_RX_1 + 1);
+    }
+    if (raw == SETTINGS_MIDI_RX_OFF)
+    {
+        return plain (raw, Kind::OFF);
+    }
+    return plain (raw, Kind::INVALID);
 }
 
 Pro800MidiChannel Pro800ChannelResolver::resolveTx (int raw, std::optional<int> dipSum)
 {
-    return resolve (raw, dipSum, Pro800MidiChannel::Kind::THRU, false);
+    using Kind = Pro800MidiChannel::Kind;
+
+    if (raw == SETTINGS_MIDI_TX_THRU)
+    {
+        return plain (raw, Kind::THRU);
+    }
+    if (raw == SETTINGS_MIDI_TX_DIPS)
+    {
+        return fromDips (raw, dipSum);
+    }
+    if (raw >= SETTINGS_MIDI_TX_1 && raw <= SETTINGS_MIDI_TX_16)
+    {
+        return fixedChannel (raw, raw - SETTINGS_MIDI_TX_1 + 1);
+    }
+    return plain (raw, Kind::INVALID);
 }
