@@ -19,6 +19,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "MidiComponent.h"
 
 class MidiHandler;
@@ -33,15 +34,19 @@ class AdvancedTab : public juce::Component, public MidiComponent
         void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix) override;
 
     private:
-        // the log is trimmed to roughly this size (oldest lines first) so that it cannot grow without bound
-        static constexpr int MAX_LOG_CHARS = 200000;
+        // the log keeps at most this many lines (oldest are dropped); a program dump is ~100 lines
+        static constexpr int MAX_LOG_LINES = 20000;
 
         void sendInputMessage();
         void addLogMessage(const juce::String &newMessage);
 
         juce::ComboBox combo_PreparedMessages;
         juce::TextEditor textEdit_inputMidiMessage;
-        juce::TextEditor textEdit_midiMessageLog;
+
+        // CodeEditorComponent instead of TextEditor: it is line-based and only lays out the visible
+        // lines, so appending stays cheap no matter how long the log gets
+        juce::CodeDocument logDocument;
+        juce::CodeEditorComponent codeEditor_midiMessageLog { logDocument, nullptr };
 
         juce::TextButton button_sendMessage;
 

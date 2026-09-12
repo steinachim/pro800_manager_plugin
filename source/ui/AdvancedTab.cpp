@@ -38,13 +38,9 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
         }
     };
 
-    textEdit_midiMessageLog.setReadOnly(true); // selecting/copying still works
-    textEdit_midiMessageLog.setCaretVisible(false);
-    textEdit_midiMessageLog.setMultiLine(true);
-    textEdit_midiMessageLog.setReturnKeyStartsNewLine(true);
-
-    juce::String fixedWidthFont = juce::Font::getDefaultMonospacedFontName();
-    textEdit_midiMessageLog.setFont( { juce::FontOptions().withName(fixedWidthFont) } );
+    codeEditor_midiMessageLog.setReadOnly(true); // selecting/copying still works
+    codeEditor_midiMessageLog.setLineNumbersShown(false);
+    codeEditor_midiMessageLog.setScrollbarThickness(12);
 
     button_sendMessage.setButtonText("Send");
     button_sendMessage.onClick = [this] { sendInputMessage(); };
@@ -72,10 +68,10 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
 
     button_clearLog.onClick = [this]
     {
-        textEdit_midiMessageLog.clear();
+        logDocument.replaceAllContent({});
     };
 
-    addAndMakeVisible(textEdit_midiMessageLog);
+    addAndMakeVisible(codeEditor_midiMessageLog);
 
     addAndMakeVisible(combo_PreparedMessages);
     addAndMakeVisible(textEdit_inputMidiMessage);
@@ -133,7 +129,7 @@ void AdvancedTab::resized()
     auto logTopArea = area.removeFromTop(buttonHeight).reduced(4);
     button_clearLog.setBounds(logTopArea.removeFromRight(100));
     checkBox_enableLogging.setBounds(logTopArea);
-    textEdit_midiMessageLog.setBounds(area.removeFromTop(area.getHeight()-buttonHeight).reduced(4));
+    codeEditor_midiMessageLog.setBounds(area.removeFromTop(area.getHeight()-buttonHeight).reduced(4));
 
 #if JUCE_DEBUG
     slider_debugInput.setBounds(area.removeFromRight(150).reduced(4));
@@ -162,14 +158,17 @@ void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::S
 
 void AdvancedTab::addLogMessage(const juce::String &message)
 {
-    if ( textEdit_midiMessageLog.getTotalNumChars() > MAX_LOG_CHARS )
+    logDocument.insertText(logDocument.getNumCharacters(), message + "\n\n");
+
+    const int excessLines = logDocument.getNumLines() - MAX_LOG_LINES;
+    if ( excessLines > 0 )
     {
-        // drop the oldest lines: keep the last MAX_LOG_CHARS, cut at the next line break so no entry is torn
-        juce::String log = textEdit_midiMessageLog.getText();
-        const int cutAt = log.indexOfChar(log.length() - MAX_LOG_CHARS, '\n');
-        textEdit_midiMessageLog.setText(cutAt >= 0 ? log.substring(cutAt + 1) : juce::String(), false);
+        // drop the oldest lines
+        logDocument.deleteSection(juce::CodeDocument::Position(logDocument, 0, 0),
+                                  juce::CodeDocument::Position(logDocument, excessLines, 0));
     }
 
-    textEdit_midiMessageLog.moveCaretToEnd();
-    textEdit_midiMessageLog.insertTextAtCaret(message + "\n\n");
+    // follow the newest entry
+    codeEditor_midiMessageLog.moveCaretToEnd(false);
+    codeEditor_midiMessageLog.scrollToKeepCaretOnScreen();
 }
