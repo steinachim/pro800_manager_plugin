@@ -144,12 +144,15 @@ void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::S
     if (!checkBox_enableLogging.getToggleState())
         return;
 
-    juce::String messageText = message.getDescription();
-    std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage (message);
+    // always show the raw bytes (the ground truth when reverse-engineering the protocol),
+    // then what we made of them
+    juce::String messageText = message.isSysEx() ? juce::String::toHexString (message.getRawData(), message.getRawDataSize())
+                                                 : message.getDescription();
 
-    if (pro800Message)
+    if (auto pro800Message = Pro800MessageFactory::createMidiMessage (message))
     {
-        messageText = pro800Message->toString();
+        messageText << "\n"
+                    << pro800Message->toString();
     }
 
     addLogMessage (logPrefix + " " + messageText);
