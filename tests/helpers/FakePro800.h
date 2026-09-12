@@ -29,6 +29,7 @@
 #include "midi/StatusMessage.h"
 #include "midi/VersionMessage.h"
 
+#include <functional>
 #include <map>
 #include <vector>
 
@@ -44,6 +45,7 @@ namespace TestMessages
         explicit FakePro800 (MidiHandler& handler) : midiHandler (handler)
         {
             settings = settingsDump();
+            replyTimer.onFire = [this] { deliverDelayedReplies(); };
             midiHandler.setTestTransport ([this] (const juce::MidiMessage& message) { handle (message); });
         }
 
@@ -65,6 +67,12 @@ namespace TestMessages
         bool ignoreProgramWrites = false; // accept them with OK but store nothing
         int dropNextRequests = 0; // lose the next n requests (the synth stays silent)
         int dropFromProgram = -1; // from this program on, program reads and writes go unanswered (-1 = answer them all)
+        /**
+         * > 0: a reply arrives this many milliseconds later, from a timer, instead of inside the request's own dispatch.
+         * On Linux the message loop drains everything that is queued in one go, so with instant replies a whole dump
+         * runs to the end inside a single runFor(); a test that wants to catch it half-way needs this.
+         */
+        int replyDelayMs = 0;
 
         int reloads = 0;
         int settingsWrites = 0;
@@ -134,7 +142,26 @@ namespace TestMessages
 
         void reply (const std::vector<uint8_t>& bytes)
         {
+            if (replyDelayMs > 0)
+            {
+                delayedReplies.push_back (bytes);
+                replyTimer.startTimer (replyDelayMs);
+                return;
+            }
+
             midiHandler.handleIncomingMidiMessage (nullptr, toMidi (bytes));
+        }
+
+        void deliverDelayedReplies()
+        {
+            replyTimer.stopTimer();
+
+            std::vector<std::vector<uint8_t>> due;
+            due.swap (delayedReplies);
+            for (const auto& bytes : due)
+            {
+                midiHandler.handleIncomingMidiMessage (nullptr, toMidi (bytes));
+            }
         }
 
         void handle (const juce::MidiMessage& message)
@@ -252,5 +279,14 @@ namespace TestMessages
         MidiHandler& midiHandler;
         std::vector<uint8_t> pendingSettings;
         double commitAt = 0.0;
+
+        // a member, so that no reply can outlive the fake
+        struct ReplyTimer : public juce::Timer
+        {
+            std::function<void()> onFire;
+            void timerCallback() override { onFire(); }
+        };
+        ReplyTimer replyTimer;
+        std::vector<std::vector<uint8_t>> delayedReplies;
     };
 }

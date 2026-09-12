@@ -665,8 +665,12 @@ TEST_CASE ("SynthSession: a dump can be stopped, and gives up if the synth goes 
         Bench bench;
         bench.connect();
 
+        // replies on a timer: with instant ones the whole dump can run inside one dispatch (it does on Linux), and
+        // there would be nothing left to stop
+        bench.synth.replyDelayMs = 1;
         bench.session.readAllPrograms();
         REQUIRE (bench.messageThread.runUntil ([&bench] { return bench.session.getActivityDone() >= 10; }, 4000));
+        REQUIRE (bench.session.isBusy());
 
         bench.session.disconnect();
         const int readsAtDisconnect = programReads (bench.synth);
