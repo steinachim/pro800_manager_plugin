@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <variant>
 #include <vector>
 
 class MidiComponent;
@@ -45,8 +46,23 @@ class MidiHandler : public juce::MidiInputCallback, private juce::AsyncUpdater
 public:
     static constexpr int PROGRAM_DUMP_REQUEST_INTERVAL_MS = 10;
 
+    /** Receives the progress of background sending. All callbacks arrive on the message thread. */
+    struct Listener
+    {
+        virtual ~Listener() = default;
+
+        /** Called after each message of a background sequence has been sent. */
+        virtual void backgroundSendingProgress(const juce::String& description, int numSent, int numTotal) = 0;
+
+        /** Called when a background sequence has ended, either completely or because it was cancelled. */
+        virtual void backgroundSendingFinished(bool cancelled) = 0;
+    };
+
     MidiHandler();
     ~MidiHandler() override;
+
+    void addListener(Listener* listener);
+    void removeListener(Listener* listener);
 
     void setMidiChannel(uint8_t channel);
 
@@ -68,8 +84,10 @@ public:
     /**
      * Sends the messages one by one from a background thread, pausing intervalMs between them,
      * so that the message thread stays responsive. A sequence that is still running is cancelled first.
+     * Progress is reported to the listeners; progressDescription is passed along for display
+     * (e.g. "Sending program" -> "Sending program 12/400").
      */
-    void sendMidiMessagesInBackground(std::vector<juce::MidiMessage> messages, int intervalMs);
+    void sendMidiMessagesInBackground(std::vector<juce::MidiMessage> messages, int intervalMs, const juce::String& progressDescription);
 
     /** Requests a dump of all programs from the device (in the background, see above). */
     void requestProgramDump();
@@ -84,8 +102,17 @@ private:
     // AsyncUpdater (message thread)
     void handleAsyncUpdate() override;
 
-    void queueForMessageThread(const juce::MidiMessage& message, bool sent);
-    void handleMidiMessage(const juce::MidiMessage& message, bool sent);
+    // events that other threads hand over to the message thread
+    struct MidiEvent     { juce::MidiMessage message; bool sent; };
+    struct ProgressEvent { juce::String description; int numSent; int numTotal; };
+    struct FinishedEvent { bool cancelled; };
+    using QueuedEvent = std::variant<MidiEvent, ProgressEvent, FinishedEvent>;
+
+    void queueEvent(QueuedEvent event); // any thread
+
+    void handleEvent(const MidiEvent& event);
+    void handleEvent(const ProgressEvent& event);
+    void handleEvent(const FinishedEvent& event);
 
     class BackgroundSender : public juce::Thread
     {
@@ -93,25 +120,23 @@ private:
         explicit BackgroundSender(MidiHandler& handler);
 
         /** Cancels a running sequence, then starts sending the given one. Message thread only. */
-        void send(std::vector<juce::MidiMessage> newMessages, int newIntervalMs);
+        void send(std::vector<juce::MidiMessage> newMessages, int newIntervalMs, const juce::String& newDescription);
 
         void run() override;
 
     private:
         MidiHandler& owner;
-        std::vector<juce::MidiMessage> messages; // only touched while the thread is not running
+
+        // only touched while the thread is not running
+        std::vector<juce::MidiMessage> messages;
         int intervalMs = 0;
+        juce::String description;
     };
 
-    struct QueuedMessage
-    {
-        juce::MidiMessage message;
-        bool sent;
-    };
+    std::vector<QueuedEvent> pendingEvents;
+    juce::CriticalSection pendingEventsLock;
 
-    // received/sent messages waiting to be handled on the message thread
-    std::vector<QueuedMessage> pendingMessages;
-    juce::CriticalSection pendingMessagesLock;
+    juce::ListenerList<Listener> listeners;
 
     // guards midiInput/midiOutput against sendMidiMessage() running on the sender thread
     juce::CriticalSection deviceLock;

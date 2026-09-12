@@ -69,7 +69,12 @@ void MidiComponent::sendPrograms(const std::vector<std::shared_ptr<ProgramMessag
         messages.push_back(program->toMidiMessage());
     }
 
-    this->midiHandler->sendMidiMessagesInBackground(std::move(messages), PROGRAM_SEND_INTERVAL_MS);
+    this->midiHandler->sendMidiMessagesInBackground(std::move(messages), PROGRAM_SEND_INTERVAL_MS, "Sending program");
+}
+
+MidiHandler &MidiComponent::getMidiHandler() const
+{
+    return *this->midiHandler;
 }
 
 void MidiComponent::sendMidiMessage(const juce::MidiMessage &message)

@@ -58,6 +58,9 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget 
 
     button_LocalToSynthAll.onClick = [this] { sendAllProgramsToSynth(); };
 
+    button_CancelTransfer.onClick = [this] { getMidiHandler().cancelBackgroundSending(); };
+    progressBar_Transfer.setPercentageDisplay(false);
+
     addAndMakeVisible(label_Synth);
     addAndMakeVisible(label_Local);
     addAndMakeVisible(listBox_ProgramListSynth);
@@ -73,10 +76,45 @@ ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget 
     addAndMakeVisible(button_Compare);
     addAndMakeVisible(button_Export);
     addAndMakeVisible(button_Import);
+
+    addChildComponent(progressBar_Transfer); // hidden until a transfer starts
+    addChildComponent(button_CancelTransfer);
+
+    getMidiHandler().addListener(this);
 }
 
 ProgramManagementTab::~ProgramManagementTab()
 {
+    getMidiHandler().removeListener(this);
+}
+
+//==============================================================================
+void ProgramManagementTab::backgroundSendingProgress(const juce::String &description, int numSent, int numTotal)
+{
+    if ( !progressBar_Transfer.isVisible() )
+    {
+        setTransferRunning(true);
+    }
+
+    transferProgress = numTotal > 0 ? (double) numSent / (double) numTotal : 0.0;
+    progressBar_Transfer.setTextToDisplay(description + " " + juce::String(numSent) + "/" + juce::String(numTotal));
+}
+
+void ProgramManagementTab::backgroundSendingFinished(bool /*cancelled*/)
+{
+    setTransferRunning(false);
+}
+
+void ProgramManagementTab::setTransferRunning(bool running)
+{
+    transferProgress = 0.0;
+    progressBar_Transfer.setVisible(running);
+    button_CancelTransfer.setVisible(running);
+
+    // everything that would start another transfer (and thereby cancel this one)
+    button_RefreshDump.setEnabled(!running);
+    button_LocalToSynth.setEnabled(!running);
+    button_LocalToSynthAll.setEnabled(!running);
 }
 
 
@@ -111,6 +149,10 @@ void ProgramManagementTab::resized()
 
     button_Export.setBounds(area.removeFromRight(120).reduced(4, 0));
     button_Import.setBounds(area.removeFromRight(120).reduced(4, 0));
+
+    // the free space between the button groups shows the progress while a transfer is running
+    button_CancelTransfer.setBounds(area.removeFromRight(100).reduced(4, 0));
+    progressBar_Transfer.setBounds(area.reduced(4, 0));
 }
 
 void ProgramManagementTab::handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage)

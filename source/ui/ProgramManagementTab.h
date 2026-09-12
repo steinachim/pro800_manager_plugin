@@ -23,13 +23,14 @@
 #include "MidiComponent.h"
 #include "LocalProgramListBox.h"
 #include "MainWidget.h"
+#include "../midi/MidiHandler.h"
 
 #include <memory>
 #include <vector>
 
 class ProgramModel;
 
-class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent
+class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private MidiHandler::Listener
 {
 public:
     ProgramManagementTab(MidiHandler *handler, MainWidget *parent);
@@ -41,6 +42,11 @@ public:
 
 private:
     using ProgramList = std::vector<std::shared_ptr<ProgramMessage>>;
+
+    // MidiHandler::Listener: progress of dumps and program transfers
+    void backgroundSendingProgress(const juce::String &description, int numSent, int numTotal) override;
+    void backgroundSendingFinished(bool cancelled) override;
+    void setTransferRunning(bool running);
 
     void loadSelectedProgram();
     void compareSelectedPrograms();
@@ -72,6 +78,11 @@ private:
 
     juce::Label label_Local { "", "Local" };
     juce::Label label_Synth { "", "Synth" };
+
+    // shown only while a dump or transfer is running
+    double transferProgress = 0.0; // 0..1, read by the progress bar on its own timer
+    juce::ProgressBar progressBar_Transfer { transferProgress };
+    juce::TextButton button_CancelTransfer { "Cancel" };
 
     std::unique_ptr<ProgramModel> model_ProgramListSynth;
     std::unique_ptr<ProgramModel> model_ProgramListLocal;

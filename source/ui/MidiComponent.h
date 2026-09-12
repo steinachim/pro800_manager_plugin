@@ -68,6 +68,8 @@ public:
     virtual void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
 
 protected:
+    MidiHandler &getMidiHandler() const;
+
     void setupMidiComponent(juce::Component *component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = SETTINGS_FIELD_NONE);
 
     std::shared_ptr<SettingsMessage> &getCurrentSettings();

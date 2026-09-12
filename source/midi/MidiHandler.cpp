@@ -37,12 +37,13 @@ MidiHandler::BackgroundSender::BackgroundSender(MidiHandler& handler)
 {
 }
 
-void MidiHandler::BackgroundSender::send(std::vector<juce::MidiMessage> newMessages, int newIntervalMs)
+void MidiHandler::BackgroundSender::send(std::vector<juce::MidiMessage> newMessages, int newIntervalMs, const juce::String& newDescription)
 {
     stopThread(SENDER_THREAD_STOP_TIMEOUT_MS); // no-op if idle, otherwise cancels the running sequence
 
     this->messages = std::move(newMessages);
     this->intervalMs = newIntervalMs;
+    this->description = newDescription;
 
     if ( !this->messages.empty() )
     {
@@ -52,15 +53,21 @@ void MidiHandler::BackgroundSender::send(std::vector<juce::MidiMessage> newMessa
 
 void MidiHandler::BackgroundSender::run()
 {
-    for ( size_t i = 0; i < this->messages.size() && !threadShouldExit(); i++ )
-    {
-        this->owner.sendMidiMessage(this->messages[i]);
+    const int numTotal = (int) this->messages.size();
+    int numSent = 0;
 
-        if ( i + 1 < this->messages.size() )
+    for ( ; numSent < numTotal && !threadShouldExit(); numSent++ )
+    {
+        this->owner.sendMidiMessage(this->messages[(size_t) numSent]);
+        this->owner.queueEvent(ProgressEvent { this->description, numSent + 1, numTotal });
+
+        if ( numSent + 1 < numTotal )
         {
             wait(this->intervalMs); // returns early when stopThread() notifies us
         }
     }
+
+    this->owner.queueEvent(FinishedEvent { numSent < numTotal });
 }
 
 //==============================================================================
@@ -82,6 +89,16 @@ MidiHandler::~MidiHandler()
 
     // 3. whatever is still queued will never be delivered
     cancelPendingUpdate();
+}
+
+void MidiHandler::addListener(Listener* listener)
+{
+    this->listeners.add(listener);
+}
+
+void MidiHandler::removeListener(Listener* listener)
+{
+    this->listeners.remove(listener);
 }
 
 void MidiHandler::setMidiChannel (uint8_t channel)
@@ -115,14 +132,14 @@ void MidiHandler::connectMidiDevices(const juce::String& inputDeviceIdentifier, 
 void MidiHandler::handleIncomingMidiMessage (juce::MidiInput */*source*/, const juce::MidiMessage& message)
 {
     // MIDI driver thread: just hand it over to the message thread
-    queueForMessageThread(message, false);
+    queueEvent(MidiEvent { message, false });
 }
 
-void MidiHandler::queueForMessageThread(const juce::MidiMessage& message, bool sent)
+void MidiHandler::queueEvent(QueuedEvent event)
 {
     {
-        const juce::ScopedLock lock(this->pendingMessagesLock);
-        this->pendingMessages.push_back({message, sent});
+        const juce::ScopedLock lock(this->pendingEventsLock);
+        this->pendingEvents.push_back(std::move(event));
     }
 
     triggerAsyncUpdate();
@@ -132,20 +149,32 @@ void MidiHandler::handleAsyncUpdate()
 {
     // take the whole batch so that the lock is not held while the components run
     // (they may send messages themselves, which queues again)
-    std::vector<QueuedMessage> batch;
+    std::vector<QueuedEvent> batch;
     {
-        const juce::ScopedLock lock(this->pendingMessagesLock);
-        batch.swap(this->pendingMessages);
+        const juce::ScopedLock lock(this->pendingEventsLock);
+        batch.swap(this->pendingEvents);
     }
 
-    for ( const auto& queued : batch )
+    for ( const auto& event : batch )
     {
-        handleMidiMessage(queued.message, queued.sent);
+        std::visit([this] (const auto& e) { handleEvent(e); }, event);
     }
 }
 
-void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent)
+void MidiHandler::handleEvent(const ProgressEvent& event)
 {
+    this->listeners.call([&] (Listener& l) { l.backgroundSendingProgress(event.description, event.numSent, event.numTotal); });
+}
+
+void MidiHandler::handleEvent(const FinishedEvent& event)
+{
+    this->listeners.call([&] (Listener& l) { l.backgroundSendingFinished(event.cancelled); });
+}
+
+void MidiHandler::handleEvent(const MidiEvent& event)
+{
+    const juce::MidiMessage& message = event.message;
+
     // getChannel() is 0 for SysEx and other channel-less messages: those always pass
     if ( message.getChannel() != 0 && message.getChannel() != this->midiChannel )
     {
@@ -154,13 +183,13 @@ void MidiHandler::handleMidiMessage (const juce::MidiMessage& message, bool sent
     }
 
     // note: iterate over copies of the component lists so that a component may (un)register from within its handler
-    const juce::String logPrefix = (sent ? "Sent message:" : "Received message:");
+    const juce::String logPrefix = (event.sent ? "Sent message:" : "Received message:");
     for(auto *component : this->midiComponents[MessageType::MIDI_LOG_MESSAGE])
     {
         component->handleMidiLog(message, logPrefix);
     }
 
-    if ( sent )
+    if ( event.sent )
     {
         // we sent it ourselves. Don't do anything.
         return;
@@ -240,13 +269,23 @@ void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
         return;
     }
 
-    queueForMessageThread(message, true); // for the log
+    queueEvent(MidiEvent { message, true }); // for the log
     this->midiOutput->sendMessageNow(message);
 }
 
-void MidiHandler::sendMidiMessagesInBackground(std::vector<juce::MidiMessage> messages, int intervalMs)
+void MidiHandler::sendMidiMessagesInBackground(std::vector<juce::MidiMessage> messages, int intervalMs, const juce::String& progressDescription)
 {
-    this->backgroundSender.send(std::move(messages), intervalMs);
+    {
+        // report a missing device once here instead of once per message from the sender thread
+        const juce::ScopedLock lock(this->deviceLock);
+        if ( !this->midiOutput )
+        {
+            juce::Logger::writeToLog("[ERROR] Cannot send MIDI messages: MIDI output device is not open!");
+            return;
+        }
+    }
+
+    this->backgroundSender.send(std::move(messages), intervalMs, progressDescription);
 }
 
 void MidiHandler::requestProgramDump()
@@ -259,7 +298,7 @@ void MidiHandler::requestProgramDump()
         requests.push_back(ProgramMessage::request(program));
     }
 
-    sendMidiMessagesInBackground(std::move(requests), PROGRAM_DUMP_REQUEST_INTERVAL_MS);
+    sendMidiMessagesInBackground(std::move(requests), PROGRAM_DUMP_REQUEST_INTERVAL_MS, "Requesting program");
 }
 
 void MidiHandler::cancelBackgroundSending()
