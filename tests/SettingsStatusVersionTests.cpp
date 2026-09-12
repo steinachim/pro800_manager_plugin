@@ -61,6 +61,63 @@ TEST_CASE ("SettingsMessage: signed and unsigned fields", "[midi][settings]")
     REQUIRE (settings.toString().contains ("Transpose: 12"));
 }
 
+TEST_CASE ("SettingsMessage: the selection pointer is Current Preset Number plus Current Bank", "[midi][settings]")
+{
+    REQUIRE (PRO800_SETTINGS_FIELDS.at (Pro800Settings::CURRENT_BANK).firstByte == 23);
+    REQUIRE (PRO800_SETTINGS_FIELDS.at (Pro800Settings::PRESET_NUM).firstByte == 6);
+
+    SettingsMessage settings (toMidi (settingsDump()));
+    const auto before = settings.getRawData();
+
+    SECTION ("selecting writes the full program number and the bank, and nothing else")
+    {
+        settings.setCurrentProgram (143); // B43, as the synth itself stores it
+        REQUIRE (settings.getValue (Pro800Settings::PRESET_NUM) == 143);
+        REQUIRE (settings.getValue (Pro800Settings::CURRENT_BANK) == 1);
+        REQUIRE (settings.getCurrentProgram() == 143);
+        REQUIRE (allDataBytesAre7Bit (settings.getRawData()));
+
+        const auto after = settings.getRawData();
+        REQUIRE (after.size() == before.size());
+        int changedBytes = 0;
+        for (size_t i = 0; i < before.size(); i++)
+        {
+            changedBytes += (before[i] != after[i]) ? 1 : 0;
+        }
+        REQUIRE (changedBytes == 3); // the number's low byte, its high bit in the overflow byte at 0, and the bank
+    }
+
+    SECTION ("only the number modulo 100 selects the slot; the bank comes from its own field")
+    {
+        settings.setValue (Pro800Settings::PRESET_NUM, 560); // accepted and kept by the synth, which shows D60
+        settings.setValue (Pro800Settings::CURRENT_BANK, 3);
+        REQUIRE (settings.getCurrentProgram() == 360);
+
+        settings.setValue (Pro800Settings::PRESET_NUM, 0);
+        settings.setValue (Pro800Settings::CURRENT_BANK, 1); // measured: B00, not A00
+        REQUIRE (settings.getCurrentProgram() == 100);
+    }
+
+    SECTION ("an invalid message or an impossible bank has no pointer")
+    {
+        settings.setValue (Pro800Settings::CURRENT_BANK, 4);
+        REQUIRE_FALSE (settings.getCurrentProgram().has_value());
+
+        auto tooShort = settingsDump();
+        tooShort.erase (tooShort.end() - 2);
+        REQUIRE_FALSE (SettingsMessage (toMidi (tooShort)).getCurrentProgram().has_value());
+    }
+
+    SECTION ("every program number round-trips")
+    {
+        for (int program : { 0, 99, 100, 199, 200, 299, 300, 399 })
+        {
+            settings.setCurrentProgram (program);
+            REQUIRE (settings.getCurrentProgram() == program);
+        }
+    }
+}
+
 //==============================================================================
 TEST_CASE ("StatusMessage: known and unknown status bytes", "[midi][status]")
 {

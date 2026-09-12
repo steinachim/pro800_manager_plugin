@@ -68,6 +68,11 @@ std::string VersionMessage::getVersionString() const
 
 std::string VersionMessage::getSupportedVersions() const
 {
+    return supportedVersionsText();
+}
+
+std::string VersionMessage::supportedVersionsText()
+{
     std::stringstream ss;
     for (const auto& version : SUPPORTED_FIRMWARE_VERSIONS)
     {

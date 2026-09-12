@@ -24,9 +24,11 @@
 #include <initializer_list>
 #include <vector>
 
+#include "midi/PanelMessage.h"
 #include "midi/Pro800DataMessage.h"
 #include "midi/ProgramMessage.h"
 #include "midi/SettingsMessage.h"
+#include "midi/StatusMessage.h"
 
 // Builders for raw Pro-800 SysEx messages, so that the tests can describe the wire format byte by byte.
 namespace TestMessages
@@ -77,6 +79,29 @@ namespace TestMessages
         bytes.resize (SettingsMessage::SETTINGS_MESSAGE_SIZE - 1, 0x00);
         bytes.push_back (0xF7);
         return bytes;
+    }
+
+    /** The synth's answer to reading an empty program slot: F0 F7 and nothing else. */
+    inline std::vector<uint8_t> emptySlotReply()
+    {
+        return { 0xF0, 0xF7 };
+    }
+
+    /** A status reply (0x01): the constant 00, then the code (0 = OK, 1 = failure). */
+    inline std::vector<uint8_t> statusReply (uint8_t code)
+    {
+        return sysEx ({ StatusMessage::RESPONSE_ID, 0x00, code });
+    }
+
+    /** A panel state reply (0x71 <index> <value>), the answer to a 0x70 <index> request. */
+    inline std::vector<uint8_t> panelReply (uint8_t index, uint8_t value)
+    {
+        return sysEx ({ PanelMessage::RESPONSE_ID, index, value });
+    }
+
+    inline std::vector<uint8_t> bytesOf (const juce::MidiMessage& message)
+    {
+        return std::vector<uint8_t> (message.getRawData(), message.getRawData() + message.getRawDataSize());
     }
 
     /** SysEx data bytes must not have the high bit set; only F0/F7 at the ends may. */

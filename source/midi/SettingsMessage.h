@@ -22,6 +22,7 @@
 #include "../tailoring/Pro800SettingsConstants.h"
 #include "Pro800DataMessage.h"
 
+#include <optional>
 #include <vector>
 
 class SettingsMessage : public Pro800DataMessage
@@ -31,6 +32,10 @@ public:
 
     static constexpr uint8_t ADDRESS_LOW = 0x7E;
     static constexpr uint8_t ADDRESS_HIGH = 0x03;
+    static constexpr int ADDRESS = 510; // the settings block shares the program address space
+
+    static constexpr int NUM_BANKS = 4; // A-D
+    static constexpr int PROGRAMS_PER_BANK = 100;
 
     static juce::MidiMessage request();
 
@@ -43,4 +48,17 @@ public:
 
     void setValue (Pro800Settings setting, int value);
     int getValue (Pro800Settings setting) const;
+
+    /**
+     * The program (0-399) the synth's selection pointer names: the bank from CURRENT_BANK, the slot from
+     * PRESET_NUM % 100 (the synth stores the full number but only uses that part). nullopt if the message is invalid.
+     */
+    std::optional<int> getCurrentProgram() const;
+
+    /**
+     * Moves the selection pointer to the program (0-399): PRESET_NUM = program, CURRENT_BANK = program / 100, both
+     * in one block so the pair is never inconsistent. Writing the block moves the display, not the sound - the synth
+     * recalls the pointer on a ReloadMessage (0x32 00).
+     */
+    void setCurrentProgram (int program);
 };

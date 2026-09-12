@@ -36,6 +36,7 @@ enum class Pro800Settings {
     DISPLAY_PARAMETER_TIME,
     MIDI_CC_MODE,
     MIDI_PC_MODE,
+    CURRENT_BANK,
     SYNC_IN_FORWARD,
     EXTERNAL_CV_AMOUNT,
     SYNC_CLOCK_SUBDIVISION,
@@ -58,9 +59,9 @@ enum class Pro800Settings {
 // clang-format off
 inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
 {
-    {Pro800Settings::PRESET_NUM,              {6, 2, "Preset Number"}},
+    {Pro800Settings::PRESET_NUM,              {6, 2, "Current Preset Number"}}, // the full 0-399 number; only value % 100 selects the slot, the bank comes from CURRENT_BANK
     // 8 = overflow
-    {Pro800Settings::PRESET_MODE,             {9, 1, "Preset Mode"}}, // see: Pro800SettingsPresetMode
+    {Pro800Settings::PRESET_MODE,             {9, 1, "Preset Mode"}}, // see: Pro800SettingsPresetMode - not an edit flag
     {Pro800Settings::MIDI_RX_CHANNEL,         {10, 1, "MIDI RX Channel"}}, // see: Pro800SettingsMidiReceiveChannel
     {Pro800Settings::VOICE_KILL,              {11, 1, "Voice Kill"}}, // one bit per voice (bit 0 = voice 1)
     {Pro800Settings::MIDI_TX_CHANNEL,         {12, 1, "MIDI TX Channel"}}, // see: Pro800SettingsMidiTransmitChannel
@@ -73,7 +74,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::DISPLAY_PARAMETER_TIME,  {20, 1, "Display Parameter Time"}}, // 0-100
     {Pro800Settings::MIDI_CC_MODE,            {21, 1, "MIDI CC Mode"}}, // see: Pro800SettingsMidiMode
     {Pro800Settings::MIDI_PC_MODE,            {22, 1, "MIDI PC Mode"}}, // see: Pro800SettingsMidiMode
-    // 23 = unknown
+    {Pro800Settings::CURRENT_BANK,            {23, 1, "Current Bank"}}, // 0-3 = A-D; with PRESET_NUM the selection pointer (see SettingsMessage::setCurrentProgram())
     // 24 = overflow
     {Pro800Settings::SYNC_IN_FORWARD,         {25, 1, "Sync In Forward Enable"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::EXTERNAL_CV_AMOUNT,      {26, 2, "External CV Amount"}}, 
@@ -199,8 +200,9 @@ enum Pro800SettingsVoicePriority {
     SETTINGS_VOICE_PRIORITY_HIGH = 2
 };
 
+// Records only that a Program Change selected the current preset. Firmware 1.4.6 never writes anything
+// but 1 (it stays 1 in manual mode and through front-panel edits), accepts and keeps any written value,
+// and ignores it. It says nothing about unsaved edits (docs/Pro800SysExMessages.md).
 enum Pro800SettingsPresetMode {
-    SETTINGS_PRESET_MODE_MANUAL = 0,
-    SETTINGS_PRESET_MODE_LOADED = 1,
-    SETTINGS_PRESET_MODE_EDITED = 2
+    SETTINGS_PRESET_MODE_SELECTED_BY_PROGRAM_CHANGE = 1
 };

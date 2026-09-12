@@ -41,6 +41,9 @@ public:
     std::string getSupportedVersions() const;
     bool isSupported() const;
 
+    /** The supported versions as one comma-separated string, without needing a message. */
+    static std::string supportedVersionsText();
+
 protected:
     uint8_t getResponseType() const override;
 

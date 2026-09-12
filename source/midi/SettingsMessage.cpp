@@ -46,3 +46,25 @@ int SettingsMessage::getValue (Pro800Settings setting) const
 {
     return getFieldValue (PRO800_SETTINGS_FIELDS, setting);
 }
+
+std::optional<int> SettingsMessage::getCurrentProgram() const
+{
+    if (!isValid())
+    {
+        return std::nullopt;
+    }
+
+    const int bank = getValue (Pro800Settings::CURRENT_BANK);
+    if (bank < 0 || bank >= NUM_BANKS)
+    {
+        return std::nullopt;
+    }
+
+    return bank * PROGRAMS_PER_BANK + getValue (Pro800Settings::PRESET_NUM) % PROGRAMS_PER_BANK;
+}
+
+void SettingsMessage::setCurrentProgram (int program)
+{
+    setValue (Pro800Settings::PRESET_NUM, program);
+    setValue (Pro800Settings::CURRENT_BANK, program / PROGRAMS_PER_BANK);
+}

@@ -44,6 +44,7 @@ enum class MessageType
     PRO800_SETTINGS,
     PRO800_VERSION,
     PRO800_STATUS,
-    PRO800_PROGRAM
+    PRO800_PROGRAM,
+    PRO800_PANEL     // 0x71: the state of one front-panel control (reply to 0x70)
 };
 // clang-format on

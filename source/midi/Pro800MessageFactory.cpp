@@ -19,6 +19,7 @@
 #include "Pro800MessageFactory.h"
 #include <memory>
 
+#include "PanelMessage.h"
 #include "ProgramMessage.h"
 #include "SettingsMessage.h"
 #include "StatusMessage.h"
@@ -67,6 +68,9 @@ std::shared_ptr<Pro800MidiMessage> Pro800MessageFactory::createMidiMessage (cons
 
         case StatusMessage::RESPONSE_ID:
             return std::make_shared<StatusMessage> (midiMessage);
+
+        case PanelMessage::RESPONSE_ID:
+            return std::make_shared<PanelMessage> (midiMessage);
 
         default:
             return pro800Message;
