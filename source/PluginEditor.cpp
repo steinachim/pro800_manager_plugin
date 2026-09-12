@@ -74,6 +74,8 @@ Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAud
     
     setSize (1400, 900);
     setResizable(true, true);
+    // below ~1100 x 700 the MIDI bar and the front panel groups no longer fit; the maximum just keeps the layout sane on huge screens
+    setResizeLimits(1100, 700, 3840, 2400);
 
     refreshMidiDeviceLists();
 }
