@@ -69,7 +69,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::SYNC_CLOCK_BPM,          {15, 2, "Sync Clock BPM"}}, 
     // 16 = overflow
     // 18 = unknown
-    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 1-16; other values are stored but ignored (full brightness)
+    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 1-16; 0-127 is stored and displayed, but the brightness stays within 1-16
     {Pro800Settings::DISPLAY_PARAMETER_TIME,  {20, 1, "Display Parameter Time"}}, // 0-100
     {Pro800Settings::MIDI_CC_MODE,            {21, 1, "MIDI CC Mode"}}, // see: Pro800SettingsMidiMode
     {Pro800Settings::MIDI_PC_MODE,            {22, 1, "MIDI PC Mode"}}, // see: Pro800SettingsMidiMode
@@ -87,7 +87,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::TUNER_PRECISION,         {35, 1, "Tuner Precision"}}, // see: Pro800SettingsTunerPrecision
     {Pro800Settings::SYNC_IN_START_STOP,      {36, 1, "Sync In Start-Stop"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::SYNC_IN_PPQN,            {37, 1, "Sync In PPQN"}}, // see: Pro800SettingsSyncInPPQN
-    {Pro800Settings::SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 1-100 on the front panel
+    {Pro800Settings::SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 1-100 on the front panel; 0-127 is stored and displayed, effect unknown
     {Pro800Settings::SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 50-95 on the front panel; 0-127 is stored and displayed, effect unknown
     // 40 = overflow
     {Pro800Settings::AFTERTOUCH_VCA_POLARITY, {41, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity

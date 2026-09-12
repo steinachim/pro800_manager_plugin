@@ -223,7 +223,7 @@ only in preset version 111 and newer:
 
 Settings messages have the same overall structure as program messages in terms of header and overflow bytes. They are also requested with a `0x77` message, specifically with the address parameters`7e 03`.
 
-The contents are the following. Ranges marked "on the front panel" are what the synth's own UI allows and what this plugin's settings tab enforces; the synth may accept other values when they arrive via SysEx, which has not been verified.
+The contents are the following. Ranges marked "on the front panel" are what the synth's own UI allows and what this plugin's settings tab enforces. Via SysEx the synth does not validate: it stores whatever arrives, reads it back unchanged and usually even displays it (see the individual rows for what the value then does).
 
 |byte number | number of bytes | description |
 |--|--|--|
@@ -241,7 +241,7 @@ The contents are the following. Ranges marked "on the front panel" are what the 
 |16 | 1 | *overflow byte*
 |17 | 1 | unknown
 |18 | 1 | unknown
-|19 | 1 | Display Brightness<br> --> range: 1-16. Values outside that range (including 0) are stored and read back unchanged via SysEx, but have no effect: the display goes to full brightness
+|19 | 1 | Display Brightness<br> --> range: 1-16. Any value 0-127 can be set via SysEx, is read back unchanged and is shown on the display, but the actual brightness stays within what 1-16 give (a stored 0 was observed as full brightness)
 |20 | 1 | Display Parameter Time<br> --> range: 0-100
 |21 | 1 | MIDI CC Mode<br> --> 0 = OFF, 1 = TX, 2 = RX, 3 = TX&RX 
 |22 | 1 | MIDI PC Mode<br> --> 0 = OFF, 1 = TX, 2 = RX, 3 = TX&RX 
@@ -259,7 +259,7 @@ The contents are the following. Ranges marked "on the front panel" are what the 
 |35 | 1 | Tuner Precision<br> --> 0 = 0.5ct, 1 = 1.0ct, 2 = 1.5ct, 3 = 2.0ct
 |36 | 1 | Sync In Start-Stop<br> --> 0 = OFF, 1 = ON
 |37 | 1 | Sync In PPQN<br> --> 0 = 1PPS, 1 = 1PPQN, 2 = 2PPQN, 3 = 4PPQN, 4 = 24PPQN, 5 = 48PPQN
-|38 | 1 | Sync Clock Note Length<br> --> range: 1-100 on the front panel (5-100 was observed earlier, unverified)
+|38 | 1 | Sync Clock Note Length<br> --> range: 1-100 on the front panel. Any value 0-127 can be set via SysEx, is read back unchanged and is shown on the display; whether values outside 1-100 have an audible effect is unknown
 |39 | 1 | Sync Clock Swing<br> --> range: 50-95 on the front panel. Any value 0-127 can be set via SysEx, is read back unchanged and is even shown on the display; whether values outside 50-95 have an audible effect is unknown
 |40 | 1 | overflow
 |41 | 1 | Aftertouch VCA Polarity<br> --> 0 = rise, 1 = fall, 2 = both
