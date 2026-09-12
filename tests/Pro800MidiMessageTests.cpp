@@ -81,7 +81,8 @@ TEST_CASE ("Pro800MidiMessage: requests are built with the Pro-800 header", "[mi
     REQUIRE (request.isSysEx());
     REQUIRE (std::vector<uint8_t> (request.getRawData(), request.getRawData() + request.getRawDataSize()) == expected);
 
-    REQUIRE (Pro800FactoryResetMessage::request().getRawDataSize() == (int) sysEx ({ 0x7D, 0x00 }).size());
+    // the factory reset takes no parameter
+    REQUIRE (bytesOf (Pro800FactoryResetMessage::request()) == sysEx ({ Pro800FactoryResetMessage::REQUEST_ID }));
 
     // program requests carry the number as 7-bit LSB / MSB
     const auto programRequest = ProgramMessage::request (300); // 300 = 0x12C -> LSB 0x2C, MSB 0x02

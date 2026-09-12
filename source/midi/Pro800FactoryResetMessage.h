@@ -20,6 +20,10 @@
 
 #include "StatusMessage.h"
 
+/**
+ * 0x7D: factory reset. No parameter (docs/Pro800SysExMessages.md), no confirmation from the synth, no undo.
+ * Pro800Hazards refuses it in the Advanced tab; the Settings tab sends it only after the user has confirmed.
+ */
 class Pro800FactoryResetMessage : public Pro800MidiMessage
 {
 public:
@@ -28,7 +32,7 @@ public:
 
     static juce::MidiMessage request()
     {
-        return makeRequest ({ REQUEST_ID, 0x00 });
+        return makeRequest ({ REQUEST_ID });
     }
 
 private:
