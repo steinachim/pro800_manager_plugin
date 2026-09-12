@@ -264,6 +264,6 @@ The contents are the following. Ranges marked "on the front panel" are what the 
 |40 | 1 | overflow
 |41 | 1 | Aftertouch VCA Polarity<br> --> 0 = rise, 1 = fall, 2 = both
 |42 | 1 | Aftertouch VCF Polarity<br> --> 0 = rise, 1 = fall, 2 = both
-|43 | 1 | Transpose<br> --> range: -35 - +35 on the front panel, two's complement (-1 = 0x7F with the overflow bit set)
+|43 | 1 | Transpose<br> --> range: -35 - +35, two's complement (-1 = 0x7F with the overflow bit set). Values outside that range are stored and read back unchanged via SysEx (e.g. 37), but the front panel display clamps them to +/-35
 |44 | 1 | Local Enable<br> --> 0 = OFF, 1 = ON
 |45 | 1 | Soft Thru<br> --> 0 = OFF, 1 = ON

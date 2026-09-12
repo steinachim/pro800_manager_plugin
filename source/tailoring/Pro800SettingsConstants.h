@@ -92,7 +92,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     // 40 = overflow
     {Pro800Settings::AFTERTOUCH_VCA_POLARITY, {41, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity
     {Pro800Settings::AFTERTOUCH_VCF_POLARITY, {42, 1, "Aftertouch VCF Polarity"}}, // see: Pro800SettingsPolarity
-    {Pro800Settings::TRANSPOSE,               {43, 1, "Transpose", 0, true}}, // -35 - +35 on the front panel, two's complement
+    {Pro800Settings::TRANSPOSE,               {43, 1, "Transpose", 0, true}}, // -35 - +35, two's complement; other values are stored but the front panel shows them clamped to +/-35
     {Pro800Settings::LOCAL_ENABLE,            {44, 1, "Local Enable"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::SOFT_THRU,               {45, 1, "Soft Thru"}}, // see: Pro800SettingsOnOff
 };
