@@ -69,7 +69,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::SYNC_CLOCK_BPM,          {15, 2, "Sync Clock BPM"}}, 
     // 16 = overflow
     // 18 = unknown
-    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 0-16
+    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 1-16 on the front panel
     {Pro800Settings::DISPLAY_PARAMETER_TIME,  {20, 1, "Display Parameter Time"}}, // 0-100
     {Pro800Settings::MIDI_CC_MODE,            {21, 1, "MIDI CC Mode"}}, // see: Pro800SettingsMidiMode
     {Pro800Settings::MIDI_PC_MODE,            {22, 1, "MIDI PC Mode"}}, // see: Pro800SettingsMidiMode
@@ -87,12 +87,12 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::TUNER_PRECISION,         {35, 1, "Tuner Precision"}}, // see: Pro800SettingsTunerPrecision
     {Pro800Settings::SYNC_IN_START_STOP,      {36, 1, "Sync In Start-Stop"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::SYNC_IN_PPQN,            {37, 1, "Sync In PPQN"}}, // see: Pro800SettingsSyncInPPQN
-    {Pro800Settings::SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 5-100
-    {Pro800Settings::SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 5-95
+    {Pro800Settings::SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 1-100 on the front panel
+    {Pro800Settings::SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 50-95 on the front panel
     // 40 = overflow
     {Pro800Settings::AFTERTOUCH_VCA_POLARITY, {41, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity
     {Pro800Settings::AFTERTOUCH_VCF_POLARITY, {42, 1, "Aftertouch VCF Polarity"}}, // see: Pro800SettingsPolarity
-    {Pro800Settings::TRANSPOSE,               {43, 1, "Transpose", 0, true}}, // (-12 - +12; -1 = 0x7f, +1 = 0x01)
+    {Pro800Settings::TRANSPOSE,               {43, 1, "Transpose", 0, true}}, // -35 - +35 on the front panel, two's complement
     {Pro800Settings::LOCAL_ENABLE,            {44, 1, "Local Enable"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::SOFT_THRU,               {45, 1, "Soft Thru"}}, // see: Pro800SettingsOnOff
 };

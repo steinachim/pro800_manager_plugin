@@ -223,7 +223,7 @@ only in preset version 111 and newer:
 
 Settings messages have the same overall structure as program messages in terms of header and overflow bytes. They are also requested with a `0x77` message, specifically with the address parameters`7e 03`.
 
-The contents are the following:
+The contents are the following. Ranges marked "on the front panel" are what the synth's own UI allows and what this plugin's settings tab enforces; the synth may accept other values when they arrive via SysEx, which has not been verified.
 
 |byte number | number of bytes | description |
 |--|--|--|
@@ -241,7 +241,7 @@ The contents are the following:
 |16 | 1 | *overflow byte*
 |17 | 1 | unknown
 |18 | 1 | unknown
-|19 | 1 | Display Brightness<br> --> range: 0-16
+|19 | 1 | Display Brightness<br> --> range: 1-16 on the front panel (0 might be accepted via SysEx, unverified)
 |20 | 1 | Display Parameter Time<br> --> range: 0-100
 |21 | 1 | MIDI CC Mode<br> --> 0 = OFF, 1 = TX, 2 = RX, 3 = TX&RX 
 |22 | 1 | MIDI PC Mode<br> --> 0 = OFF, 1 = TX, 2 = RX, 3 = TX&RX 
@@ -259,11 +259,11 @@ The contents are the following:
 |35 | 1 | Tuner Precision<br> --> 0 = 0.5ct, 1 = 1.0ct, 2 = 1.5ct, 3 = 2.0ct
 |36 | 1 | Sync In Start-Stop<br> --> 0 = OFF, 1 = ON
 |37 | 1 | Sync In PPQN<br> --> 0 = 1PPS, 1 = 1PPQN, 2 = 2PPQN, 3 = 4PPQN, 4 = 24PPQN, 5 = 48PPQN
-|38 | 1 | Sync Clock Note Length<br> --> range: 5-100
-|39 | 1 | Sync Clock Swing<br> --> range: 5-95
+|38 | 1 | Sync Clock Note Length<br> --> range: 1-100 on the front panel (5-100 was observed earlier, unverified)
+|39 | 1 | Sync Clock Swing<br> --> range: 50-95 on the front panel (SysEx might accept 5-95, unverified)
 |40 | 1 | overflow
 |41 | 1 | Aftertouch VCA Polarity<br> --> 0 = rise, 1 = fall, 2 = both
 |42 | 1 | Aftertouch VCF Polarity<br> --> 0 = rise, 1 = fall, 2 = both
-|43 | 1 | Transpose<br> --> range: -12 - +12
+|43 | 1 | Transpose<br> --> range: -35 - +35 on the front panel, two's complement (-1 = 0x7F with the overflow bit set)
 |44 | 1 | Local Enable<br> --> 0 = OFF, 1 = ON
 |45 | 1 | Soft Thru<br> --> 0 = OFF, 1 = ON
