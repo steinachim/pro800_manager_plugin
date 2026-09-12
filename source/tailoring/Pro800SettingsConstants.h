@@ -69,7 +69,7 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::SYNC_CLOCK_BPM,          {15, 2, "Sync Clock BPM"}}, 
     // 16 = overflow
     // 18 = unknown
-    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 1-16 on the front panel
+    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 1-16; other values are stored but ignored (full brightness)
     {Pro800Settings::DISPLAY_PARAMETER_TIME,  {20, 1, "Display Parameter Time"}}, // 0-100
     {Pro800Settings::MIDI_CC_MODE,            {21, 1, "MIDI CC Mode"}}, // see: Pro800SettingsMidiMode
     {Pro800Settings::MIDI_PC_MODE,            {22, 1, "MIDI PC Mode"}}, // see: Pro800SettingsMidiMode

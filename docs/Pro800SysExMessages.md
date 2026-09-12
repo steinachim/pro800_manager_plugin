@@ -241,7 +241,7 @@ The contents are the following. Ranges marked "on the front panel" are what the 
 |16 | 1 | *overflow byte*
 |17 | 1 | unknown
 |18 | 1 | unknown
-|19 | 1 | Display Brightness<br> --> range: 1-16 on the front panel (0 might be accepted via SysEx, unverified)
+|19 | 1 | Display Brightness<br> --> range: 1-16. Values outside that range (including 0) are stored and read back unchanged via SysEx, but have no effect: the display goes to full brightness
 |20 | 1 | Display Parameter Time<br> --> range: 0-100
 |21 | 1 | MIDI CC Mode<br> --> 0 = OFF, 1 = TX, 2 = RX, 3 = TX&RX 
 |22 | 1 | MIDI PC Mode<br> --> 0 = OFF, 1 = TX, 2 = RX, 3 = TX&RX 
