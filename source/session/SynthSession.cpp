@@ -297,6 +297,10 @@ void SynthSession::finishConnect()
 void SynthSession::disconnect()
 {
     stopTimer();
+
+    // a dump or transfer in progress ends here: cancelling the exchange completes its request in flight with no
+    // reply, and the step that gets it would otherwise count one failure and ask for the next slot
+    this->cancelRequested = true;
     this->midiHandler.cancelExchanges();
     this->connectionState = ConnectionState::DISCONNECTED;
     this->channels.readFromSynth = false;

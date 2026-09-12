@@ -666,6 +666,23 @@ TEST_CASE ("SynthSession: a dump can be stopped, and gives up if the synth goes 
         REQUIRE (bench.session.getLastError().contains ("Stopped after"));
     }
 
+    SECTION ("disconnecting stops it as well, and nothing more is asked of the synth")
+    {
+        Bench bench;
+        bench.connect();
+
+        bench.session.readAllPrograms();
+        REQUIRE (bench.messageThread.runUntil ([&bench] { return bench.session.getActivityDone() >= 10; }, 4000));
+
+        bench.session.disconnect();
+        const int readsAtDisconnect = programReads (bench.synth);
+        bench.messageThread.runFor (500);
+
+        REQUIRE_FALSE (bench.session.isConnected());
+        REQUIRE_FALSE (bench.session.isBusy());
+        REQUIRE (programReads (bench.synth) == readsAtDisconnect);
+    }
+
     SECTION ("a synth that stops answering ends it rather than timing out four hundred times")
     {
         Bench bench;
