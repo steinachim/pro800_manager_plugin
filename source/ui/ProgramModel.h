@@ -25,7 +25,7 @@ class ProgramMessage;
 class ProgramModel : public juce::ListBoxModel
 {
 public:
-    const static inline std::string DRAG_SOURCE_DESCRIPTION = "LocalProgramListBoxDrag";
+    static inline const juce::String DRAG_SOURCE_DESCRIPTION { "LocalProgramListBoxDrag" };
 
     enum ModelType
     {
@@ -47,7 +47,9 @@ public:
     juce::var getDragSourceDescription (const juce::SparseSet<int>& selectedRows) override;
 
     void reset();
-    void updateElement(std::shared_ptr<ProgramMessage> message);
+
+    /** Replaces the row given by the program's number. Returns false if that number is out of range. */
+    bool updateElement(std::shared_ptr<ProgramMessage> message);
     void highlightRow(int row);
 
 private:
@@ -55,7 +57,7 @@ private:
         OK,
         CANCEL
     };
-    static constexpr std::string NAME_CHANGE_INPUT = "NameChangeInput";
+    static inline const juce::String NAME_CHANGE_INPUT { "NameChangeInput" };
     std::unique_ptr<juce::AlertWindow> nameChangeMessageBox;
 
     int highlightedRow = -1;
@@ -64,4 +66,7 @@ private:
     juce::Array<std::shared_ptr<ProgramMessage>> rows;
 
     juce::ListBox* parentListBox = nullptr;
+
+    // must be the last member: invalidates outstanding WeakReferences before anything else is destroyed
+    JUCE_DECLARE_WEAK_REFERENCEABLE (ProgramModel)
 };

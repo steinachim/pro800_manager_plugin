@@ -26,6 +26,7 @@
 #include "../tailoring/Pro800SettingsConstants.h"
 
 #include <memory>
+#include <vector>
 
 class MidiHandler;
 class SettingsMessage;
@@ -41,6 +42,7 @@ public:
     const juce::String PROGRAM_FIELD_PROPERTY {"programField"};
     const juce::String SETTINGS_FIELD_PROPERTY {"settingsField"};
 
+    static constexpr int PROGRAM_SEND_INTERVAL_MS = 20; // pause between two program dumps sent to the synth
 
     MidiComponent(MidiHandler *midiHandler, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
     virtual ~MidiComponent();
@@ -56,13 +58,17 @@ public:
     void requestFactoryReset();
     void requestProgramDump();
     void loadProgram(uint16_t programNumber);
-    void sendProgram(std::shared_ptr<ProgramMessage> &message);
+
+    /** Writes the programs to the synth, paced in the background so that the UI stays responsive. */
+    void sendPrograms(const std::vector<std::shared_ptr<ProgramMessage>> &programs);
+
+    /** Sends an arbitrary message to the synth immediately. */
+    void sendMidiMessage(const juce::MidiMessage &message);
 
     virtual void loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage);
 
 protected:
     void setupMidiComponent(juce::Component *component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = SETTINGS_FIELD_NONE);
-    void removeMidiComponent(juce::Component *component);
 
     std::shared_ptr<SettingsMessage> &getCurrentSettings();
     void updateSettings(Pro800Settings setting, int value);
@@ -79,21 +85,4 @@ private:
 
     std::shared_ptr<SettingsMessage> currentSettings = std::shared_ptr<SettingsMessage>();
     std::shared_ptr<VersionMessage> currentVersion = std::shared_ptr<VersionMessage>();
-
-    class MidiDumpRequestThread : public juce::Thread
-    {
-    public:
-        MidiDumpRequestThread (MidiHandler* handler)
-            : juce::Thread ("MidiRequestThread"), midiHandler (handler)
-        {
-        }
-
-        void run() override;
-        
-
-    private:
-        MidiHandler *midiHandler;
-    };
-
-    std::unique_ptr<MidiDumpRequestThread> midiDumpRequestThread;
 };

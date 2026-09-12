@@ -1,4 +1,4 @@
-/** 
+/**
  * Pro800 Manager Plugin
  * Copyright (C) 2025 Achim Stein
  *
@@ -25,7 +25,7 @@
 #include "VersionMessage.h"
 #include "StatusMessage.h"
 
-std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const juce::MidiMessage &midiMessage)
+std::shared_ptr<Pro800MidiMessage> Pro800MessageFactory::createMidiMessage(const juce::MidiMessage &midiMessage)
 {
     std::shared_ptr<Pro800MidiMessage> pro800Message = std::make_shared<Pro800MidiMessage>(midiMessage);
     if ( !pro800Message->isValid() )
@@ -33,21 +33,31 @@ std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const 
         return std::shared_ptr<Pro800MidiMessage>();
     }
 
-    unsigned char messageType = midiMessage.getRawData()[Pro800MidiMessage::POS_MESSAGE_TYPE];
+    // isValid() guarantees that the message type byte exists; anything beyond it must be checked here
+    const auto &rawData = pro800Message->getRawData();
+    const uint8_t messageType = rawData[Pro800MidiMessage::POS_MESSAGE_TYPE];
 
     switch (messageType)
     {
     case SettingsMessage::RESPONSE_ID: {
-        uint8_t addressLow = midiMessage.getRawData()[Pro800MidiMessage::POS_MESSAGE_TYPE + 1];
-        uint8_t addressHigh = midiMessage.getRawData()[Pro800MidiMessage::POS_MESSAGE_TYPE + 2];
+        // note: SettingsMessage is a program message with a specific address
+        const size_t addressLowPos = Pro800MidiMessage::POS_MESSAGE_TYPE + 1;
+        const size_t addressHighPos = Pro800MidiMessage::POS_MESSAGE_TYPE + 2;
+        if ( rawData.size() <= addressHighPos )
+        {
+            // too short to carry an address: neither a settings nor a program dump
+            return pro800Message;
+        }
 
-        // note: SettingsMessage is a program message with specific format
+        const uint8_t addressLow = rawData[addressLowPos];
+        const uint8_t addressHigh = rawData[addressHighPos];
+
         if ( addressLow == SettingsMessage::ADDRESS_LOW && addressHigh == SettingsMessage::ADDRESS_HIGH )
         {
             return std::make_shared<SettingsMessage>(midiMessage);
         }
         else
-        {       
+        {
             return std::make_shared<ProgramMessage>(midiMessage);
         }
     }
@@ -62,4 +72,3 @@ std::shared_ptr<Pro800MidiMessage>Pro800MessageFactory::createMidiMessage(const 
         return pro800Message;
     }
 }
-

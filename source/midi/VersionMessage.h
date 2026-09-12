@@ -30,7 +30,7 @@ public:
 
     static juce::MidiMessage request();
 
-    VersionMessage(const juce::MidiMessage &message);
+    explicit VersionMessage(const juce::MidiMessage &message);
     virtual MessageType getMessageType() const override { return MessageType::PRO800_VERSION_MESSAGE;}
 
     virtual bool isValid() const override;
@@ -42,7 +42,7 @@ public:
     bool isSupported() const;
 
 protected:
-    unsigned char getResponseType() const override;
+    uint8_t getResponseType() const override;
 
 private:
     enum VersionPosition

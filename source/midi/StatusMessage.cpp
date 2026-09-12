@@ -18,8 +18,6 @@
 
 #include "StatusMessage.h"
 
-#include <sstream>
-
 const std::map<StatusMessage::Status, const char *> StatusMessage::STATUS_STRING = {
     {STATUS_OK, "OK"},
     {STATUS_ERROR, "Error"},
@@ -32,15 +30,27 @@ StatusMessage::StatusMessage(const juce::MidiMessage &message) : Pro800MidiMessa
 
 bool StatusMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && (getRawDataSize() >= POS_STATUS_BYTE);
+    // the status byte must exist, i.e. the message must be longer than its position
+    return Pro800MidiMessage::isValid() && (getRawDataSize() > POS_STATUS_BYTE);
 }
 
 juce::String StatusMessage::toString() const
 {
-    std::stringstream ss;
-    ss << "Pro-800 Status response: ";
-    ss << STATUS_STRING.at(this->getStatus());
-    return ss.str();
+    const Status status = this->getStatus();
+    const auto statusString = STATUS_STRING.find(status);
+
+    juce::String result = "Pro-800 Status response: ";
+    if ( statusString != STATUS_STRING.end() )
+    {
+        result += statusString->second;
+    }
+    else
+    {
+        // the device answered with a status byte we don't know: report it instead of throwing
+        result += "Unknown status " + juce::String::toHexString((int)status);
+    }
+
+    return result;
 }
 
 StatusMessage::Status StatusMessage::getStatus() const
@@ -55,7 +65,7 @@ StatusMessage::Status StatusMessage::getStatus() const
     }
 }
 
-unsigned char StatusMessage::getResponseType() const
+uint8_t StatusMessage::getResponseType() const
 {
     return RESPONSE_ID;
 }

@@ -30,8 +30,6 @@
 
 MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const juce::Array<MessageType> messageTypes)
 {
-    this->midiDumpRequestThread = std::make_unique<MidiDumpRequestThread>(handler);
-
     this->registeredMessageTypes = messageTypes;
     this->midiHandler = handler;
 
@@ -48,17 +46,6 @@ MidiComponent::MidiComponent(MidiHandler *handler, bool registerMidiCC, const ju
 
 MidiComponent::~MidiComponent()
 {
-    // Stop and destroy the request thread before unregistering components
-    if ( this->midiDumpRequestThread )
-    {
-        if ( this->midiDumpRequestThread->isThreadRunning() )
-        {
-            this->midiDumpRequestThread->signalThreadShouldExit();
-            this->midiDumpRequestThread->stopThread(1000);
-        }
-        this->midiDumpRequestThread.reset();
-    }
-
     for ( auto type : this->registeredMessageTypes )
     {
         this->midiHandler->unregisterMessageComponent(type, this);
@@ -72,15 +59,27 @@ void MidiComponent::requestFactoryReset()
     this->midiHandler->sendMidiMessage(Pro800FactoryResetMessage::request());
 }
 
-void MidiComponent::sendProgram(std::shared_ptr<ProgramMessage> &message)
+void MidiComponent::sendPrograms(const std::vector<std::shared_ptr<ProgramMessage>> &programs)
 {
-    juce::MidiMessage midiMessage(message->getRawData()->data(), (int)message->getRawDataSize());
-    this->midiHandler->sendMidiMessage(midiMessage);
+    std::vector<juce::MidiMessage> messages;
+    messages.reserve(programs.size());
+
+    for ( const auto &program : programs )
+    {
+        messages.push_back(program->toMidiMessage());
+    }
+
+    this->midiHandler->sendMidiMessagesInBackground(std::move(messages), PROGRAM_SEND_INTERVAL_MS);
+}
+
+void MidiComponent::sendMidiMessage(const juce::MidiMessage &message)
+{
+    this->midiHandler->sendMidiMessage(message);
 }
 
 void MidiComponent::requestProgramDump()
 {
-    this->midiDumpRequestThread->startThread();
+    this->midiHandler->requestProgramDump();
 }
 
 void MidiComponent::loadProgram(uint16_t programNumber)
@@ -130,7 +129,11 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
 void MidiComponent::handleMidiCCMessage (uint8_t midiCC, uint8_t value)
 {
     Pro800CCMessages ccNumber = (Pro800CCMessages)midiCC;
-    int propertyValue = value;
+    if ( !this->registeredCCComponents.contains(ccNumber) )
+    {
+        return;
+    }
+
     for (auto* component : this->registeredCCComponents.getReference (ccNumber))
     {
         int programFieldNumber = component->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE);
@@ -138,15 +141,18 @@ void MidiComponent::handleMidiCCMessage (uint8_t midiCC, uint8_t value)
         if ( programFieldNumber == PROGRAM_FIELD_PITCHBEND_RANGE )
         {
             // pitchbend range is in increments of 4 (0 - 124)
-            setComponentValue(component, propertyValue, 124);
+            setComponentValue(component, value, 124);
             continue;
         }
-        else if ( programFieldNumber != PROGRAM_FIELD_NONE )
+
+        // every component starts from the raw CC value; only enum fields need it mapped
+        int componentValue = value;
+        if ( programFieldNumber != PROGRAM_FIELD_NONE )
         {
-            propertyValue = Pro800CCUtils::programEnumValueFromCC(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
+            componentValue = Pro800CCUtils::programEnumValueFromCC(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
         }
 
-        setComponentValue(component, propertyValue, 127);
+        setComponentValue(component, componentValue, 127);
     }
 }
 
@@ -252,14 +258,6 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
     }
 }
 
-void MidiComponent::removeMidiComponent(juce::Component *component)
-{
-    for ( auto ccComponents : this->registeredCCComponents )
-    {
-        ccComponents.removeAllInstancesOf(component);
-    }
-}
-
 std::shared_ptr<SettingsMessage> &MidiComponent::getCurrentSettings()
 {
     return this->currentSettings;
@@ -274,7 +272,7 @@ void MidiComponent::updateSettings(Pro800Settings setting, int value)
     }
 
     this->currentSettings->setValue(setting, value);
-    midiHandler->sendMidiMessage(*(this->currentSettings->toMidiMessage().get()));
+    midiHandler->sendMidiMessage(this->currentSettings->toMidiMessage());
 }
 
 std::shared_ptr<VersionMessage> &MidiComponent::getCurrentVersion()
@@ -301,19 +299,6 @@ void MidiComponent::setComponentValue (juce::Component* component, int value, in
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
         comboBox->setSelectedId ((int) value + 1, juce::dontSendNotification); // +1 because ComboBox IDs start at 1
-    }
-}
-
-void MidiComponent::MidiDumpRequestThread::run()
-{
-    if (!midiHandler)
-        return;
-
-    // request all programs
-    for (int i = 0; i < ProgramMessage::NUM_PROGRAMS; i++)
-    {
-        this->midiHandler->sendMidiMessage (ProgramMessage::request (i));
-        juce::Thread::sleep (10);
     }
 }
 

@@ -1,4 +1,4 @@
-/** 
+/**
  * Pro800 Manager Plugin
  * Copyright (C) 2025 Achim Stein
  *
@@ -18,8 +18,7 @@
 
 #include "Pro800MidiMessage.h"
 
-#include <cstring>
-#include <memory>
+#include <algorithm>
 
 Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message.getRawData(), message.getRawDataSize())
 {
@@ -27,52 +26,51 @@ Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message) : Pro800M
 
 Pro800MidiMessage::Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize)
 {
-    this->rawData = std::make_unique<std::vector<uint8_t>>();
-    this->rawData->insert(this->rawData->end(), &newRawData[0], &newRawData[newRawDataSize]);  
+    if ( newRawData != nullptr && newRawDataSize > 0 )
+    {
+        this->rawData.assign(newRawData, newRawData + newRawDataSize);
+    }
 }
 
-Pro800MidiMessage::Pro800MidiMessage(const Pro800MidiMessage &other)
+juce::MidiMessage Pro800MidiMessage::makeRequest(std::initializer_list<uint8_t> payload)
 {
-    this->rawData = std::make_unique<std::vector<uint8_t>>();
-    this->rawData->insert(this->rawData->end(), other.rawData->begin(), other.rawData->end());
-}
-
-
-Pro800MidiMessage::~Pro800MidiMessage()
-{
-
+    std::vector<uint8_t> request;
+    request.reserve(PRO800_HEADER.size() + payload.size());
+    request.insert(request.end(), PRO800_HEADER.begin(), PRO800_HEADER.end());
+    request.insert(request.end(), payload.begin(), payload.end());
+    return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
 }
 
 juce::String Pro800MidiMessage::toString() const
 {
-    return "Pro800 SysEx Message: " + juce::String::toHexString(rawData->data(), (int)rawData->size());
+    return "Pro800 SysEx Message: " + juce::String::toHexString(rawData.data(), (int)rawData.size());
 }
 
-std::shared_ptr<juce::MidiMessage> Pro800MidiMessage::toMidiMessage() const
+juce::MidiMessage Pro800MidiMessage::toMidiMessage() const
 {
-    return std::make_shared<juce::MidiMessage>(rawData->data(), (int)rawData->size());
+    return juce::MidiMessage(rawData.data(), (int)rawData.size());
 }
 
-std::shared_ptr<std::vector<uint8_t>> &Pro800MidiMessage::getRawData()
+const std::vector<uint8_t> &Pro800MidiMessage::getRawData() const
 {
     return this->rawData;
 }
 
 size_t Pro800MidiMessage::getRawDataSize() const
 {
-    return this->rawData->size();
+    return this->rawData.size();
 }
 
 bool Pro800MidiMessage::isValid() const
 {
-    if( this->rawData->size() <= POS_MESSAGE_TYPE )// long enough to at least have a response type?
+    if( this->rawData.size() <= POS_MESSAGE_TYPE )// long enough to at least have a response type?
         return false;
 
-    if( this->rawData->at(0) != 0xF0                       // valid sysex start
-           && this->rawData->at(this->rawData->size()-1) != 0xF7 )// valid sysex end
+    if( this->rawData.front() != 0xF0                      // valid sysex start
+           || this->rawData.back() != 0xF7 )               // valid sysex end
         return false;
 
-    if ( !std::equal(PRO800_HEADER.begin(), PRO800_HEADER.end(), this->rawData->begin()+1) ) // valid Pro800 header
+    if ( !std::equal(PRO800_HEADER.begin(), PRO800_HEADER.end(), this->rawData.begin()+1) ) // valid Pro800 header
         return false;
 
     if ( !this->isCorrectResponse()) // valid response to query
@@ -83,10 +81,10 @@ bool Pro800MidiMessage::isValid() const
 
 bool Pro800MidiMessage::isCorrectResponse() const
 {
-    return (this->rawData->at(POS_MESSAGE_TYPE) == getResponseType()) || getResponseType() == RESPONSE_UNINIT;
+    return (this->rawData.at(POS_MESSAGE_TYPE) == getResponseType()) || getResponseType() == RESPONSE_UNINIT;
 }
 
-unsigned char Pro800MidiMessage::getResponseType() const
+uint8_t Pro800MidiMessage::getResponseType() const
 {
     return RESPONSE_UNINIT;
 }
@@ -100,17 +98,22 @@ uint8_t Pro800MidiMessage::getUint8Value(size_t position) const
         return 0;
     }
 
-    return this->rawData->at(position);
+    return this->rawData[position];
 }
 
 void Pro800MidiMessage::setUint8Value(size_t position, uint8_t value)
 {
     // low-level function: ignore validity check
-    if ( position >= getRawDataSize() ) 
+    if ( position >= getRawDataSize() )
     {
         juce::Logger::writeToLog("Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!");
         return;
     }
 
-    this->rawData->at(position) = value;
+    this->rawData[position] = value;
+}
+
+void Pro800MidiMessage::resizeRawData(size_t newSize)
+{
+    this->rawData.resize(newSize, 0);
 }

@@ -22,10 +22,7 @@
 
 juce::MidiMessage VersionMessage::request()
 {
-    std::vector<uint8_t> request;
-    request.insert(request.end(), std::begin(PRO800_HEADER), std::end(PRO800_HEADER));
-    request.insert(request.end(), {REQUEST_ID, 0x00});
-    return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
+    return makeRequest({REQUEST_ID, 0x00});
 }
 
 VersionMessage::VersionMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
@@ -35,7 +32,8 @@ VersionMessage::VersionMessage(const juce::MidiMessage &message) : Pro800MidiMes
 
 bool VersionMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && (getRawDataSize() >= VERSION_FIELD_3);
+    // the last version byte must exist, i.e. the message must be longer than its position
+    return Pro800MidiMessage::isValid() && (getRawDataSize() > VERSION_FIELD_3);
 }
 
 juce::String VersionMessage::toString() const
@@ -87,7 +85,7 @@ bool VersionMessage::isSupported() const
     return SUPPORTED_FIRMWARE_VERSIONS.find(getVersionString()) != SUPPORTED_FIRMWARE_VERSIONS.end();
 }
 
-unsigned char VersionMessage::getResponseType() const
+uint8_t VersionMessage::getResponseType() const
 {
     return RESPONSE_ID;
 }

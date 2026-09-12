@@ -94,11 +94,11 @@ private:
     juce::Slider slider_VelocityAmountVCA { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Aftertouch { "8 - Aftertouch", 255, 3, 2};
-    juce::Label label_AfterTouchAmountVCA = { "", "VCA Velocity Amount"};
+    juce::Label label_AfterTouchAmountVCA = { "", "VCA Aftertouch Amount"};
     juce::Slider slider_AfterTouchAmountVCA { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
-    juce::Label label_AfterTouchAmountVCF = { "", "VCF Velocity Amount"};
+    juce::Label label_AfterTouchAmountVCF = { "", "VCF Aftertouch Amount"};
     juce::Slider slider_AfterTouchAmountVCF { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
-    juce::Label label_AfterTouchAmountLFO = { "", "LFO Velocity Amount"};
+    juce::Label label_AfterTouchAmountLFO = { "", "LFO Aftertouch Amount"};
     juce::Slider slider_AfterTouchAmountLFO { juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
 
     EqualSpacingGroupComponent group_Spread { "9 - Spread", 255, 3, 2 };

@@ -38,8 +38,8 @@ public:
     void removeComponents(juce::Array<juce::Component *> components);
 
 private:
-    int numRows;
-    int numCols;
+    int numRows = 1;
+    int numCols = 1;
     int innerMargin = 2;
 
     juce::Array<juce::Component*> children;

@@ -38,7 +38,8 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
         }
     };
 
-    textEdit_midiMessageLog.setReadOnly(false);
+    textEdit_midiMessageLog.setReadOnly(true); // selecting/copying still works
+    textEdit_midiMessageLog.setCaretVisible(false);
     textEdit_midiMessageLog.setMultiLine(true);
     textEdit_midiMessageLog.setReturnKeyStartsNewLine(true);
 
@@ -46,28 +47,9 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     textEdit_midiMessageLog.setFont( { juce::FontOptions().withName(fixedWidthFont) } );
 
     button_sendMessage.setButtonText("Send");
-    button_sendMessage.onClick = [this, midiHandler] {
-      juce::String message = textEdit_inputMidiMessage.getText();
+    button_sendMessage.onClick = [this] { sendInputMessage(); };
 
-      juce::StringArray bytes;
-      bytes.addTokens(message, false);
-
-      juce::Array<uint8_t> midiMessage;
-      for( const auto &byte : bytes )
-      {
-        if ( byte.length() > 2 )
-        {
-          addLogMessage("Invalid input: " + message);
-          return;
-        }
-
-        midiMessage.add((uint8_t)byte.getHexValue32());
-      }
-
-      juce::MidiMessage messageToSend(midiMessage.data(), midiMessage.size());
-      midiHandler->sendMidiMessage(messageToSend);
-    };
-
+#if JUCE_DEBUG
     slider_debugInput.textFromValueFunction = [](double value)             { return juce::String::formatted("0x%02x", (uint8_t)value); };
     slider_debugInput.valueFromTextFunction = [](const juce::String &text) { return (double)text.getHexValue32(); };
     slider_debugInput.setRange(0.0, 255.0, 1.0);
@@ -75,15 +57,18 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     button_debug.setButtonText("Debug");
     button_debug.onClick = [this]
     {
-
       juce::String prefix = "f0 00 20 32 00 01 24 00 77";
       juce::String postfix = "03 f7";
 
       int currentTestNum = (int)slider_debugInput.getValue();
 
-      this->textEdit_inputMidiMessage.setText( prefix + juce::String::formatted(" %02x ", currentTestNum) + postfix, false);      
+      this->textEdit_inputMidiMessage.setText( prefix + juce::String::formatted(" %02x ", currentTestNum) + postfix, false);
       slider_debugInput.setValue(currentTestNum+1);
     };
+
+    addAndMakeVisible(button_debug);
+    addAndMakeVisible(slider_debugInput);
+#endif
 
     button_clearLog.onClick = [this]
     {
@@ -95,10 +80,45 @@ AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     addAndMakeVisible(combo_PreparedMessages);
     addAndMakeVisible(textEdit_inputMidiMessage);
     addAndMakeVisible(button_sendMessage);
-    addAndMakeVisible(button_debug);
-    addAndMakeVisible(slider_debugInput);
     addAndMakeVisible(checkBox_enableLogging);
     addAndMakeVisible(button_clearLog);
+}
+
+void AdvancedTab::sendInputMessage()
+{
+    const juce::String input = textEdit_inputMidiMessage.getText();
+
+    juce::StringArray tokens;
+    tokens.addTokens(input, false);
+    tokens.removeEmptyStrings();
+
+    if ( tokens.isEmpty() )
+    {
+        addLogMessage("Nothing to send: enter the message as hex bytes, e.g. 'F0 00 20 32 00 01 24 00 08 00 F7'");
+        return;
+    }
+
+    std::vector<uint8_t> bytes;
+    bytes.reserve((size_t)tokens.size());
+    for ( const auto &token : tokens )
+    {
+        // one byte = one or two hex digits, nothing else
+        if ( token.length() > 2 || !token.containsOnly("0123456789abcdefABCDEF") )
+        {
+            addLogMessage("Invalid input: '" + token + "' is not a hex byte");
+            return;
+        }
+
+        bytes.push_back((uint8_t)token.getHexValue32());
+    }
+
+    if ( bytes.front() == 0xF0 && bytes.back() != 0xF7 )
+    {
+        addLogMessage("Invalid input: SysEx message must end with F7");
+        return;
+    }
+
+    sendMidiMessage(juce::MidiMessage(bytes.data(), (int)bytes.size()));
 }
 
 AdvancedTab::~AdvancedTab()
@@ -114,9 +134,11 @@ void AdvancedTab::resized()
     button_clearLog.setBounds(logTopArea.removeFromRight(100));
     checkBox_enableLogging.setBounds(logTopArea);
     textEdit_midiMessageLog.setBounds(area.removeFromTop(area.getHeight()-buttonHeight).reduced(4));
-    
+
+#if JUCE_DEBUG
     slider_debugInput.setBounds(area.removeFromRight(150).reduced(4));
     button_debug.setBounds(area.removeFromRight(100).reduced(4));
+#endif
     button_sendMessage.setBounds(area.removeFromRight(100).reduced(4));
     combo_PreparedMessages.setBounds(area.removeFromLeft(200).reduced(4));
     textEdit_inputMidiMessage.setBounds(area.reduced(4));
@@ -140,6 +162,14 @@ void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::S
 
 void AdvancedTab::addLogMessage(const juce::String &message)
 {
+    if ( textEdit_midiMessageLog.getTotalNumChars() > MAX_LOG_CHARS )
+    {
+        // drop the oldest lines: keep the last MAX_LOG_CHARS, cut at the next line break so no entry is torn
+        juce::String log = textEdit_midiMessageLog.getText();
+        const int cutAt = log.indexOfChar(log.length() - MAX_LOG_CHARS, '\n');
+        textEdit_midiMessageLog.setText(cutAt >= 0 ? log.substring(cutAt + 1) : juce::String(), false);
+    }
+
     textEdit_midiMessageLog.moveCaretToEnd();
     textEdit_midiMessageLog.insertTextAtCaret(message + "\n\n");
 }

@@ -1,4 +1,4 @@
-/** 
+/**
  * Pro800 Manager Plugin
  * Copyright (C) 2025 Achim Stein
  *
@@ -23,7 +23,9 @@
 #include "MidiComponent.h"
 #include "LocalProgramListBox.h"
 #include "MainWidget.h"
+
 #include <memory>
+#include <vector>
 
 class ProgramModel;
 
@@ -37,9 +39,21 @@ public:
 
     virtual void handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage) override;
 
-
 private:
+    using ProgramList = std::vector<std::shared_ptr<ProgramMessage>>;
+
+    void loadSelectedProgram();
     void compareSelectedPrograms();
+    void exportPrograms();
+    void importPrograms();
+    void sendAllProgramsToSynth();
+
+    /** The valid (non-empty) programs of the given rows. */
+    static ProgramList validPrograms(ProgramModel &model, const juce::SparseSet<int> &rows);
+    static juce::SparseSet<int> allRows(ProgramModel &model);
+
+    /** Puts deep copies of the programs into the target list; optionally also sends them to the synth. */
+    void copyPrograms(const ProgramList &programs, ProgramModel &to, bool sendToSynth);
 
     juce::ListBox listBox_ProgramListSynth;
     LocalProgramListBox listBox_ProgramListLocal;
@@ -66,4 +80,5 @@ private:
 
     MainWidget *mainWidget = nullptr; // non-owning: MainWidget owns this tab
 
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ProgramManagementTab)
 };

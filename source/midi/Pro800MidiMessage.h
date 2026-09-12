@@ -1,4 +1,4 @@
-/** 
+/**
  * Pro800 Manager Plugin
  * Copyright (C) 2025 Achim Stein
  *
@@ -21,44 +21,57 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include "../tailoring/Pro800Constants.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <initializer_list>
+#include <vector>
+
 class Pro800MidiMessage
 {
 public:
-    const static inline std::vector<uint8_t> PRO800_HEADER = {
+    static inline const std::vector<uint8_t> PRO800_HEADER = {
         0x00, 0x20, 0x32,      // Brand ID (Behringer)
         0x00, 0x01, 0x24,      // Product ID (Pro-800)
         0x00                   // CPU ID
     };
 
-    static const int POS_MESSAGE_TYPE = 0x08;
-    static const uint8_t RESPONSE_UNINIT = 0xFF;
+    static constexpr size_t POS_MESSAGE_TYPE = 0x08;
+    static constexpr uint8_t RESPONSE_UNINIT = 0xFF;
 
-    Pro800MidiMessage(const juce::MidiMessage &message);
+    explicit Pro800MidiMessage(const juce::MidiMessage &message);
     Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize);
-    Pro800MidiMessage(const Pro800MidiMessage &other);
-    
-    virtual ~Pro800MidiMessage();
+
+    // copy/move are deep by default: the whole state is a std::vector
+    Pro800MidiMessage(const Pro800MidiMessage &) = default;
+    Pro800MidiMessage &operator=(const Pro800MidiMessage &) = default;
+    Pro800MidiMessage(Pro800MidiMessage &&) noexcept = default;
+    Pro800MidiMessage &operator=(Pro800MidiMessage &&) noexcept = default;
+    virtual ~Pro800MidiMessage() = default;
 
     virtual MessageType getMessageType() const { return MessageType::PRO800_UNKNOWN_MESSAGE;}
 
     virtual juce::String toString() const;
-    std::shared_ptr<juce::MidiMessage> toMidiMessage() const;
+    juce::MidiMessage toMidiMessage() const;
 
     virtual bool isValid() const;
 
-    std::shared_ptr<std::vector<uint8_t>> &getRawData();
+    const std::vector<uint8_t> &getRawData() const;
     size_t getRawDataSize() const;
 
 protected:
+    // builds a complete SysEx request: F0 <PRO800_HEADER> <payload> F7
+    static juce::MidiMessage makeRequest(std::initializer_list<uint8_t> payload);
+
     uint8_t getUint8Value(size_t position) const;
     void setUint8Value(size_t position, uint8_t value);
 
-    virtual unsigned char getResponseType() const;
+    // grows/shrinks the raw buffer (zero-filled); used to upgrade older message layouts
+    void resizeRawData(size_t newSize);
+
+    virtual uint8_t getResponseType() const;
 
 private:
-
-
     bool isCorrectResponse() const;
 
-    std::shared_ptr<std::vector<uint8_t>> rawData;
+    std::vector<uint8_t> rawData;
 };

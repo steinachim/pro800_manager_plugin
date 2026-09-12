@@ -33,6 +33,10 @@ class AdvancedTab : public juce::Component, public MidiComponent
         void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix) override;
 
     private:
+        // the log is trimmed to roughly this size (oldest lines first) so that it cannot grow without bound
+        static constexpr int MAX_LOG_CHARS = 200000;
+
+        void sendInputMessage();
         void addLogMessage(const juce::String &newMessage);
 
         juce::ComboBox combo_PreparedMessages;
@@ -40,12 +44,15 @@ class AdvancedTab : public juce::Component, public MidiComponent
         juce::TextEditor textEdit_midiMessageLog;
 
         juce::TextButton button_sendMessage;
-        juce::TextButton button_debug;
 
         juce::ToggleButton checkBox_enableLogging { "Enable Logging" };
         juce::TextButton button_clearLog { "Clear Log" };
 
+#if JUCE_DEBUG
+        // developer aid for probing unknown SysEx commands, not part of the release UI
+        juce::TextButton button_debug;
         juce::Slider slider_debugInput { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+#endif
 
         enum PreparedMessageId
         {

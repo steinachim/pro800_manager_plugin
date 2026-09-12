@@ -47,12 +47,11 @@ public:
     static juce::MidiMessage request(uint8_t addressLSB, uint8_t addressMSB);
 
     Pro800DataMessage();
-    Pro800DataMessage(const juce::MidiMessage &message);
+    explicit Pro800DataMessage(const juce::MidiMessage &message);
     Pro800DataMessage(const uint8_t *newRawData, int newRawDataSize);
-    Pro800DataMessage(const Pro800DataMessage &other);
 
 protected:
-    unsigned char getResponseType() const override;
+    uint8_t getResponseType() const override;
 
     int getValue(size_t firstByte, size_t numBytes, bool isSigned = false) const;
     void setValue(size_t firstByte, size_t numBytes, int value);

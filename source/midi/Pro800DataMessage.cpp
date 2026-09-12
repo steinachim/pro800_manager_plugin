@@ -19,18 +19,10 @@
 #include "Pro800DataMessage.h"
 
 #include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-
-using namespace std;
 
 juce::MidiMessage Pro800DataMessage::request(uint8_t addressLSB, uint8_t addressMSB)
 {
-    std::vector<uint8_t> request;
-    request.insert(request.end(), std::begin(PRO800_HEADER), std::end(PRO800_HEADER));
-    request.insert(request.end(), {REQUEST_ID, addressLSB, addressMSB});
-    return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
+    return makeRequest({REQUEST_ID, addressLSB, addressMSB});
 }
 
 
@@ -46,11 +38,7 @@ Pro800DataMessage::Pro800DataMessage(const uint8_t *newRawData, int newRawDataSi
 {
 }
 
-Pro800DataMessage::Pro800DataMessage(const Pro800DataMessage &other) : Pro800MidiMessage(other)
-{
-}
-
-unsigned char Pro800DataMessage::getResponseType() const
+uint8_t Pro800DataMessage::getResponseType() const
 {
     return RESPONSE_ID;
 }

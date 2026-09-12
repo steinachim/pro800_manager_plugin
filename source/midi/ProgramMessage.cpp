@@ -43,34 +43,50 @@ ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : ProgramMessag
 
 ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800DataMessage(newRawData, newRawDataSize)
 {
-    // if this message is an older version (pre 111), then update version to 111 and reserve memory accordingly
-    if ( newRawDataSize < PROGRAM_MESSAGE_SIZE )
-    {   
-        // resize data array to new size     
-        this->getRawData()->resize(PROGRAM_MESSAGE_SIZE, 0);
-
-        // move 0xF7 from previous last position to new last position
-        this->getRawData()->at((size_t)(newRawDataSize-1)) = 0x00;
-        this->getRawData()->at(getRawDataSize()-1) = 0xF7;
-
-        // update program version info
-        this->setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
-    }
+    upgradeOlderPresetVersion();
 }
 
-ProgramMessage::ProgramMessage(const ProgramMessage &other) : Pro800DataMessage(other)
+void ProgramMessage::upgradeOlderPresetVersion()
 {
+    // Presets stored by older firmwares (preset version < SUPPORTED_PRESET_VERSION) are shorter,
+    // because the trailing fields did not exist yet. Grow them to the current layout (new fields = 0)
+    // and stamp the current version so that all getters/setters work on them.
+    //
+    // Anything that is not a well-formed program dump carrying a version byte is left untouched;
+    // in particular the 12-byte "empty slot" placeholder must stay invalid.
+    const size_t oldSize = getRawDataSize();
+    if ( oldSize >= PROGRAM_MESSAGE_SIZE || !Pro800MidiMessage::isValid() )
+    {
+        return;
+    }
+
+    const size_t versionPos = DATA_START_POS + PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_VERSION).firstByte;
+    if ( oldSize <= versionPos + 1 ) // version byte plus the trailing 0xF7
+    {
+        return;
+    }
+
+    // raw read: the message is not a valid current-layout program yet, so getValue() would refuse.
+    // Preset versions are < 128, so the overflow bit is irrelevant here.
+    const uint8_t version = getUint8Value(versionPos);
+    if ( version == 0 || version >= SUPPORTED_PRESET_VERSION )
+    {
+        return;
+    }
+
+    resizeRawData(PROGRAM_MESSAGE_SIZE); // zero-filled
+
+    // move 0xF7 from previous last position to new last position
+    setUint8Value(oldSize - 1, 0x00);
+    setUint8Value(PROGRAM_MESSAGE_SIZE - 1, 0xF7);
+
+    setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
 }
 
 bool ProgramMessage::isValid() const
 {
-    if ( !Pro800MidiMessage::isValid() )
-        return false;
-
-    if ( getRawDataSize() <= DATA_START_POS + PROGRAM_FIELD_VERSION )
-        return false;
-
-    return true;
+    // a program dump must have the complete current layout (older layouts are upgraded in the constructor)
+    return Pro800MidiMessage::isValid() && getRawDataSize() >= PROGRAM_MESSAGE_SIZE;
 }
 
 uint16_t ProgramMessage::getProgramNumber() const

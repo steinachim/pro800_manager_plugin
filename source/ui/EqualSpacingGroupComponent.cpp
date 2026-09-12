@@ -26,9 +26,9 @@ EqualSpacingGroupComponent::EqualSpacingGroupComponent() : juce::GroupComponent(
 EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha, int rows, int cols) : EqualSpacingGroupComponent()
 {
     this->setText(text);
-    this->numRows = rows;
-    this->numCols = cols;
-    
+    this->numRows = juce::jmax(1, rows); // a zero-sized grid would divide by zero in resized()
+    this->numCols = juce::jmax(1, cols);
+
     setOutlineAlpha(outlineAlpha);
 }
 
@@ -63,12 +63,12 @@ void EqualSpacingGroupComponent::resized()
        widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight).reduced(innerMargin));
 
        col+= colSpan[widget];
-       if ( col == numCols )
+       if ( col >= numCols ) // >=: a span that overshoots the row must still wrap
        {
         col = 0;
         row+= rowSpan[widget];
        }
-    } 
+    }
 }
 
 void EqualSpacingGroupComponent::addComponent(juce::Component *component, int rows, int cols)
@@ -80,8 +80,9 @@ void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component
 {
     for ( int i = 0; i < components.size(); i++ )
     {
-        this->rowSpan.set(components[i], rows.isEmpty() ? 1 : rows[i]);
-        this->colSpan.set(components[i], cols.isEmpty() ? 1 : cols[i]);
+        // spans default to 1 where no (or no more) values were given; juce::Array returns 0 for a missing index
+        this->rowSpan.set(components[i], i < rows.size() ? juce::jmax(1, rows[i]) : 1);
+        this->colSpan.set(components[i], i < cols.size() ? juce::jmax(1, cols[i]) : 1);
         this->children.add(components[i]);
         addAndMakeVisible(components[i]);
     }

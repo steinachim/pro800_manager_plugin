@@ -110,7 +110,7 @@ void PerformanceTab::setupGroupVibrato()
     });
 
     this->setupMidiComponent(&slider_VibratoSpeed, CC_VIBRATO_SPEED, PROGRAM_FIELD_LFO_VIBRATO_FREQ);
-    this->setupMidiComponent(&slider_VibratoAmount, CC_VIBRATO_AMOUNT, PROGRAM_FIELD_LFO_AMOUNT);
+    this->setupMidiComponent(&slider_VibratoAmount, CC_VIBRATO_AMOUNT, PROGRAM_FIELD_LFO_VIBRATO_AMOUNT);
 
     this->addAndMakeVisible(group_Vibrato);
 }

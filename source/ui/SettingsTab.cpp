@@ -364,10 +364,11 @@ void SettingsTab::setupGroupFactoryReset()
   this->group_FactoryReset.addComponent(&button_FactoryReset);
 
   button_FactoryReset.onClick = [this] {
-    const auto callback = juce::ModalCallbackFunction::create ([this] (int result) {
-      if ( result == 1 )
+    juce::Component::SafePointer<SettingsTab> safeThis(this);
+    const auto callback = juce::ModalCallbackFunction::create ([safeThis] (int result) {
+      if ( result == 1 && safeThis != nullptr )
       {
-        this->requestFactoryReset();
+        safeThis->requestFactoryReset();
       }
     });
     juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon, "Factory Reset", "This will trigger a factory reset of the device. Are you sure?", "OK", "Abort", this, callback);

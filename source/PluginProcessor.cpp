@@ -19,18 +19,14 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-#include <iostream>
-
-#include "midi/MidiCallbackMessage.h"
-
-Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor() 
+Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor()
      : AudioProcessor(BusesProperties()
                       // workaround: not really used, but added to allow plugin in Audio FX section in Logic
                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), false)
                       .withOutput ("Output", juce::AudioChannelSet::stereo(), false)
                      )
 {
-    this->midiHandler = std::make_unique<MidiHandler>(this);
+    this->midiHandler = std::make_unique<MidiHandler>();
 }
 
 Pro800ManagerAudioProcessor::~Pro800ManagerAudioProcessor()

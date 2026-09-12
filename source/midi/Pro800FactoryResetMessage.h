@@ -28,15 +28,10 @@ public:
 
     static juce::MidiMessage request()
     {
-        std::vector<uint8_t> request;
-        request.insert(request.end(), std::begin(PRO800_HEADER), std::end(PRO800_HEADER));
-        request.insert(request.end(), {REQUEST_ID, 0x00});
-        return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
+        return makeRequest({REQUEST_ID, 0x00});
     }
 
 private:
-    Pro800FactoryResetMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
-    {        
-        // is request only, no dedicated response
-    }
+    // request only, no dedicated response: not meant to be instantiated
+    Pro800FactoryResetMessage() = delete;
 };

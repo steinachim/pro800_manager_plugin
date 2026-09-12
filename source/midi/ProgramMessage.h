@@ -30,17 +30,16 @@ class ProgramMessage : public Pro800DataMessage
 {
 public:
     
-    static const uint16_t NUM_PROGRAMS = 400;
-  
-    static const uint8_t SUPPORTED_PRESET_VERSION = 111;
-    static const int PROGRAM_MESSAGE_SIZE = 210;
+    static constexpr uint16_t NUM_PROGRAMS = 400;
+
+    static constexpr uint8_t SUPPORTED_PRESET_VERSION = 111;
+    static constexpr size_t PROGRAM_MESSAGE_SIZE = 210; // complete size of a SUPPORTED_PRESET_VERSION program dump
 
     static juce::MidiMessage request(int programNumber);
 
     ProgramMessage();
-    ProgramMessage(const juce::MidiMessage &message);
+    explicit ProgramMessage(const juce::MidiMessage &message);
     ProgramMessage(const uint8_t *newRawData, int newRawDataSize);
-    ProgramMessage(const ProgramMessage &other);
     virtual MessageType getMessageType() const override { return MessageType::PRO800_PROGRAM_MESSAGE;}
 
     virtual bool isValid() const override;
@@ -61,4 +60,7 @@ public:
 
     int getValue(Pro800ProgramField field) const;
     void setValue(Pro800ProgramField field, int value);
+
+private:
+    void upgradeOlderPresetVersion();
 };
