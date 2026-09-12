@@ -21,79 +21,80 @@
 #include <map>
 #include "Pro800Constants.h"
 
-enum Pro800Settings
+// scoped: identifies a settings field. (The value enums below stay unscoped: they are plain wire values.)
+enum class Pro800Settings
 {
-    SETTINGS_FIELD_NONE = -1, // placeholder for no field
+    NONE = -1, // placeholder for no field
 
-    SETTINGS_PRESET_NUM,
-    SETTINGS_PRESET_MODE,
-    SETTINGS_MIDI_RX_CHANNEL,
-    SETTINGS_VOICE_KILL,
-    SETTINGS_MIDI_TX_CHANNEL,
-    SETTINGS_SYNC_SOURCE,
-    SETTINGS_SYNC_CLOCK_BPM,
-    SETTINGS_BRIGHTNESS,
-    SETTINGS_DISPLAY_PARAMETER_TIME,
-    SETTINGS_MIDI_CC_MODE,
-    SETTINGS_MIDI_PC_MODE,
-    SETTINGS_SYNC_IN_FORWARD,
-    SETTINGS_EXTERNAL_CV_AMOUNT,
-    SETTINGS_SYNC_CLOCK_SUBDIVISION,
-    SETTINGS_VOICE_PRIORITY,
-    SETTINGS_SHOW_PRESET_NAME,
-    SETTINGS_SYNC_IN_POLARITY,
-    SETTINGS_TUNER_PRECISION,
-    SETTINGS_SYNC_IN_START_STOP,
-    SETTINGS_SYNC_IN_PPQN,
-    SETTINGS_SYNC_CLOCK_NOTE_LENGTH,
-    SETTINGS_SYNC_CLOCK_SWING,
-    SETTINGS_AFTERTOUCH_VCA_POLARITY,
-    SETTINGS_AFTERTOUCH_VCF_POLARITY,
-    SETTINGS_TRANSPOSE,
-    SETTINGS_LOCAL_ENABLE,
-    SETTINGS_SOFT_THRU,
+    PRESET_NUM,
+    PRESET_MODE,
+    MIDI_RX_CHANNEL,
+    VOICE_KILL,
+    MIDI_TX_CHANNEL,
+    SYNC_SOURCE,
+    SYNC_CLOCK_BPM,
+    BRIGHTNESS,
+    DISPLAY_PARAMETER_TIME,
+    MIDI_CC_MODE,
+    MIDI_PC_MODE,
+    SYNC_IN_FORWARD,
+    EXTERNAL_CV_AMOUNT,
+    SYNC_CLOCK_SUBDIVISION,
+    VOICE_PRIORITY,
+    SHOW_PRESET_NAME,
+    SYNC_IN_POLARITY,
+    TUNER_PRECISION,
+    SYNC_IN_START_STOP,
+    SYNC_IN_PPQN,
+    SYNC_CLOCK_NOTE_LENGTH,
+    SYNC_CLOCK_SWING,
+    AFTERTOUCH_VCA_POLARITY,
+    AFTERTOUCH_VCF_POLARITY,
+    TRANSPOSE,
+    LOCAL_ENABLE,
+    SOFT_THRU,
 };
 
 // inline: one instance for the whole program instead of one per translation unit
 inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
 {
-    {SETTINGS_PRESET_NUM,              {6, 2, "Preset Number"}},
+    {Pro800Settings::PRESET_NUM,              {6, 2, "Preset Number"}},
     // 8 = overflow
-    {SETTINGS_PRESET_MODE,             {9, 1, "Preset Mode"}}, // see: Pro800SettingsPresetMode
-    {SETTINGS_MIDI_RX_CHANNEL,         {10, 1, "MIDI RX Channel"}}, // see: Pro800SettingsMidiReceiveChannel
-    {SETTINGS_VOICE_KILL,              {11, 1, "Voice Kill"}}, // voices 1-7, bitwise // 14
-    {SETTINGS_MIDI_TX_CHANNEL,         {12, 1, "MIDI TC Channel"}}, // see: Pro800SettingsMidiTransmitChannel
-    {SETTINGS_SYNC_SOURCE,             {13, 1, "Sync Source"}}, // see: Pro800SettingsSyncSource
+    {Pro800Settings::PRESET_MODE,             {9, 1, "Preset Mode"}}, // see: Pro800SettingsPresetMode
+    {Pro800Settings::MIDI_RX_CHANNEL,         {10, 1, "MIDI RX Channel"}}, // see: Pro800SettingsMidiReceiveChannel
+    {Pro800Settings::VOICE_KILL,              {11, 1, "Voice Kill"}}, // voices 1-7, bitwise // 14
+    {Pro800Settings::MIDI_TX_CHANNEL,         {12, 1, "MIDI TC Channel"}}, // see: Pro800SettingsMidiTransmitChannel
+    {Pro800Settings::SYNC_SOURCE,             {13, 1, "Sync Source"}}, // see: Pro800SettingsSyncSource
     // 14 = unknown
-    {SETTINGS_SYNC_CLOCK_BPM,          {15, 2, "Sync Clock BPM"}}, 
+    {Pro800Settings::SYNC_CLOCK_BPM,          {15, 2, "Sync Clock BPM"}}, 
     // 16 = overflow
     // 18 = unknown
-    {SETTINGS_BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 0-16
-    {SETTINGS_DISPLAY_PARAMETER_TIME,  {20, 1, "Display Parameter Time"}}, // 0-100
-    {SETTINGS_MIDI_CC_MODE,            {21, 1, "MIDI CC Mode"}}, // see: Pro800SettingsMidiMode
-    {SETTINGS_MIDI_PC_MODE,            {22, 1, "MIDI PC Mode"}}, // see: Pro800SettingsMidiMode
+    {Pro800Settings::BRIGHTNESS,              {19, 1, "Display Brightness"}}, // 0-16
+    {Pro800Settings::DISPLAY_PARAMETER_TIME,  {20, 1, "Display Parameter Time"}}, // 0-100
+    {Pro800Settings::MIDI_CC_MODE,            {21, 1, "MIDI CC Mode"}}, // see: Pro800SettingsMidiMode
+    {Pro800Settings::MIDI_PC_MODE,            {22, 1, "MIDI PC Mode"}}, // see: Pro800SettingsMidiMode
     // 23 = unknown
     // 24 = overflow
-    {SETTINGS_SYNC_IN_FORWARD,         {25, 1, "Sync In Forward Enable"}}, // see: Pro800SettingsOnOff
-    {SETTINGS_EXTERNAL_CV_AMOUNT,      {26, 2, "External CV Amount"}}, 
+    {Pro800Settings::SYNC_IN_FORWARD,         {25, 1, "Sync In Forward Enable"}}, // see: Pro800SettingsOnOff
+    {Pro800Settings::EXTERNAL_CV_AMOUNT,      {26, 2, "External CV Amount"}}, 
     // 28 = unknown
-    {SETTINGS_SYNC_CLOCK_SUBDIVISION,  {29, 1, "Sync Clock Subdivision"}}, // see: Pro800SettingsSyncSubdivision
-    {SETTINGS_VOICE_PRIORITY,          {30, 1, "Voice Priority"}}, //see: Pro800SettingsVoicePriority
-    {SETTINGS_SHOW_PRESET_NAME,        {31, 1, "Show Preset Name"}}, // see: Pro800SettingsOnOff
+    {Pro800Settings::SYNC_CLOCK_SUBDIVISION,  {29, 1, "Sync Clock Subdivision"}}, // see: Pro800SettingsSyncSubdivision
+    {Pro800Settings::VOICE_PRIORITY,          {30, 1, "Voice Priority"}}, //see: Pro800SettingsVoicePriority
+    {Pro800Settings::SHOW_PRESET_NAME,        {31, 1, "Show Preset Name"}}, // see: Pro800SettingsOnOff
     // 32 = overflow
-    {SETTINGS_SYNC_IN_POLARITY,        {33, 1, "Sync In Polarity"}}, // see: Pro800SettingsPolarity
+    {Pro800Settings::SYNC_IN_POLARITY,        {33, 1, "Sync In Polarity"}}, // see: Pro800SettingsPolarity
     // 34 = unknown
-    {SETTINGS_TUNER_PRECISION,         {35, 1, "Tuner Precision"}}, // see: Pro800SettingsTunerPrecision
-    {SETTINGS_SYNC_IN_START_STOP,      {36, 1, "Sync In Start-Stop"}}, // see: Pro800SettingsOnOff
-    {SETTINGS_SYNC_IN_PPQN,            {37, 1, "Sync In PPQN"}}, // see: Pro800SettingsSyncInPPQN
-    {SETTINGS_SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 5-100
-    {SETTINGS_SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 5-95
+    {Pro800Settings::TUNER_PRECISION,         {35, 1, "Tuner Precision"}}, // see: Pro800SettingsTunerPrecision
+    {Pro800Settings::SYNC_IN_START_STOP,      {36, 1, "Sync In Start-Stop"}}, // see: Pro800SettingsOnOff
+    {Pro800Settings::SYNC_IN_PPQN,            {37, 1, "Sync In PPQN"}}, // see: Pro800SettingsSyncInPPQN
+    {Pro800Settings::SYNC_CLOCK_NOTE_LENGTH,  {38, 1, "Sync Clock Note Length"}}, // 5-100
+    {Pro800Settings::SYNC_CLOCK_SWING,        {39, 1, "Sync Clock Swing"}}, // 5-95
     // 40 = overflow
-    {SETTINGS_AFTERTOUCH_VCA_POLARITY, {41, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity
-    {SETTINGS_AFTERTOUCH_VCF_POLARITY, {42, 1, "Aftertouch VCF Polarity"}}, // see: Pro800SettingsPolarity
-    {SETTINGS_TRANSPOSE,               {43, 1, "Transpose", 0, true}}, // (-12 - +12; -1 = 0x7f, +1 = 0x01)
-    {SETTINGS_LOCAL_ENABLE,            {44, 1, "Local Enable"}}, // see: Pro800SettingsOnOff
-    {SETTINGS_SOFT_THRU,               {45, 1, "Soft Thru"}}, // see: Pro800SettingsOnOff
+    {Pro800Settings::AFTERTOUCH_VCA_POLARITY, {41, 1, "Aftertouch VCA Polarity"}}, // see: Pro800SettingsPolarity
+    {Pro800Settings::AFTERTOUCH_VCF_POLARITY, {42, 1, "Aftertouch VCF Polarity"}}, // see: Pro800SettingsPolarity
+    {Pro800Settings::TRANSPOSE,               {43, 1, "Transpose", 0, true}}, // (-12 - +12; -1 = 0x7f, +1 = 0x01)
+    {Pro800Settings::LOCAL_ENABLE,            {44, 1, "Local Enable"}}, // see: Pro800SettingsOnOff
+    {Pro800Settings::SOFT_THRU,               {45, 1, "Soft Thru"}}, // see: Pro800SettingsOnOff
 };
 
 enum Pro800SettingsMidiReceiveChannel

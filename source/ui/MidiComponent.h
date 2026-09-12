@@ -25,6 +25,7 @@
 #include "../tailoring/Pro800ProgramConstants.h"
 #include "../tailoring/Pro800SettingsConstants.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -61,7 +62,7 @@ public:
     virtual ~MidiComponent();
 
     void handlePro800Message(MessageType type, std::shared_ptr<Pro800MidiMessage> &settingsMessage);
-    void handleMidiCCMessage(uint8_t midiCC, uint8_t value);
+    void handleMidiCCMessage(Pro800CCMessages midiCC, uint8_t value);
 
     virtual void handlePro800SettingsUpdate();
     virtual void handlePro800VersionUpdate();
@@ -83,7 +84,11 @@ public:
 protected:
     MidiHandler &getMidiHandler() const;
 
-    void setupMidiComponent(juce::Component *component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = SETTINGS_FIELD_NONE);
+    /** The program field / CC a control was linked to via setupMidiComponent() (NONE if not linked). */
+    static Pro800ProgramField getProgramField(const juce::Component &component);
+    static Pro800CCMessages getMidiCC(const juce::Component &component);
+
+    void setupMidiComponent(juce::Component *component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = Pro800Settings::NONE);
 
     std::shared_ptr<SettingsMessage> &getCurrentSettings();
     void updateSettings(Pro800Settings setting, int value);
@@ -94,7 +99,7 @@ protected:
     
 private:
     juce::Array<MessageType> registeredMessageTypes = juce::Array<MessageType>();
-    juce::HashMap<Pro800CCMessages, juce::Array<juce::Component*>> registeredCCComponents;
+    std::map<Pro800CCMessages, juce::Array<juce::Component*>> registeredCCComponents;
 
     MidiHandler *midiHandler; // non-owning: lifetime managed by the audio processor/editor
 

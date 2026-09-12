@@ -20,7 +20,7 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/Pro800MessageFactory.h"
 
-AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::MIDI_LOG_MESSAGE})
+AdvancedTab::AdvancedTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::MIDI_LOG})
 {
     juce::String comboToolTip = "";
     for ( const auto& [id, preparedMessage] : PREPARED_MESSAGES )

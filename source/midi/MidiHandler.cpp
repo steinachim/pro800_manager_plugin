@@ -184,7 +184,7 @@ void MidiHandler::handleEvent(const MidiEvent& event)
 
     // note: iterate over copies of the component lists so that a component may (un)register from within its handler
     const juce::String logPrefix = (event.sent ? "Sent message:" : "Received message:");
-    for(auto *component : this->midiComponents[MessageType::MIDI_LOG_MESSAGE])
+    for(auto *component : componentsFor(MessageType::MIDI_LOG))
     {
         component->handleMidiLog(message, logPrefix);
     }
@@ -197,8 +197,9 @@ void MidiHandler::handleEvent(const MidiEvent& event)
 
     if (message.isController())
     {
-        uint8_t midiCC = (uint8_t) message.getControllerNumber();
-        uint8_t value = (uint8_t) message.getControllerValue();
+        // any controller number is a legal Pro800CCMessages value; components only react to the ones they registered for
+        const auto midiCC = static_cast<Pro800CCMessages>(message.getControllerNumber());
+        const auto value = (uint8_t) message.getControllerValue();
 
         const juce::Array<MidiComponent *> ccComponents(this->midiCCComponents);
         for(auto *component : ccComponents )
@@ -217,7 +218,7 @@ void MidiHandler::handleEvent(const MidiEvent& event)
 
         MessageType type = pro800Message->getMessageType();
 
-        for(auto *component : this->midiComponents[type] )
+        for(auto *component : componentsFor(type) )
         {
             component->handlePro800Message(type, pro800Message);
         }
@@ -237,21 +238,28 @@ void MidiHandler::unregisterMidiCCComponent(MidiComponent *component)
 
 void MidiHandler::registerMessageComponent(MessageType type, MidiComponent *component)
 {
-    this->midiComponents.getReference(type).addIfNotAlreadyThere(component);
+    this->midiComponents[type].addIfNotAlreadyThere(component);
 }
 
 void MidiHandler::unregisterMessageComponent(MessageType type, MidiComponent *component)
 {
-    if ( this->midiComponents.contains(type) )
+    const auto entry = this->midiComponents.find(type);
+    if ( entry != this->midiComponents.end() )
     {
-        this->midiComponents.getReference(type).removeAllInstancesOf(component);
+        entry->second.removeAllInstancesOf(component);
     }
 }
 
-//==============================================================================
-void MidiHandler::sendMidiCCMessage (uint8_t midiCC, uint8_t value)
+juce::Array<MidiComponent *> MidiHandler::componentsFor(MessageType type) const
 {
-    sendMidiMessage(juce::MidiMessage::controllerEvent (midiChannel, (int) midiCC, (int) value));
+    const auto entry = this->midiComponents.find(type);
+    return entry != this->midiComponents.end() ? entry->second : juce::Array<MidiComponent *>();
+}
+
+//==============================================================================
+void MidiHandler::sendMidiCCMessage (Pro800CCMessages midiCC, uint8_t value)
+{
+    sendMidiMessage(juce::MidiMessage::controllerEvent (midiChannel, static_cast<int>(midiCC), (int) value));
 }
 
 void MidiHandler::sendProgramChange (uint8_t program)

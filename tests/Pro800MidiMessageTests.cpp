@@ -111,17 +111,17 @@ TEST_CASE("Pro800MessageFactory: dispatches on the message type", "[midi][factor
 {
     SECTION("version, status, settings and program responses")
     {
-        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ VersionMessage::RESPONSE_ID, 0x00, 1, 4, 6 })))->getMessageType() == PRO800_VERSION_MESSAGE);
-        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ StatusMessage::RESPONSE_ID, 0x00, 0x00 })))->getMessageType() == PRO800_STATUS_MESSAGE);
-        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(settingsDump()))->getMessageType() == PRO800_SETTINGS_MESSAGE);
-        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(programDump(12)))->getMessageType() == PRO800_PROGRAM_MESSAGE);
+        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ VersionMessage::RESPONSE_ID, 0x00, 1, 4, 6 })))->getMessageType() == MessageType::PRO800_VERSION);
+        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ StatusMessage::RESPONSE_ID, 0x00, 0x00 })))->getMessageType() == MessageType::PRO800_STATUS);
+        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(settingsDump()))->getMessageType() == MessageType::PRO800_SETTINGS);
+        REQUIRE(Pro800MessageFactory::createMidiMessage(toMidi(programDump(12)))->getMessageType() == MessageType::PRO800_PROGRAM);
     }
 
     SECTION("unknown types come back as a generic message")
     {
         const auto message = Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ 0x42, 0x00 })));
         REQUIRE(message != nullptr);
-        REQUIRE(message->getMessageType() == PRO800_UNKNOWN_MESSAGE);
+        REQUIRE(message->getMessageType() == MessageType::PRO800_UNKNOWN);
     }
 
     SECTION("a 0x78 without address bytes must not be read past its end")
@@ -129,12 +129,12 @@ TEST_CASE("Pro800MessageFactory: dispatches on the message type", "[midi][factor
         // F0 <header> 78 F7: type present, address missing
         const auto message = Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ Pro800DataMessage::RESPONSE_ID })));
         REQUIRE(message != nullptr);
-        REQUIRE(message->getMessageType() == PRO800_UNKNOWN_MESSAGE);
+        REQUIRE(message->getMessageType() == MessageType::PRO800_UNKNOWN);
 
         // one address byte only
         const auto oneAddressByte = Pro800MessageFactory::createMidiMessage(toMidi(sysEx({ Pro800DataMessage::RESPONSE_ID, 0x05 })));
         REQUIRE(oneAddressByte != nullptr);
-        REQUIRE(oneAddressByte->getMessageType() == PRO800_UNKNOWN_MESSAGE);
+        REQUIRE(oneAddressByte->getMessageType() == MessageType::PRO800_UNKNOWN);
     }
 
     SECTION("non-Pro-800 input yields no message")

@@ -48,7 +48,7 @@ public:
     Pro800MidiMessage &operator=(Pro800MidiMessage &&) noexcept = default;
     virtual ~Pro800MidiMessage() = default;
 
-    virtual MessageType getMessageType() const { return MessageType::PRO800_UNKNOWN_MESSAGE;}
+    virtual MessageType getMessageType() const { return MessageType::PRO800_UNKNOWN;}
 
     virtual juce::String toString() const;
     juce::MidiMessage toMidiMessage() const;

@@ -111,18 +111,18 @@ TEST_CASE("ProgramMessage: values that straddle an overflow byte", "[midi][progr
     ProgramMessage program = validProgram();
 
     // Filter Sustain sits at data bytes 31 and 33 (32 is an overflow byte)
-    program.setValue(PROGRAM_FIELD_FILTER_SUSTAIN, 0xABCD);
-    REQUIRE(program.getValue(PROGRAM_FIELD_FILTER_SUSTAIN) == 0xABCD);
+    program.setValue(Pro800ProgramField::FILTER_SUSTAIN, 0xABCD);
+    REQUIRE(program.getValue(Pro800ProgramField::FILTER_SUSTAIN) == 0xABCD);
 
     // Tune E is a 4-byte value at 126, 127, 129, 130 (128 is an overflow byte)
-    program.setValue(PROGRAM_FIELD_TUNING_E, 0x7F123456);
-    REQUIRE(program.getValue(PROGRAM_FIELD_TUNING_E) == 0x7F123456);
+    program.setValue(Pro800ProgramField::TUNING_E, 0x7F123456);
+    REQUIRE(program.getValue(Pro800ProgramField::TUNING_E) == 0x7F123456);
 
     // the neighbours on both sides of the overflow byte are untouched
-    REQUIRE(program.getValue(PROGRAM_FIELD_FILTER_RESONANCE) == 0);
-    REQUIRE(program.getValue(PROGRAM_FIELD_FILTER_DECAY) == 0);
-    REQUIRE(program.getValue(PROGRAM_FIELD_TUNING_D_SHARP) == 0);
-    REQUIRE(program.getValue(PROGRAM_FIELD_TUNING_F) == 0);
+    REQUIRE(program.getValue(Pro800ProgramField::FILTER_RESONANCE) == 0);
+    REQUIRE(program.getValue(Pro800ProgramField::FILTER_DECAY) == 0);
+    REQUIRE(program.getValue(Pro800ProgramField::TUNING_D_SHARP) == 0);
+    REQUIRE(program.getValue(Pro800ProgramField::TUNING_F) == 0);
 
     REQUIRE(allDataBytesAre7Bit(program.getRawData()));
 }
@@ -161,11 +161,11 @@ TEST_CASE("ProgramMessage: program name", "[midi][program]")
 
     SECTION("the name does not disturb the fields around it")
     {
-        program.setValue(PROGRAM_FIELD_ARP_MODE, PROGRAM_ARP_MODE_RANDOM);
-        program.setValue(PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT, 0x1234);
+        program.setValue(Pro800ProgramField::ARP_MODE, PROGRAM_ARP_MODE_RANDOM);
+        program.setValue(Pro800ProgramField::LFO_AFTERTOUCH_AMOUNT, 0x1234);
         program.setProgramName("ABCDEFGHIJKLMNOP");
-        REQUIRE(program.getValue(PROGRAM_FIELD_ARP_MODE) == PROGRAM_ARP_MODE_RANDOM);
-        REQUIRE(program.getValue(PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT) == 0x1234);
+        REQUIRE(program.getValue(Pro800ProgramField::ARP_MODE) == PROGRAM_ARP_MODE_RANDOM);
+        REQUIRE(program.getValue(Pro800ProgramField::LFO_AFTERTOUCH_AMOUNT) == 0x1234);
     }
 }
 
@@ -181,9 +181,9 @@ TEST_CASE("ProgramMessage: LFO destination bit field", "[midi][program]")
     REQUIRE_FALSE(program.isLfoDestinationEnabled(PROGRAM_LFO_DEST_FREQ_AB));
     REQUIRE_FALSE(program.isLfoDestinationEnabled(PROGRAM_LFO_DEST_PW_AB));
 
-    REQUIRE(program.getLfoDestinationValue(CC_LFO_MOD_DEST_FILTER) == CC_ON);
-    REQUIRE(program.getLfoDestinationValue(CC_LFO_MOD_DEST_FREQ_AB) == CC_OFF);
-    REQUIRE(program.getLfoDestinationValue(CC_LFO_TARGET) == CC_LFO_TARGET_OSC_B);
+    REQUIRE(program.getLfoDestinationValue(Pro800CCMessages::LFO_MOD_DEST_FILTER) == CC_ON);
+    REQUIRE(program.getLfoDestinationValue(Pro800CCMessages::LFO_MOD_DEST_FREQ_AB) == CC_OFF);
+    REQUIRE(program.getLfoDestinationValue(Pro800CCMessages::LFO_TARGET) == CC_LFO_TARGET_OSC_B);
 
     program.setLfoDestinationEnabled(PROGRAM_LFO_DEST_FILTER, false);
     REQUIRE_FALSE(program.isLfoDestinationEnabled(PROGRAM_LFO_DEST_FILTER));
@@ -202,11 +202,11 @@ TEST_CASE("ProgramMessage: presets from older firmwares are upgraded to the curr
 
         REQUIRE(program.isValid());
         REQUIRE(program.getRawDataSize() == ProgramMessage::PROGRAM_MESSAGE_SIZE);
-        REQUIRE(program.getValue(PROGRAM_FIELD_VERSION) == ProgramMessage::SUPPORTED_PRESET_VERSION);
+        REQUIRE(program.getValue(Pro800ProgramField::PRESET_VERSION) == ProgramMessage::SUPPORTED_PRESET_VERSION);
         REQUIRE(program.getRawData()[oldSize - 1] == 0x00); // the old end-of-SysEx position is data now
         REQUIRE(program.getRawData().back() == 0xF7);
         REQUIRE(program.getProgramNumber() == 5);
-        REQUIRE(program.getValue(PROGRAM_FIELD_GLIDE_MODE) == 0); // new field, zero-initialised
+        REQUIRE(program.getValue(Pro800ProgramField::GLIDE_MODE) == 0); // new field, zero-initialised
     }
 
     SECTION("the data of an older preset is preserved")
@@ -255,7 +255,7 @@ TEST_CASE("ProgramMessage: toString lists every field, including the 4-byte tuni
 {
     ProgramMessage program = validProgram(42);
     program.setProgramName("Listed");
-    program.setValue(PROGRAM_FIELD_TUNING_C, 0x7FFFFFFF); // used to overflow the display calculation
+    program.setValue(Pro800ProgramField::TUNING_C, 0x7FFFFFFF); // used to overflow the display calculation
 
     const juce::String text = program.toString();
 

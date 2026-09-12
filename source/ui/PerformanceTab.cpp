@@ -90,8 +90,8 @@ void PerformanceTab::setupGroupLFO()
         &label_LFOspeed,  &combo_LFOspeed
     });
 
-    this->setupMidiComponent(&combo_LFOtarget, CC_LFO_TARGET, PROGRAM_FIELD_LFO_DEST);
-    this->setupMidiComponent(&combo_LFOspeed,  CC_LFO_SPEED,  PROGRAM_FIELD_LFO_SPEED);
+    this->setupMidiComponent(&combo_LFOtarget, Pro800CCMessages::LFO_TARGET, Pro800ProgramField::LFO_DEST);
+    this->setupMidiComponent(&combo_LFOspeed,  Pro800CCMessages::LFO_SPEED,  Pro800ProgramField::LFO_SPEED);
 
     this->addAndMakeVisible(group_LFO);
 }
@@ -107,8 +107,8 @@ void PerformanceTab::setupGroupVibrato()
         &label_VibratoAmount, &slider_VibratoAmount
     });
 
-    this->setupMidiComponent(&slider_VibratoSpeed, CC_VIBRATO_SPEED, PROGRAM_FIELD_LFO_VIBRATO_FREQ);
-    this->setupMidiComponent(&slider_VibratoAmount, CC_VIBRATO_AMOUNT, PROGRAM_FIELD_LFO_VIBRATO_AMOUNT);
+    this->setupMidiComponent(&slider_VibratoSpeed, Pro800CCMessages::VIBRATO_SPEED, Pro800ProgramField::LFO_VIBRATO_FREQ);
+    this->setupMidiComponent(&slider_VibratoAmount, Pro800CCMessages::VIBRATO_AMOUNT, Pro800ProgramField::LFO_VIBRATO_AMOUNT);
 
     this->addAndMakeVisible(group_Vibrato);
 }
@@ -131,9 +131,9 @@ void PerformanceTab::setupGroupModulation()
         &label_ModulationDelay,       &slider_ModulationDelay
     });
 
-    this->setupMidiComponent(&combo_ModulationWheelAmount, CC_MOD_WHEEL_AMOUNT, PROGRAM_FIELD_MODWHEEL_RANGE);
-    this->setupMidiComponent(&combo_ModulationWheelTarget, CC_MOD_WHEEL_TARGET, PROGRAM_FIELD_MODWHEEL_TARGET);
-    this->setupMidiComponent(&slider_ModulationDelay,      CC_MODULATION_DELAY, PROGRAM_FIELD_LFO_MODULATION_DELAY);
+    this->setupMidiComponent(&combo_ModulationWheelAmount, Pro800CCMessages::MOD_WHEEL_AMOUNT, Pro800ProgramField::MODWHEEL_RANGE);
+    this->setupMidiComponent(&combo_ModulationWheelTarget, Pro800CCMessages::MOD_WHEEL_TARGET, Pro800ProgramField::MODWHEEL_TARGET);
+    this->setupMidiComponent(&slider_ModulationDelay,      Pro800CCMessages::MODULATION_DELAY, Pro800ProgramField::LFO_MODULATION_DELAY);
 
     this->addAndMakeVisible(group_Modulation);
 }
@@ -157,11 +157,11 @@ void PerformanceTab::setupGroupEnvelopes()
         &label_EnvShapeVCF, &combo_EnvShapeVCF,        
     });
 
-    this->setupMidiComponent(&combo_EnvSpeedVCA, CC_VCA_ENV_SPEED, PROGRAM_FIELD_AMP_ENV_SPEED);
-    this->setupMidiComponent(&combo_EnvShapeVCA, CC_VCA_ENV_SHAPE, PROGRAM_FIELD_AMP_ENV_SHAPE);
+    this->setupMidiComponent(&combo_EnvSpeedVCA, Pro800CCMessages::VCA_ENV_SPEED, Pro800ProgramField::AMP_ENV_SPEED);
+    this->setupMidiComponent(&combo_EnvShapeVCA, Pro800CCMessages::VCA_ENV_SHAPE, Pro800ProgramField::AMP_ENV_SHAPE);
   
-    this->setupMidiComponent(&combo_EnvSpeedVCF, CC_VCF_ENV_SPEED, PROGRAM_FIELD_FILTER_ENV_SPEED);
-    this->setupMidiComponent(&combo_EnvShapeVCF, CC_VCF_ENV_SHAPE, PROGRAM_FIELD_FILTER_ENV_SHAPE);
+    this->setupMidiComponent(&combo_EnvSpeedVCF, Pro800CCMessages::VCF_ENV_SPEED, Pro800ProgramField::FILTER_ENV_SPEED);
+    this->setupMidiComponent(&combo_EnvShapeVCF, Pro800CCMessages::VCF_ENV_SHAPE, Pro800ProgramField::FILTER_ENV_SHAPE);
     
     this->addAndMakeVisible(group_Envelopes);
 }
@@ -180,8 +180,8 @@ void PerformanceTab::setupGroupPitchBend()
         &label_PitchBendRange,  &slider_PitchBendRange
     });
 
-    this->setupMidiComponent(&combo_PitchBendTarget, CC_PITCH_BEND_TARGET, PROGRAM_FIELD_PITCHBEND_TARGET);
-    this->setupMidiComponent(&slider_PitchBendRange,  CC_PITCH_BEND_RANGE,  PROGRAM_FIELD_PITCHBEND_RANGE);
+    this->setupMidiComponent(&combo_PitchBendTarget, Pro800CCMessages::PITCH_BEND_TARGET, Pro800ProgramField::PITCHBEND_TARGET);
+    this->setupMidiComponent(&slider_PitchBendRange,  Pro800CCMessages::PITCH_BEND_RANGE,  Pro800ProgramField::PITCHBEND_RANGE);
 
     this->addAndMakeVisible(group_PitchBend);
 }
@@ -206,9 +206,9 @@ void PerformanceTab::setupGroupOscillators()
         &label_OscKeyboardTracking, &combo_OscKeyboardTracking
     });
     
-    this->setupMidiComponent(&combo_OscAFreqPotMode,     CC_OSC_A_FREQ_POT_MODE,   PROGRAM_FIELD_OSC_A_FREQ_POT_MODE);
-    this->setupMidiComponent(&combo_OscBFreqPotMode,     CC_OSC_B_FREQ_POT_MODE,   PROGRAM_FIELD_OSC_B_FREQ_POT_MODE);
-    this->setupMidiComponent(&combo_OscKeyboardTracking, CC_KEYBOARD_TRACKING_REF, PROGRAM_FIELD_KEY_TRACKING_REF_NOTE);
+    this->setupMidiComponent(&combo_OscAFreqPotMode,     Pro800CCMessages::OSC_A_FREQ_POT_MODE,   Pro800ProgramField::OSC_A_FREQ_POT_MODE);
+    this->setupMidiComponent(&combo_OscBFreqPotMode,     Pro800CCMessages::OSC_B_FREQ_POT_MODE,   Pro800ProgramField::OSC_B_FREQ_POT_MODE);
+    this->setupMidiComponent(&combo_OscKeyboardTracking, Pro800CCMessages::KEYBOARD_TRACKING_REF, Pro800ProgramField::KEY_TRACKING_REF_NOTE);
 
     this->addAndMakeVisible(group_Oscillators);
 }
@@ -224,8 +224,8 @@ void PerformanceTab::setupGroupVelocity()
         &label_VelocityAmountVCF, &slider_VelocityAmountVCF
     });
     
-    this->setupMidiComponent(&slider_VelocityAmountVCA, CC_VCA_VELOCITY_AMOUNT, PROGRAM_FIELD_AMP_VELOCITY);
-    this->setupMidiComponent(&slider_VelocityAmountVCF, CC_VCF_VELOCITY_AMOUNT, PROGRAM_FIELD_FILTER_VELOCITY);
+    this->setupMidiComponent(&slider_VelocityAmountVCA, Pro800CCMessages::VCA_VELOCITY_AMOUNT, Pro800ProgramField::AMP_VELOCITY);
+    this->setupMidiComponent(&slider_VelocityAmountVCF, Pro800CCMessages::VCF_VELOCITY_AMOUNT, Pro800ProgramField::FILTER_VELOCITY);
 
     this->addAndMakeVisible(group_Velocity);
 }
@@ -243,9 +243,9 @@ void PerformanceTab::setupGroupAftertouch()
         &label_AfterTouchAmountLFO, &slider_AfterTouchAmountLFO
     });
 
-    this->setupMidiComponent(&slider_AfterTouchAmountVCA, CC_VCA_AFTERTOUCH_AMOUNT, PROGRAM_FIELD_AMP_AFTERTOUCH_AMOUNT);
-    this->setupMidiComponent(&slider_AfterTouchAmountVCF, CC_VCF_AFTERTOUCH_AMOUNT, PROGRAM_FIELD_FILTER_AFTERTOUCH_AMOUNT);
-    this->setupMidiComponent(&slider_AfterTouchAmountLFO, CC_LFO_AFTERTOUCH_AMOUNT, PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT);
+    this->setupMidiComponent(&slider_AfterTouchAmountVCA, Pro800CCMessages::VCA_AFTERTOUCH_AMOUNT, Pro800ProgramField::AMP_AFTERTOUCH_AMOUNT);
+    this->setupMidiComponent(&slider_AfterTouchAmountVCF, Pro800CCMessages::VCF_AFTERTOUCH_AMOUNT, Pro800ProgramField::FILTER_AFTERTOUCH_AMOUNT);
+    this->setupMidiComponent(&slider_AfterTouchAmountLFO, Pro800CCMessages::LFO_AFTERTOUCH_AMOUNT, Pro800ProgramField::LFO_AFTERTOUCH_AMOUNT);
 
     this->addAndMakeVisible(group_Aftertouch);
 }
@@ -261,8 +261,8 @@ void PerformanceTab::setupGroupSpread()
         &label_SpreadVoiceEnable,  &checkBox_SpreadVoiceEnable
     });
 
-    this->setupMidiComponent(&checkBox_SpreadVoiceEnable, CC_VOICE_SPREAD_ENABLE, PROGRAM_FIELD_VOICE_SPREAD_ENABLE);
-    this->setupMidiComponent(&slider_SpreadUnisonDetune,  CC_UNISON_SPREAD_DETUNE, PROGRAM_FIELD_UNISON_DETUNE);
+    this->setupMidiComponent(&checkBox_SpreadVoiceEnable, Pro800CCMessages::VOICE_SPREAD_ENABLE, Pro800ProgramField::VOICE_SPREAD_ENABLE);
+    this->setupMidiComponent(&slider_SpreadUnisonDetune,  Pro800CCMessages::UNISON_SPREAD_DETUNE, Pro800ProgramField::UNISON_DETUNE);
 
     this->addAndMakeVisible(group_Spread);
 }
@@ -277,7 +277,7 @@ void PerformanceTab::setupGroupGlide()
         &label_GlideMode, &combo_GlideMode
     });
 
-    this->setupMidiComponent(&combo_GlideMode, CC_GLIDE_MODE, PROGRAM_FIELD_GLIDE_MODE);
+    this->setupMidiComponent(&combo_GlideMode, Pro800CCMessages::GLIDE_MODE, Pro800ProgramField::GLIDE_MODE);
 
     addAndMakeVisible(group_Glide);
 }

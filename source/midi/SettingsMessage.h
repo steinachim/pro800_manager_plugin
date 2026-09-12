@@ -36,7 +36,7 @@ public:
     static juce::MidiMessage request();
 
     explicit SettingsMessage(const juce::MidiMessage &message);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_SETTINGS_MESSAGE;}
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_SETTINGS;}
 
     virtual bool isValid() const override;
     

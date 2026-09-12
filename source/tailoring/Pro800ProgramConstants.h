@@ -21,123 +21,122 @@
 #include <map>
 #include "Pro800Constants.h"
 
-enum Pro800ProgramField
+enum class Pro800ProgramField
 {
-    PROGRAM_FIELD_NONE = -1, // placeholder for no field
+    NONE = -1, // placeholder for no field
 
-    PROGRAM_FIELD_STORAGE_CODE = 0,
-    PROGRAM_FIELD_VERSION,
+    STORAGE_CODE = 0,
+    PRESET_VERSION, // preset layout version, not the plugin version (VERSION is a compile definition)
+    OSC_A_FREQ,
+    OSC_A_SHAPE_SAW,
+    OSC_A_SHAPE_TRI,
+    OSC_A_SHAPE_RECT,
+    OSC_A_SYNC,
+    OSC_A_PULSE_WIDTH,
+    OSC_A_LEVEL,
 
-    PROGRAM_FIELD_OSC_A_FREQ,
-    PROGRAM_FIELD_OSC_A_SHAPE_SAW,
-    PROGRAM_FIELD_OSC_A_SHAPE_TRI,
-    PROGRAM_FIELD_OSC_A_SHAPE_RECT,
-    PROGRAM_FIELD_OSC_A_SYNC,
-    PROGRAM_FIELD_OSC_A_PULSE_WIDTH,
-    PROGRAM_FIELD_OSC_A_LEVEL,
+    OSC_B_FREQ,
+    OSC_B_FINE_FREQ,
+    OSC_B_SHAPE_SAW,
+    OSC_B_SHAPE_TRI,
+    OSC_B_SHAPE_RECT,
+    OSC_B_PULSE_WIDTH,
+    OSC_B_LEVEL,
 
-    PROGRAM_FIELD_OSC_B_FREQ,
-    PROGRAM_FIELD_OSC_B_FINE_FREQ,
-    PROGRAM_FIELD_OSC_B_SHAPE_SAW,
-    PROGRAM_FIELD_OSC_B_SHAPE_TRI,
-    PROGRAM_FIELD_OSC_B_SHAPE_RECT,
-    PROGRAM_FIELD_OSC_B_PULSE_WIDTH,
-    PROGRAM_FIELD_OSC_B_LEVEL,
+    POLYMOD_SOURCE_FILTER_ENV,
+    POLYMOD_SOURCE_OSC_B,
+    POLYMOD_DEST_FREQ_A,
+    POLYMOD_DEST_FILTER,
+    POLYMOD_UNISON_TRACK,
 
-    PROGRAM_FIELD_POLYMOD_SOURCE_FILTER_ENV,
-    PROGRAM_FIELD_POLYMOD_SOURCE_OSC_B,
-    PROGRAM_FIELD_POLYMOD_DEST_FREQ_A,
-    PROGRAM_FIELD_POLYMOD_DEST_FILTER,
-    PROGRAM_FIELD_POLYMOD_UNISON_TRACK,
+    NOISE,
 
-    PROGRAM_FIELD_NOISE,
+    LFO_FREQ,
+    LFO_SHAPE,
+    LFO_AMOUNT,
+    LFO_DEST,
+    LFO_SPEED,
+    LFO_AFTERTOUCH_AMOUNT,
+    LFO_MODULATION_DELAY,
+    LFO_VIBRATO_FREQ,
+    LFO_VIBRATO_AMOUNT,
 
-    PROGRAM_FIELD_LFO_FREQ,
-    PROGRAM_FIELD_LFO_SHAPE,
-    PROGRAM_FIELD_LFO_AMOUNT,
-    PROGRAM_FIELD_LFO_DEST,
-    PROGRAM_FIELD_LFO_SPEED,
-    PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT,
-    PROGRAM_FIELD_LFO_MODULATION_DELAY,
-    PROGRAM_FIELD_LFO_VIBRATO_FREQ,
-    PROGRAM_FIELD_LFO_VIBRATO_AMOUNT,
+    GLIDE_AMOUNT,
+    GLIDE_MODE,
 
-    PROGRAM_FIELD_GLIDE_AMOUNT,
-    PROGRAM_FIELD_GLIDE_MODE,
+    FILTER_CUTOFF,
+    FILTER_RESONANCE,
+    FILTER_ENV_AMOUNT,
+    FILTER_RELEASE,
+    FILTER_SUSTAIN,
+    FILTER_DECAY,
+    FILTER_ATTACK,
+    FILTER_KEY_TRACKING,
+    FILTER_ENV_SHAPE,
+    FILTER_ENV_SPEED,
+    FILTER_VELOCITY,
+    FILTER_AFTERTOUCH_AMOUNT,
 
-    PROGRAM_FIELD_FILTER_CUTOFF,
-    PROGRAM_FIELD_FILTER_RESONANCE,
-    PROGRAM_FIELD_FILTER_ENV_AMOUNT,
-    PROGRAM_FIELD_FILTER_RELEASE,
-    PROGRAM_FIELD_FILTER_SUSTAIN,
-    PROGRAM_FIELD_FILTER_DECAY,
-    PROGRAM_FIELD_FILTER_ATTACK,
-    PROGRAM_FIELD_FILTER_KEY_TRACKING,
-    PROGRAM_FIELD_FILTER_ENV_SHAPE,
-    PROGRAM_FIELD_FILTER_ENV_SPEED,
-    PROGRAM_FIELD_FILTER_VELOCITY,
-    PROGRAM_FIELD_FILTER_AFTERTOUCH_AMOUNT,
+    AMP_RELEASE,
+    AMP_SUSTAIN,
+    AMP_DECAY,
+    AMP_ATTACK,
+    AMP_ENV_SHAPE,
+    AMP_ENV_SPEED,
+    AMP_VELOCITY,
+    AMP_AFTERTOUCH_AMOUNT,
 
-    PROGRAM_FIELD_AMP_RELEASE,
-    PROGRAM_FIELD_AMP_SUSTAIN,
-    PROGRAM_FIELD_AMP_DECAY,
-    PROGRAM_FIELD_AMP_ATTACK,
-    PROGRAM_FIELD_AMP_ENV_SHAPE,
-    PROGRAM_FIELD_AMP_ENV_SPEED,
-    PROGRAM_FIELD_AMP_VELOCITY,
-    PROGRAM_FIELD_AMP_AFTERTOUCH_AMOUNT,
+    PITCHBEND_TARGET,
+    PITCHBEND_RANGE,
 
-    PROGRAM_FIELD_PITCHBEND_TARGET,
-    PROGRAM_FIELD_PITCHBEND_RANGE,
+    MODWHEEL_RANGE,
+    MODWHEEL_TARGET,
 
-    PROGRAM_FIELD_MODWHEEL_RANGE,
-    PROGRAM_FIELD_MODWHEEL_TARGET,
+    OSC_A_FREQ_POT_MODE,
+    OSC_B_FREQ_POT_MODE,
 
-    PROGRAM_FIELD_OSC_A_FREQ_POT_MODE,
-    PROGRAM_FIELD_OSC_B_FREQ_POT_MODE,
+    UNISON_DETUNE,
 
-    PROGRAM_FIELD_UNISON_DETUNE,
+    ARP_MODE,
 
-    PROGRAM_FIELD_ARP_MODE,
+    VOICE_SPREAD_ENABLE,
+    KEY_TRACKING_REF_NOTE,
 
-    PROGRAM_FIELD_VOICE_SPREAD_ENABLE,
-    PROGRAM_FIELD_KEY_TRACKING_REF_NOTE,
+    NAME_FIRST_CHAR,
+    NAME_LAST_CHAR,
 
-    PROGRAM_FIELD_NAME_FIRST_CHAR,
-    PROGRAM_FIELD_NAME_LAST_CHAR,
+    VOICE1_OFFSET,
+    VOICE2_OFFSET,
+    VOICE3_OFFSET,
+    VOICE4_OFFSET,
+    VOICE5_OFFSET,
+    VOICE6_OFFSET,
+    VOICE7_OFFSET,
+    VOICE8_OFFSET,
 
-    PROGRAM_FIELD_VOICE1_OFFSET,
-    PROGRAM_FIELD_VOICE2_OFFSET,
-    PROGRAM_FIELD_VOICE3_OFFSET,
-    PROGRAM_FIELD_VOICE4_OFFSET,
-    PROGRAM_FIELD_VOICE5_OFFSET,
-    PROGRAM_FIELD_VOICE6_OFFSET,
-    PROGRAM_FIELD_VOICE7_OFFSET,
-    PROGRAM_FIELD_VOICE8_OFFSET,
-
-    PROGRAM_FIELD_TUNING_C,
-    PROGRAM_FIELD_TUNING_C_SHARP,
-    PROGRAM_FIELD_TUNING_D,
-    PROGRAM_FIELD_TUNING_D_SHARP,
-    PROGRAM_FIELD_TUNING_E,
-    PROGRAM_FIELD_TUNING_F,
-    PROGRAM_FIELD_TUNING_F_SHARP,
-    PROGRAM_FIELD_TUNING_G,
-    PROGRAM_FIELD_TUNING_G_SHARP,
-    PROGRAM_FIELD_TUNING_A,
-    PROGRAM_FIELD_TUNING_A_SHARP,
-    PROGRAM_FIELD_TUNING_B
+    TUNING_C,
+    TUNING_C_SHARP,
+    TUNING_D,
+    TUNING_D_SHARP,
+    TUNING_E,
+    TUNING_F,
+    TUNING_F_SHARP,
+    TUNING_G,
+    TUNING_G_SHARP,
+    TUNING_A,
+    TUNING_A_SHARP,
+    TUNING_B
     
 };
 
 enum Pro800ProgramLfoDestinationBitMask
 {
-    PROGRAM_LFO_DEST_FREQ_AB = 1,       // bit 0 --> CC_LFO_MOD_DEST_FREQ_AB (on/off)
-    PROGRAM_LFO_DEST_FILTER  = 2,       // bit 1 --> CC_LFO_MOD_DEST_FILTER (on/off)
-    PROGRAM_LFO_DEST_PW_AB   = 4,       // bit 2 --> CC_LFO_MOD_DEST_PW_AB (on/off)
-    PROGRAM_LFO_DEST_FREQ_A  = 8,       // bit 3 --> CC_LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
-    PROGRAM_LFO_DEST_FREQ_B  = 16,      // bit 4 --> CC_LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
-    PROGRAM_LFO_DEST_FREQ_AB_VCA  = 32, // bit 5 --> CC_LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
+    PROGRAM_LFO_DEST_FREQ_AB = 1,       // bit 0 --> Pro800CCMessages::LFO_MOD_DEST_FREQ_AB (on/off)
+    PROGRAM_LFO_DEST_FILTER  = 2,       // bit 1 --> Pro800CCMessages::LFO_MOD_DEST_FILTER (on/off)
+    PROGRAM_LFO_DEST_PW_AB   = 4,       // bit 2 --> Pro800CCMessages::LFO_MOD_DEST_PW_AB (on/off)
+    PROGRAM_LFO_DEST_FREQ_A  = 8,       // bit 3 --> Pro800CCMessages::LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
+    PROGRAM_LFO_DEST_FREQ_B  = 16,      // bit 4 --> Pro800CCMessages::LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
+    PROGRAM_LFO_DEST_FREQ_AB_VCA  = 32, // bit 5 --> Pro800CCMessages::LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
 };
 
 enum Pro800ProgramFilterKeyboardTracking
@@ -253,148 +252,148 @@ enum Pro800ArpMode
 inline const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
     // 0 = overflow
-    {PROGRAM_FIELD_STORAGE_CODE,              {1, 4, "Storage Code"}},
-    {PROGRAM_FIELD_VERSION,                   {5, 1, "Version"}},
+    {Pro800ProgramField::STORAGE_CODE,              {1, 4, "Storage Code"}},
+    {Pro800ProgramField::PRESET_VERSION,                   {5, 1, "Version"}},
 
-    {PROGRAM_FIELD_OSC_A_FREQ,                {6, 2, "Osc A Frequency"}},
+    {Pro800ProgramField::OSC_A_FREQ,                {6, 2, "Osc A Frequency"}},
     // 8 = overflow
-    {PROGRAM_FIELD_OSC_A_LEVEL,               {9, 2, "Osc A Level"}},
-    {PROGRAM_FIELD_OSC_A_PULSE_WIDTH,         {11, 2, "Osc A Pulse Width"}},
+    {Pro800ProgramField::OSC_A_LEVEL,               {9, 2, "Osc A Level"}},
+    {Pro800ProgramField::OSC_A_PULSE_WIDTH,         {11, 2, "Osc A Pulse Width"}},
 
-    {PROGRAM_FIELD_OSC_B_FREQ,                {13, 2, "Osc B Frequency"}},
-    {PROGRAM_FIELD_OSC_B_LEVEL,               {15, 2, "Osc B Level"}},
+    {Pro800ProgramField::OSC_B_FREQ,                {13, 2, "Osc B Frequency"}},
+    {Pro800ProgramField::OSC_B_LEVEL,               {15, 2, "Osc B Level"}},
     // 16 = overflow
-    {PROGRAM_FIELD_OSC_B_PULSE_WIDTH,         {18, 2, "Osc B Pulse Width"}},
-    {PROGRAM_FIELD_OSC_B_FINE_FREQ,           {20, 2, "Osc B Fine Frequency"}},
+    {Pro800ProgramField::OSC_B_PULSE_WIDTH,         {18, 2, "Osc B Pulse Width"}},
+    {Pro800ProgramField::OSC_B_FINE_FREQ,           {20, 2, "Osc B Fine Frequency"}},
 
-    {PROGRAM_FIELD_FILTER_CUTOFF,             {22, 2, "Filter Cutoff"}},
+    {Pro800ProgramField::FILTER_CUTOFF,             {22, 2, "Filter Cutoff"}},
     // 24 = overflow
-    {PROGRAM_FIELD_FILTER_RESONANCE,          {25, 2, "Filter Resonance"}},
-    {PROGRAM_FIELD_FILTER_ENV_AMOUNT,         {27, 2, "Filter Envelope Amount"}},
-    {PROGRAM_FIELD_FILTER_RELEASE,            {29, 2, "Filter Release"}},
-    {PROGRAM_FIELD_FILTER_SUSTAIN,            {31, 2, "Filter Sustain"}},
+    {Pro800ProgramField::FILTER_RESONANCE,          {25, 2, "Filter Resonance"}},
+    {Pro800ProgramField::FILTER_ENV_AMOUNT,         {27, 2, "Filter Envelope Amount"}},
+    {Pro800ProgramField::FILTER_RELEASE,            {29, 2, "Filter Release"}},
+    {Pro800ProgramField::FILTER_SUSTAIN,            {31, 2, "Filter Sustain"}},
     // 32 = overflow
-    {PROGRAM_FIELD_FILTER_DECAY,              {34, 2, "Filter Decay"}},
-    {PROGRAM_FIELD_FILTER_ATTACK,             {36, 2, "Filter Attack"}},
+    {Pro800ProgramField::FILTER_DECAY,              {34, 2, "Filter Decay"}},
+    {Pro800ProgramField::FILTER_ATTACK,             {36, 2, "Filter Attack"}},
 
-    {PROGRAM_FIELD_AMP_RELEASE,               {38, 2, "Amp Release"}},
+    {Pro800ProgramField::AMP_RELEASE,               {38, 2, "Amp Release"}},
     // 40 = overflow
-    {PROGRAM_FIELD_AMP_SUSTAIN,               {41, 2, "Amp Sustain"}},
-    {PROGRAM_FIELD_AMP_DECAY,                 {43, 2, "Amp Decay"}},
-    {PROGRAM_FIELD_AMP_ATTACK,                {45, 2, "Amp Attack"}},
+    {Pro800ProgramField::AMP_SUSTAIN,               {41, 2, "Amp Sustain"}},
+    {Pro800ProgramField::AMP_DECAY,                 {43, 2, "Amp Decay"}},
+    {Pro800ProgramField::AMP_ATTACK,                {45, 2, "Amp Attack"}},
 
-    {PROGRAM_FIELD_POLYMOD_SOURCE_FILTER_ENV, {47, 2, "Poly-Mod Source Filter Env"}},
+    {Pro800ProgramField::POLYMOD_SOURCE_FILTER_ENV, {47, 2, "Poly-Mod Source Filter Env"}},
     // 48 = overflow
-    {PROGRAM_FIELD_POLYMOD_SOURCE_OSC_B,      {50, 2, "Poly-Mod Source Osc B"}},
+    {Pro800ProgramField::POLYMOD_SOURCE_OSC_B,      {50, 2, "Poly-Mod Source Osc B"}},
 
-    {PROGRAM_FIELD_LFO_FREQ,                  {52, 2, "LFO Frequency"}},
-    {PROGRAM_FIELD_LFO_AMOUNT,                {54, 2, "LFO Amount"}},
+    {Pro800ProgramField::LFO_FREQ,                  {52, 2, "LFO Frequency"}},
+    {Pro800ProgramField::LFO_AMOUNT,                {54, 2, "LFO Amount"}},
 
     // 56 = overflow
-    {PROGRAM_FIELD_GLIDE_AMOUNT,              {57, 2, "Glide Amount"}},
+    {Pro800ProgramField::GLIDE_AMOUNT,              {57, 2, "Glide Amount"}},
 
-    {PROGRAM_FIELD_AMP_VELOCITY,              {59, 2, "Amp Velocity"}},
-    {PROGRAM_FIELD_FILTER_VELOCITY,           {61, 2, "Filter Velocity"}},
+    {Pro800ProgramField::AMP_VELOCITY,              {59, 2, "Amp Velocity"}},
+    {Pro800ProgramField::FILTER_VELOCITY,           {61, 2, "Filter Velocity"}},
 
-    {PROGRAM_FIELD_OSC_A_SHAPE_SAW,           {63, 1, "Osc A Shape Saw", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_A_SHAPE_SAW,           {63, 1, "Osc A Shape Saw", PROGRAM_ON_OFF_NUM_VALUES}},
     // 64 = overflow
-    {PROGRAM_FIELD_OSC_A_SHAPE_TRI,           {65, 1, "Osc A Shape Tri", PROGRAM_ON_OFF_NUM_VALUES}},
-    {PROGRAM_FIELD_OSC_A_SHAPE_RECT,          {66, 1, "Osc A Shape Rect", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_A_SHAPE_TRI,           {65, 1, "Osc A Shape Tri", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_A_SHAPE_RECT,          {66, 1, "Osc A Shape Rect", PROGRAM_ON_OFF_NUM_VALUES}},
 
-    {PROGRAM_FIELD_OSC_B_SHAPE_SAW,           {67, 1, "Osc B Shape Saw", PROGRAM_ON_OFF_NUM_VALUES}},
-    {PROGRAM_FIELD_OSC_B_SHAPE_TRI,           {68, 1, "Osc B Shape Tri", PROGRAM_ON_OFF_NUM_VALUES}},
-    {PROGRAM_FIELD_OSC_B_SHAPE_RECT,          {69, 1, "Osc B Shape Rect", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_B_SHAPE_SAW,           {67, 1, "Osc B Shape Saw", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_B_SHAPE_TRI,           {68, 1, "Osc B Shape Tri", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_B_SHAPE_RECT,          {69, 1, "Osc B Shape Rect", PROGRAM_ON_OFF_NUM_VALUES}},
 
-    {PROGRAM_FIELD_OSC_A_SYNC,                {70, 1, "Osc A Sync", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::OSC_A_SYNC,                {70, 1, "Osc A Sync", PROGRAM_ON_OFF_NUM_VALUES}},
 
-    {PROGRAM_FIELD_POLYMOD_DEST_FREQ_A,       {71, 1, "Poly-Mod Dest Freq A", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::POLYMOD_DEST_FREQ_A,       {71, 1, "Poly-Mod Dest Freq A", PROGRAM_ON_OFF_NUM_VALUES}},
     // 72 = overflow
-    {PROGRAM_FIELD_POLYMOD_DEST_FILTER,       {73, 1, "Poly-Mod Dest Filter", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::POLYMOD_DEST_FILTER,       {73, 1, "Poly-Mod Dest Filter", PROGRAM_ON_OFF_NUM_VALUES}},
 
-    {PROGRAM_FIELD_LFO_SHAPE,                 {74, 1, "LFO Shape", PROGRAM_LFO_SHAPE_NUM_VALUES}}, 
-    {PROGRAM_FIELD_LFO_SPEED,                 {75, 1, "LFO Speed", PROGRAM_LFO_SPEED_NUM_VALUES}}, 
+    {Pro800ProgramField::LFO_SHAPE,                 {74, 1, "LFO Shape", PROGRAM_LFO_SHAPE_NUM_VALUES}}, 
+    {Pro800ProgramField::LFO_SPEED,                 {75, 1, "LFO Speed", PROGRAM_LFO_SPEED_NUM_VALUES}}, 
 
-    {PROGRAM_FIELD_LFO_DEST,                  {76, 1, "LFO Destination"}}, // see: Pro800ProgramLfoDestinationBitMask
+    {Pro800ProgramField::LFO_DEST,                  {76, 1, "LFO Destination"}}, // see: Pro800ProgramLfoDestinationBitMask
 
-    {PROGRAM_FIELD_FILTER_KEY_TRACKING,       {77, 1, "Filter Keyboard Tracking", PROGRAM_FILTER_KEYBOARD_TRACKING_NUM_VALUES}},
-    {PROGRAM_FIELD_FILTER_ENV_SHAPE,          {78, 1, "Filter Envelope Shape", PROGRAM_ENV_SHAPE_NUM_VALUES}},
-    {PROGRAM_FIELD_FILTER_ENV_SPEED,          {79, 1, "Filter Envelope Speed", PROGRAM_ENV_SPEED_NUM_VALUES}},
+    {Pro800ProgramField::FILTER_KEY_TRACKING,       {77, 1, "Filter Keyboard Tracking", PROGRAM_FILTER_KEYBOARD_TRACKING_NUM_VALUES}},
+    {Pro800ProgramField::FILTER_ENV_SHAPE,          {78, 1, "Filter Envelope Shape", PROGRAM_ENV_SHAPE_NUM_VALUES}},
+    {Pro800ProgramField::FILTER_ENV_SPEED,          {79, 1, "Filter Envelope Speed", PROGRAM_ENV_SPEED_NUM_VALUES}},
 
     // 80 = overflow
-    {PROGRAM_FIELD_AMP_ENV_SHAPE,             {81, 1, "Amp Envelope Shape", PROGRAM_ENV_SHAPE_NUM_VALUES}},
-    {PROGRAM_FIELD_POLYMOD_UNISON_TRACK,      {82, 1, "Poly-Mod Unison Track", PROGRAM_ON_OFF_NUM_VALUES}},
-    {PROGRAM_FIELD_PITCHBEND_TARGET,          {83, 1, "Pitchbend Target", PROGRAM_PITCH_BEND_TARGET_NUM_VALUES}},
-    {PROGRAM_FIELD_MODWHEEL_RANGE,            {84, 1, "Mod Wheel Range", PROGRAM_MOD_WHEEL_AMOUNT_NUM_VALUES}},
+    {Pro800ProgramField::AMP_ENV_SHAPE,             {81, 1, "Amp Envelope Shape", PROGRAM_ENV_SHAPE_NUM_VALUES}},
+    {Pro800ProgramField::POLYMOD_UNISON_TRACK,      {82, 1, "Poly-Mod Unison Track", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::PITCHBEND_TARGET,          {83, 1, "Pitchbend Target", PROGRAM_PITCH_BEND_TARGET_NUM_VALUES}},
+    {Pro800ProgramField::MODWHEEL_RANGE,            {84, 1, "Mod Wheel Range", PROGRAM_MOD_WHEEL_AMOUNT_NUM_VALUES}},
 
-    {PROGRAM_FIELD_OSC_A_FREQ_POT_MODE,       {85, 1, "Osc A Freq Pot Mode", PROGRAM_FREQ_POT_MODE_NUM_VALUES}},
-    {PROGRAM_FIELD_OSC_B_FREQ_POT_MODE,       {86, 1, "Osc B Freq Pot Mode", PROGRAM_FREQ_POT_MODE_NUM_VALUES}},
+    {Pro800ProgramField::OSC_A_FREQ_POT_MODE,       {85, 1, "Osc A Freq Pot Mode", PROGRAM_FREQ_POT_MODE_NUM_VALUES}},
+    {Pro800ProgramField::OSC_B_FREQ_POT_MODE,       {86, 1, "Osc B Freq Pot Mode", PROGRAM_FREQ_POT_MODE_NUM_VALUES}},
 
-    {PROGRAM_FIELD_LFO_MODULATION_DELAY,      {87, 2, "Modulation Delay"}},
+    {Pro800ProgramField::LFO_MODULATION_DELAY,      {87, 2, "Modulation Delay"}},
     // 88 = overflow
 
-    {PROGRAM_FIELD_LFO_VIBRATO_FREQ,          {90, 2, "Vibrato Freq"}},
-    {PROGRAM_FIELD_LFO_VIBRATO_AMOUNT,        {92, 2, "Vibrato Amount"}},
+    {Pro800ProgramField::LFO_VIBRATO_FREQ,          {90, 2, "Vibrato Freq"}},
+    {Pro800ProgramField::LFO_VIBRATO_AMOUNT,        {92, 2, "Vibrato Amount"}},
 
-    {PROGRAM_FIELD_UNISON_DETUNE,             {94, 2, "Unison Detune"}},
+    {Pro800ProgramField::UNISON_DETUNE,             {94, 2, "Unison Detune"}},
 
     // 96 = overflow
-    {PROGRAM_FIELD_MODWHEEL_TARGET,           {97, 1, "Mod Wheel Target", PROGRAM_MOD_WHEEL_TARGET_NUM_VALUES}},
+    {Pro800ProgramField::MODWHEEL_TARGET,           {97, 1, "Mod Wheel Target", PROGRAM_MOD_WHEEL_TARGET_NUM_VALUES}},
 
     // 98 = reserved
-    {PROGRAM_FIELD_VOICE1_OFFSET,             {99, 1, "Voice 1 Offset"}},
-    {PROGRAM_FIELD_VOICE2_OFFSET,             {100, 1, "Voice 2 Offset"}},
-    {PROGRAM_FIELD_VOICE3_OFFSET,             {101, 1, "Voice 3 Offset"}},
-    {PROGRAM_FIELD_VOICE4_OFFSET,             {102, 1, "Voice 4 Offset"}},
-    {PROGRAM_FIELD_VOICE5_OFFSET,             {103, 1, "Voice 5 Offset"}},
+    {Pro800ProgramField::VOICE1_OFFSET,             {99, 1, "Voice 1 Offset"}},
+    {Pro800ProgramField::VOICE2_OFFSET,             {100, 1, "Voice 2 Offset"}},
+    {Pro800ProgramField::VOICE3_OFFSET,             {101, 1, "Voice 3 Offset"}},
+    {Pro800ProgramField::VOICE4_OFFSET,             {102, 1, "Voice 4 Offset"}},
+    {Pro800ProgramField::VOICE5_OFFSET,             {103, 1, "Voice 5 Offset"}},
     // 104 = overflow
-    {PROGRAM_FIELD_VOICE6_OFFSET,             {105, 1, "Voice 6 Offset"}},
-    {PROGRAM_FIELD_VOICE7_OFFSET,             {106, 1, "Voice 7 Offset"}},
-    {PROGRAM_FIELD_VOICE8_OFFSET,             {107, 1, "Voice 8 Offset"}},
+    {Pro800ProgramField::VOICE6_OFFSET,             {105, 1, "Voice 6 Offset"}},
+    {Pro800ProgramField::VOICE7_OFFSET,             {106, 1, "Voice 7 Offset"}},
+    {Pro800ProgramField::VOICE8_OFFSET,             {107, 1, "Voice 8 Offset"}},
 
-    {PROGRAM_FIELD_TUNING_C,                  {108, 4, "Tune Per Note - C"}},
+    {Pro800ProgramField::TUNING_C,                  {108, 4, "Tune Per Note - C"}},
     // 112 = overflow
-    {PROGRAM_FIELD_TUNING_C_SHARP,            {113, 4, "Tune Per Note - C#"}},
-    {PROGRAM_FIELD_TUNING_D,                  {117, 4, "Tune Per Note - D"}},
+    {Pro800ProgramField::TUNING_C_SHARP,            {113, 4, "Tune Per Note - C#"}},
+    {Pro800ProgramField::TUNING_D,                  {117, 4, "Tune Per Note - D"}},
     // 120 = overflow
-    {PROGRAM_FIELD_TUNING_D_SHARP,            {122, 4, "Tune Per Note - D#"}},
-    {PROGRAM_FIELD_TUNING_E,                  {126, 4, "Tune Per Note - E"}},
+    {Pro800ProgramField::TUNING_D_SHARP,            {122, 4, "Tune Per Note - D#"}},
+    {Pro800ProgramField::TUNING_E,                  {126, 4, "Tune Per Note - E"}},
     // 128 = overflow
-    {PROGRAM_FIELD_TUNING_F,                  {131, 4, "Tune Per Note - F"}},
-    {PROGRAM_FIELD_TUNING_F_SHARP,            {135, 4, "Tune Per Note - F#"}},
+    {Pro800ProgramField::TUNING_F,                  {131, 4, "Tune Per Note - F"}},
+    {Pro800ProgramField::TUNING_F_SHARP,            {135, 4, "Tune Per Note - F#"}},
     // 136 = overflow
-    {PROGRAM_FIELD_TUNING_G,                  {140, 4, "Tune Per Note - G"}},
+    {Pro800ProgramField::TUNING_G,                  {140, 4, "Tune Per Note - G"}},
     // 144 = overflow
-    {PROGRAM_FIELD_TUNING_G_SHARP,            {145, 4, "Tune Per Note - G#"}},
-    {PROGRAM_FIELD_TUNING_A,                  {149, 4, "Tune Per Note - A"}},
+    {Pro800ProgramField::TUNING_G_SHARP,            {145, 4, "Tune Per Note - G#"}},
+    {Pro800ProgramField::TUNING_A,                  {149, 4, "Tune Per Note - A"}},
     // 152 = overflow
-    {PROGRAM_FIELD_TUNING_A_SHARP,            {154, 4, "Tune Per Note - A#"}},
-    {PROGRAM_FIELD_TUNING_B,                  {158, 4, "Tune Per Note - B"}},
+    {Pro800ProgramField::TUNING_A_SHARP,            {154, 4, "Tune Per Note - A#"}},
+    {Pro800ProgramField::TUNING_B,                  {158, 4, "Tune Per Note - B"}},
     // 160 = overflow
 
-    {PROGRAM_FIELD_NOISE,                     {163, 2, "Noise Amount"}},
-    {PROGRAM_FIELD_AMP_AFTERTOUCH_AMOUNT,     {165, 2, "Amp Aftertouch Amount"}},
-    {PROGRAM_FIELD_FILTER_AFTERTOUCH_AMOUNT,  {167, 2, "Filter Aftertouch Amount"}},
+    {Pro800ProgramField::NOISE,                     {163, 2, "Noise Amount"}},
+    {Pro800ProgramField::AMP_AFTERTOUCH_AMOUNT,     {165, 2, "Amp Aftertouch Amount"}},
+    {Pro800ProgramField::FILTER_AFTERTOUCH_AMOUNT,  {167, 2, "Filter Aftertouch Amount"}},
     // 168 = overflow
 
-    {PROGRAM_FIELD_AMP_ENV_SPEED,             {170, 1, "Amp Envelope Speed", PROGRAM_ENV_SPEED_NUM_VALUES}},
-    {PROGRAM_FIELD_ARP_MODE,                  {171, 1, "ARP Mode", PROGRAM_ARP_MODE_NUM_VALUES}}, // TODO: Add UI element
+    {Pro800ProgramField::AMP_ENV_SPEED,             {170, 1, "Amp Envelope Speed", PROGRAM_ENV_SPEED_NUM_VALUES}},
+    {Pro800ProgramField::ARP_MODE,                  {171, 1, "ARP Mode", PROGRAM_ARP_MODE_NUM_VALUES}}, // TODO: Add UI element
 
-    {PROGRAM_FIELD_NAME_FIRST_CHAR,           {172, 1, "Preset Name (first char)"}},
+    {Pro800ProgramField::NAME_FIRST_CHAR,           {172, 1, "Preset Name (first char)"}},
 
     // 176 = overflow byte, not used by name
     // 184 = overflow byte, not used by name
 
-    {PROGRAM_FIELD_NAME_LAST_CHAR,            {189, 1, "Preset Name (last char)"}},
+    {Pro800ProgramField::NAME_LAST_CHAR,            {189, 1, "Preset Name (last char)"}},
 
     // only in preset version 110 and newer:
-    {PROGRAM_FIELD_LFO_AFTERTOUCH_AMOUNT,     {190, 2, "LFO Aftertouch Amount"}},
+    {Pro800ProgramField::LFO_AFTERTOUCH_AMOUNT,     {190, 2, "LFO Aftertouch Amount"}},
     // 192 = overflow
 
     // only in preset version 111 and newer:
-    {PROGRAM_FIELD_VOICE_SPREAD_ENABLE,       {193, 1, "Voice Spread Enable", PROGRAM_ON_OFF_NUM_VALUES}},
-    {PROGRAM_FIELD_KEY_TRACKING_REF_NOTE,     {194, 1, "Key Tracking Ref Note", PROGRAM_KEYBOARD_TRACKING_REF_NUM_VALUES}},
-    {PROGRAM_FIELD_GLIDE_MODE,                {195, 1, "Glide Mode", PROGRAM_GLIDE_MODE_NUM_VALUES}},
+    {Pro800ProgramField::VOICE_SPREAD_ENABLE,       {193, 1, "Voice Spread Enable", PROGRAM_ON_OFF_NUM_VALUES}},
+    {Pro800ProgramField::KEY_TRACKING_REF_NOTE,     {194, 1, "Key Tracking Ref Note", PROGRAM_KEYBOARD_TRACKING_REF_NUM_VALUES}},
+    {Pro800ProgramField::GLIDE_MODE,                {195, 1, "Glide Mode", PROGRAM_GLIDE_MODE_NUM_VALUES}},
 
-    {PROGRAM_FIELD_PITCHBEND_RANGE,           {196, 2, "Pitchbend Range"}},
+    {Pro800ProgramField::PITCHBEND_RANGE,           {196, 2, "Pitchbend Range"}},
    
 };

@@ -77,6 +77,18 @@ MidiHandler &MidiComponent::getMidiHandler() const
     return *this->midiHandler;
 }
 
+Pro800ProgramField MidiComponent::getProgramField(const juce::Component &component)
+{
+    const int stored = component.getProperties().getWithDefault(PROGRAM_FIELD_PROPERTY, static_cast<int>(Pro800ProgramField::NONE));
+    return static_cast<Pro800ProgramField>(stored);
+}
+
+Pro800CCMessages MidiComponent::getMidiCC(const juce::Component &component)
+{
+    const int stored = component.getProperties().getWithDefault(MIDI_CC_PROPERTY, static_cast<int>(Pro800CCMessages::NONE));
+    return static_cast<Pro800CCMessages>(stored);
+}
+
 void MidiComponent::addEnumItems(juce::ComboBox &comboBox, const std::vector<EnumItem> &items)
 {
     for ( const auto &item : items )
@@ -100,7 +112,7 @@ void MidiComponent::loadProgram(uint16_t programNumber)
     uint8_t program = programNumber % 100; // range 0-99
     uint8_t bank = (uint8_t)(programNumber / 100);
     
-    this->midiHandler->sendMidiCCMessage(CC_BANK_SELECT, bank);
+    this->midiHandler->sendMidiCCMessage(Pro800CCMessages::BANK_SELECT, bank);
     this->midiHandler->sendProgramChange(program);
 }
 
@@ -108,49 +120,49 @@ void MidiComponent::handlePro800Message(MessageType type, std::shared_ptr<Pro800
 {
     switch(type)
     {
-        case PRO800_SETTINGS_MESSAGE:
+        case MessageType::PRO800_SETTINGS:
             this->currentSettings = std::dynamic_pointer_cast<SettingsMessage>(message);
             handlePro800SettingsUpdate();
             break;
 
-        case PRO800_VERSION_MESSAGE:
+        case MessageType::PRO800_VERSION:
             this->currentVersion = std::dynamic_pointer_cast<VersionMessage>(message);
             handlePro800VersionUpdate();
             break;
 
         
-        case PRO800_STATUS_MESSAGE:
+        case MessageType::PRO800_STATUS:
             // do nothing
             break;
 
-        case PRO800_PROGRAM_MESSAGE:
+        case MessageType::PRO800_PROGRAM:
         {
             std::shared_ptr<ProgramMessage> programMessage = std::dynamic_pointer_cast<ProgramMessage>(message);
             handlePro800ProgramDump(programMessage);
             break;
         }
 
-        case MIDI_LOG_MESSAGE:
-        case PRO800_UNKNOWN_MESSAGE:
+        case MessageType::MIDI_LOG:
+        case MessageType::PRO800_UNKNOWN:
         default:
             // should never be reached
-            juce::Logger::writeToLog("[WARNING] handlePro800Message(): Unsupported / unknown message type " + juce::String((int)type));
+            juce::Logger::writeToLog("[WARNING] handlePro800Message(): Unsupported / unknown message type " + juce::String(static_cast<int>(type)));
     }
 }
 
-void MidiComponent::handleMidiCCMessage (uint8_t midiCC, uint8_t value)
+void MidiComponent::handleMidiCCMessage (Pro800CCMessages midiCC, uint8_t value)
 {
-    Pro800CCMessages ccNumber = (Pro800CCMessages)midiCC;
-    if ( !this->registeredCCComponents.contains(ccNumber) )
+    const auto entry = this->registeredCCComponents.find(midiCC);
+    if ( entry == this->registeredCCComponents.end() )
     {
         return;
     }
 
-    for (auto* component : this->registeredCCComponents.getReference (ccNumber))
+    for (auto* component : entry->second)
     {
-        int programFieldNumber = component->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE);
+        const Pro800ProgramField programField = getProgramField(*component);
 
-        if ( programFieldNumber == PROGRAM_FIELD_PITCHBEND_RANGE )
+        if ( programField == Pro800ProgramField::PITCHBEND_RANGE )
         {
             // pitchbend range is in increments of 4 (0 - 124)
             setComponentValue(component, value, 124);
@@ -159,9 +171,9 @@ void MidiComponent::handleMidiCCMessage (uint8_t midiCC, uint8_t value)
 
         // every component starts from the raw CC value; only enum fields need it mapped
         int componentValue = value;
-        if ( programFieldNumber != PROGRAM_FIELD_NONE )
+        if ( programField != Pro800ProgramField::NONE )
         {
-            componentValue = Pro800CCUtils::programEnumValueFromCC(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
+            componentValue = Pro800CCUtils::programEnumValueFromCC(value, PRO800_PROGRAM_FIELDS.at(programField).numValues);
         }
 
         setComponentValue(component, componentValue, 127);
@@ -191,25 +203,24 @@ void MidiComponent::handleMidiLog(const juce::MidiMessage &/*message*/, const ju
 
 void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField)
 {
-    component->getProperties().set(MIDI_CC_PROPERTY, (int)midiCC);
-    component->getProperties().set(PROGRAM_FIELD_PROPERTY, (int)programField);
-    component->getProperties().set(SETTINGS_FIELD_PROPERTY, (int)settingsField);
+    // enums are stored as ints in the property set (juce::var has no enum type); see getProgramField()/getMidiCC()
+    component->getProperties().set(MIDI_CC_PROPERTY, static_cast<int>(midiCC));
+    component->getProperties().set(PROGRAM_FIELD_PROPERTY, static_cast<int>(programField));
+    component->getProperties().set(SETTINGS_FIELD_PROPERTY, static_cast<int>(settingsField));
 
-    if ( midiCC == Pro800CCMessages::CC_NONE )
+    if ( midiCC == Pro800CCMessages::NONE )
     {
         return;
     }
 
-    uint8_t ccNumber = static_cast<uint8_t>(midiCC);
-    this->registeredCCComponents.getReference(midiCC).add(component);
+    this->registeredCCComponents[midiCC].add(component);
     if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
-        slider->onValueChange = ([this, slider, ccNumber] {
+        slider->onValueChange = ([this, slider, midiCC] {
             double sliderValue = slider->getValue();
             uint8_t midiValue = 0;
 
-            int programFieldNumber = slider->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE); // ensure property exists
-            if ( programFieldNumber == PROGRAM_FIELD_PITCHBEND_RANGE )
+            if ( getProgramField(*slider) == Pro800ProgramField::PITCHBEND_RANGE )
             {
                 // pitchbend range is in increments of 4 (0 - 124)
                 midiValue = (uint8_t)( sliderValue * 4 );
@@ -219,7 +230,7 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
                 double normalizedValue = (sliderValue - slider->getMinimum()) / (slider->getMaximum() - slider->getMinimum());
                 midiValue = (uint8_t) (normalizedValue * 127.0f);
             }
-            midiHandler->sendMidiCCMessage (ccNumber, midiValue);
+            midiHandler->sendMidiCCMessage (midiCC, midiValue);
         });
     }
     else if (juce::ToggleButton* button = dynamic_cast<juce::ToggleButton*> (component))
@@ -227,41 +238,41 @@ void MidiComponent::setupMidiComponent(juce::Component *component, Pro800CCMessa
         if ( button->getRadioGroupId() )
         {
             // radio button
-            button->onClick = [this, button, ccNumber]
+            button->onClick = [this, button, midiCC]
             {
                 int value = button->getProperties()[RADIO_VALUE_PROPERTY];
-                int programFieldNumber = button->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE); // ensure property exists
+                const Pro800ProgramField linkedField = getProgramField(*button);
 
-                if ( programFieldNumber != PROGRAM_FIELD_NONE )
+                if ( linkedField != Pro800ProgramField::NONE )
                 {
-                    value = Pro800CCUtils::ccFromProgramEnumValue(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
+                    value = Pro800CCUtils::ccFromProgramEnumValue(value, PRO800_PROGRAM_FIELDS.at(linkedField).numValues);
                 }
 
-                midiHandler->sendMidiCCMessage(ccNumber, (uint8_t)value);
+                midiHandler->sendMidiCCMessage(midiCC, (uint8_t)value);
             };
         }
         else
         {
-            button->onClick = ([this, button, ccNumber] {
+            button->onClick = ([this, button, midiCC] {
                 bool buttonState = button->getToggleState();
                 int value = buttonState ? CC_ON: CC_OFF;
 
-                midiHandler->sendMidiCCMessage (ccNumber, (uint8_t)value);
+                midiHandler->sendMidiCCMessage (midiCC, (uint8_t)value);
             });
         }
     }
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
-        comboBox->onChange = ([this, comboBox, ccNumber] {
+        comboBox->onChange = ([this, comboBox, midiCC] {
             int value = comboBox->getSelectedId() - COMBO_BOX_ID_OFFSET;
 
-            int programFieldNumber = comboBox->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE); // ensure property exists
-            if ( programFieldNumber != PROGRAM_FIELD_NONE )
+            const Pro800ProgramField linkedField = getProgramField(*comboBox);
+            if ( linkedField != Pro800ProgramField::NONE )
             {
-                value = Pro800CCUtils::ccFromProgramEnumValue(value, PRO800_PROGRAM_FIELDS.at((Pro800ProgramField)programFieldNumber).numValues);
+                value = Pro800CCUtils::ccFromProgramEnumValue(value, PRO800_PROGRAM_FIELDS.at(linkedField).numValues);
             }
 
-            midiHandler->sendMidiCCMessage (ccNumber, (uint8_t)value);
+            midiHandler->sendMidiCCMessage (midiCC, (uint8_t)value);
         });
     }
     else
@@ -316,23 +327,20 @@ void MidiComponent::setComponentValue (juce::Component* component, int value, in
 
 void MidiComponent::loadFromProgram(const std::shared_ptr<ProgramMessage> &programMessage)
 {
-    for (auto entry : this->registeredCCComponents)
+    for (const auto &[midiCC, components] : this->registeredCCComponents)
     {
-        for (auto* component : entry)
+        for (auto* component : components)
         {
-            int fieldVar = component->getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE);
-            Pro800ProgramField field = (Pro800ProgramField) fieldVar;
+            const Pro800ProgramField field = getProgramField(*component);
 
-            
-            if (field == PROGRAM_FIELD_LFO_DEST)
+            if (field == Pro800ProgramField::LFO_DEST)
             {
-                int ccNumber = component->getProperties().getWithDefault (MIDI_CC_PROPERTY, CC_NONE);
-                int value = programMessage->getLfoDestinationValue ((Pro800CCMessages) ccNumber);
+                int value = programMessage->getLfoDestinationValue (getMidiCC(*component));
                 setComponentValue (component, value);
             }
-            else if (field != PROGRAM_FIELD_NONE)
+            else if (field != Pro800ProgramField::NONE)
             {
-                int value = programMessage->getValue ((Pro800ProgramField) field);
+                int value = programMessage->getValue (field);
                 setComponentValue (component, value, 65535);
             }
         }

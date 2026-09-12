@@ -45,17 +45,17 @@ TEST_CASE("SettingsMessage: signed and unsigned fields", "[midi][settings]")
 {
     SettingsMessage settings(toMidi(settingsDump()));
 
-    settings.setValue(SETTINGS_TRANSPOSE, -12);
-    REQUIRE(settings.getValue(SETTINGS_TRANSPOSE) == -12);
+    settings.setValue(Pro800Settings::TRANSPOSE, -12);
+    REQUIRE(settings.getValue(Pro800Settings::TRANSPOSE) == -12);
 
-    settings.setValue(SETTINGS_TRANSPOSE, 12);
-    REQUIRE(settings.getValue(SETTINGS_TRANSPOSE) == 12);
+    settings.setValue(Pro800Settings::TRANSPOSE, 12);
+    REQUIRE(settings.getValue(Pro800Settings::TRANSPOSE) == 12);
 
-    settings.setValue(SETTINGS_SYNC_CLOCK_BPM, 1205); // 2 bytes, 120.5 BPM
-    REQUIRE(settings.getValue(SETTINGS_SYNC_CLOCK_BPM) == 1205);
+    settings.setValue(Pro800Settings::SYNC_CLOCK_BPM, 1205); // 2 bytes, 120.5 BPM
+    REQUIRE(settings.getValue(Pro800Settings::SYNC_CLOCK_BPM) == 1205);
 
-    settings.setValue(SETTINGS_MIDI_RX_CHANNEL, SETTINGS_MIDI_RX_16);
-    REQUIRE(settings.getValue(SETTINGS_MIDI_RX_CHANNEL) == SETTINGS_MIDI_RX_16);
+    settings.setValue(Pro800Settings::MIDI_RX_CHANNEL, SETTINGS_MIDI_RX_16);
+    REQUIRE(settings.getValue(Pro800Settings::MIDI_RX_CHANNEL) == SETTINGS_MIDI_RX_16);
 
     REQUIRE(allDataBytesAre7Bit(settings.getRawData()));
     REQUIRE(settings.toString().contains("Transpose: 12"));

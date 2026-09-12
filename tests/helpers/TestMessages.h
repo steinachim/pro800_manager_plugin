@@ -59,7 +59,7 @@ namespace TestMessages
         bytes.push_back((uint8_t) (programNumber >> 7));
         bytes.insert(bytes.end(), numDataBytes, 0x00);
 
-        const size_t versionOffset = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_VERSION).firstByte;
+        const size_t versionOffset = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::PRESET_VERSION).firstByte;
         bytes[Pro800DataMessage::DATA_START_POS + versionOffset] = version;
 
         bytes.push_back(0xF7);

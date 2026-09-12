@@ -70,8 +70,7 @@ void FrontPanelTab::resized()
 
 void FrontPanelTab::setComponentValue(juce::Component *component, int value, int maxValue)
 {
-    int programField = component->getProperties().getWithDefault(PROGRAM_FIELD_PROPERTY, PROGRAM_FIELD_NONE);
-    if ( programField == PROGRAM_FIELD_FILTER_KEY_TRACKING )
+    if ( getProgramField(*component) == Pro800ProgramField::FILTER_KEY_TRACKING )
     {
         this->radio_FilterTrackingFull.setToggleState(value == PROGRAM_FILTER_KEYBOARD_TRACKING_FULL, juce::NotificationType::dontSendNotification);
         this->radio_FilterTrackingHalf.setToggleState(value == PROGRAM_FILTER_KEYBOARD_TRACKING_HALF, juce::NotificationType::dontSendNotification);
@@ -98,13 +97,13 @@ void FrontPanelTab::setupGroupOscA()
     checkBox_OscAShapeRect.setButtonText("Rect");
     group_OscAShape.addComponents({&checkBox_OscAShapeSaw, &checkBox_OscAShapeTri, &checkBox_OscAShapeRect});
 
-    setupMidiComponent(&slider_OscAFrequency,   CC_OSC_A_FREQ,        PROGRAM_FIELD_OSC_A_FREQ);
-    setupMidiComponent(&slider_OscALevel,       CC_OSC_A_LEVEL,       PROGRAM_FIELD_OSC_A_LEVEL);
-    setupMidiComponent(&slider_OscAPulseWidth,  CC_OSC_A_PULSE_WIDTH, PROGRAM_FIELD_OSC_A_PULSE_WIDTH);
-    setupMidiComponent(&checkBox_OscASync,      CC_OSC_A_SYNC,        PROGRAM_FIELD_OSC_A_SYNC);
-    setupMidiComponent(&checkBox_OscAShapeSaw,  CC_OSC_A_SHAPE_SAW,   PROGRAM_FIELD_OSC_A_SHAPE_SAW);
-    setupMidiComponent(&checkBox_OscAShapeTri,  CC_OSC_A_SHAPE_TRI,   PROGRAM_FIELD_OSC_A_SHAPE_TRI);
-    setupMidiComponent(&checkBox_OscAShapeRect, CC_OSC_A_SHAPE_RECT,  PROGRAM_FIELD_OSC_A_SHAPE_RECT);
+    setupMidiComponent(&slider_OscAFrequency,   Pro800CCMessages::OSC_A_FREQ,        Pro800ProgramField::OSC_A_FREQ);
+    setupMidiComponent(&slider_OscALevel,       Pro800CCMessages::OSC_A_LEVEL,       Pro800ProgramField::OSC_A_LEVEL);
+    setupMidiComponent(&slider_OscAPulseWidth,  Pro800CCMessages::OSC_A_PULSE_WIDTH, Pro800ProgramField::OSC_A_PULSE_WIDTH);
+    setupMidiComponent(&checkBox_OscASync,      Pro800CCMessages::OSC_A_SYNC,        Pro800ProgramField::OSC_A_SYNC);
+    setupMidiComponent(&checkBox_OscAShapeSaw,  Pro800CCMessages::OSC_A_SHAPE_SAW,   Pro800ProgramField::OSC_A_SHAPE_SAW);
+    setupMidiComponent(&checkBox_OscAShapeTri,  Pro800CCMessages::OSC_A_SHAPE_TRI,   Pro800ProgramField::OSC_A_SHAPE_TRI);
+    setupMidiComponent(&checkBox_OscAShapeRect, Pro800CCMessages::OSC_A_SHAPE_RECT,  Pro800ProgramField::OSC_A_SHAPE_RECT);
 
     group_OscillatorA.addComponents({ &group_OscAFrequency, &group_OscASync, &group_OscAShape, &group_OscAPulseWidth, &group_OscALevel });
     addAndMakeVisible(this->group_OscillatorA);
@@ -123,14 +122,14 @@ void FrontPanelTab::setupGroupOscB()
     checkBox_OscBShapeRect.setButtonText("Rect");
     group_OscBShape.addComponents({&checkBox_OscBShapeSaw, &checkBox_OscBShapeTri, &checkBox_OscBShapeRect});
 
-    setupMidiComponent(&slider_OscBFrequency,  CC_OSC_B_FREQ,        PROGRAM_FIELD_OSC_B_FREQ);
-    setupMidiComponent(&slider_OscBFine,       CC_OSC_B_FINE,        PROGRAM_FIELD_OSC_B_FINE_FREQ);
-    setupMidiComponent(&slider_OscBPulseWidth, CC_OSC_B_PULSE_WIDTH, PROGRAM_FIELD_OSC_B_PULSE_WIDTH);
-    setupMidiComponent(&slider_OscBLevel,      CC_OSC_B_LEVEL,       PROGRAM_FIELD_OSC_B_LEVEL);
+    setupMidiComponent(&slider_OscBFrequency,  Pro800CCMessages::OSC_B_FREQ,        Pro800ProgramField::OSC_B_FREQ);
+    setupMidiComponent(&slider_OscBFine,       Pro800CCMessages::OSC_B_FINE,        Pro800ProgramField::OSC_B_FINE_FREQ);
+    setupMidiComponent(&slider_OscBPulseWidth, Pro800CCMessages::OSC_B_PULSE_WIDTH, Pro800ProgramField::OSC_B_PULSE_WIDTH);
+    setupMidiComponent(&slider_OscBLevel,      Pro800CCMessages::OSC_B_LEVEL,       Pro800ProgramField::OSC_B_LEVEL);
     
-    setupMidiComponent(&checkBox_OscBShapeSaw,  CC_OSC_B_SHAPE_SAW,  PROGRAM_FIELD_OSC_B_SHAPE_SAW);
-    setupMidiComponent(&checkBox_OscBShapeTri,  CC_OSC_B_SHAPE_TRI,  PROGRAM_FIELD_OSC_B_SHAPE_TRI);
-    setupMidiComponent(&checkBox_OscBShapeRect, CC_OSC_B_SHAPE_RECT, PROGRAM_FIELD_OSC_B_SHAPE_RECT);
+    setupMidiComponent(&checkBox_OscBShapeSaw,  Pro800CCMessages::OSC_B_SHAPE_SAW,  Pro800ProgramField::OSC_B_SHAPE_SAW);
+    setupMidiComponent(&checkBox_OscBShapeTri,  Pro800CCMessages::OSC_B_SHAPE_TRI,  Pro800ProgramField::OSC_B_SHAPE_TRI);
+    setupMidiComponent(&checkBox_OscBShapeRect, Pro800CCMessages::OSC_B_SHAPE_RECT, Pro800ProgramField::OSC_B_SHAPE_RECT);
     
     group_OscillatorB.addComponents({ &group_OscBFrequency, &group_OscBFine, &group_OscBShape, &group_OscBPulseWidth, &group_OscBLevel});
     addAndMakeVisible(this->group_OscillatorB);
@@ -151,11 +150,11 @@ void FrontPanelTab::setupGroupPolyMod()
     checkBox_PolyModUnisonTrack.setButtonText("Enable");
     group_PolyModUnisonTrack.addComponent(&checkBox_PolyModUnisonTrack);
 
-    setupMidiComponent(&slider_PolyModSourceFilterEnv, CC_POLY_MOD_SOURCE_FILTER_ENV, PROGRAM_FIELD_POLYMOD_SOURCE_FILTER_ENV);
-    setupMidiComponent(&slider_PolyModSourceOscB,      CC_POLY_MOD_SOURCE_OSC_B,      PROGRAM_FIELD_POLYMOD_SOURCE_OSC_B);
-    setupMidiComponent(&checkBox_PolyModDestFreqA,     CC_POLY_MOD_DEST_FREQ_A,       PROGRAM_FIELD_POLYMOD_DEST_FREQ_A);
-    setupMidiComponent(&checkBox_PolyModDestFilter,    CC_POLY_MOD_DEST_FILTER,       PROGRAM_FIELD_POLYMOD_DEST_FILTER);
-    setupMidiComponent(&checkBox_PolyModUnisonTrack,   CC_POLY_MOD_UNISON_TRACK,      PROGRAM_FIELD_POLYMOD_UNISON_TRACK);
+    setupMidiComponent(&slider_PolyModSourceFilterEnv, Pro800CCMessages::POLY_MOD_SOURCE_FILTER_ENV, Pro800ProgramField::POLYMOD_SOURCE_FILTER_ENV);
+    setupMidiComponent(&slider_PolyModSourceOscB,      Pro800CCMessages::POLY_MOD_SOURCE_OSC_B,      Pro800ProgramField::POLYMOD_SOURCE_OSC_B);
+    setupMidiComponent(&checkBox_PolyModDestFreqA,     Pro800CCMessages::POLY_MOD_DEST_FREQ_A,       Pro800ProgramField::POLYMOD_DEST_FREQ_A);
+    setupMidiComponent(&checkBox_PolyModDestFilter,    Pro800CCMessages::POLY_MOD_DEST_FILTER,       Pro800ProgramField::POLYMOD_DEST_FILTER);
+    setupMidiComponent(&checkBox_PolyModUnisonTrack,   Pro800CCMessages::POLY_MOD_UNISON_TRACK,      Pro800ProgramField::POLYMOD_UNISON_TRACK);
     
     group_PolyMod.addComponent(&group_PolyModSourceAmount, 1, 2);
     group_PolyMod.addComponents({&group_PolyModDestination, &group_PolyModUnisonTrack});
@@ -167,7 +166,7 @@ void FrontPanelTab::setupGroupNoise()
     
     setupRotarySlider(slider_NoiseLevel, group_NoiseLevel);
 
-    setupMidiComponent(&slider_NoiseLevel, CC_NOISE_LEVEL, PROGRAM_FIELD_NOISE);
+    setupMidiComponent(&slider_NoiseLevel, Pro800CCMessages::NOISE_LEVEL, Pro800ProgramField::NOISE);
     group_Noise.addComponent(&group_NoiseLevel);
     addAndMakeVisible(this->group_Noise);
 }
@@ -197,12 +196,12 @@ void FrontPanelTab::setupGroupLFO()
     comboBox_LFOShape.addItem("Noise",    PROGRAM_LFO_SHAPE_NOISE+1);
     group_LFOShape.addComponent(&comboBox_LFOShape);
 
-    setupMidiComponent(&slider_LFOFrequency,          CC_LFO_MOD_FREQ,           PROGRAM_FIELD_LFO_FREQ);
-    setupMidiComponent(&slider_LFOInitialAmount,      CC_LFO_MOD_INITIAL_AMOUNT, PROGRAM_FIELD_LFO_AMOUNT);
-    setupMidiComponent(&checkBox_LFODestFreqAB,       CC_LFO_MOD_DEST_FREQ_AB,   PROGRAM_FIELD_LFO_DEST);
-    setupMidiComponent(&checkBox_LFODestPulseWidthAB, CC_LFO_MOD_DEST_PW_AB,     PROGRAM_FIELD_LFO_DEST);
-    setupMidiComponent(&checkBox_LFODestFilter,       CC_LFO_MOD_DEST_FILTER,    PROGRAM_FIELD_LFO_DEST);
-    setupMidiComponent(&comboBox_LFOShape,            CC_LFO_MOD_SHAPE,          PROGRAM_FIELD_LFO_SHAPE);
+    setupMidiComponent(&slider_LFOFrequency,          Pro800CCMessages::LFO_MOD_FREQ,           Pro800ProgramField::LFO_FREQ);
+    setupMidiComponent(&slider_LFOInitialAmount,      Pro800CCMessages::LFO_MOD_INITIAL_AMOUNT, Pro800ProgramField::LFO_AMOUNT);
+    setupMidiComponent(&checkBox_LFODestFreqAB,       Pro800CCMessages::LFO_MOD_DEST_FREQ_AB,   Pro800ProgramField::LFO_DEST);
+    setupMidiComponent(&checkBox_LFODestPulseWidthAB, Pro800CCMessages::LFO_MOD_DEST_PW_AB,     Pro800ProgramField::LFO_DEST);
+    setupMidiComponent(&checkBox_LFODestFilter,       Pro800CCMessages::LFO_MOD_DEST_FILTER,    Pro800ProgramField::LFO_DEST);
+    setupMidiComponent(&comboBox_LFOShape,            Pro800CCMessages::LFO_MOD_SHAPE,          Pro800ProgramField::LFO_SHAPE);
 
     group_LFO.addComponents({&group_LFOFrequency, &group_LFOShape, &group_LFOInitialAmount, &group_LFODestination});
     addAndMakeVisible(this->group_LFO);
@@ -213,7 +212,7 @@ void FrontPanelTab::setupGroupGlide()
     
     setupRotarySlider(slider_GlideAmount, group_GlideAmount);
 
-    setupMidiComponent(&slider_GlideAmount, CC_GLIDE_TIME, PROGRAM_FIELD_GLIDE_AMOUNT);
+    setupMidiComponent(&slider_GlideAmount, Pro800CCMessages::GLIDE_TIME, Pro800ProgramField::GLIDE_AMOUNT);
     group_Glide.addComponent(&group_GlideAmount);
 
     addAndMakeVisible(group_Glide);
@@ -245,17 +244,17 @@ void FrontPanelTab::setupGroupFilter()
     group_Filter.addComponents({&group_FilterCutoff, &group_FilterResonance, &group_FilterEnvAmount, &group_FilterKeyboardTracking,
                                 &group_FilterAttack, &group_FilterDecay, &group_FilterSustain, &group_FilterRelease});
 
-    setupMidiComponent(&slider_FilterCutoff,     CC_FILTER_CUTOFF,     PROGRAM_FIELD_FILTER_CUTOFF);
-    setupMidiComponent(&slider_FilterResonance,  CC_FILTER_RESONANCE,  PROGRAM_FIELD_FILTER_RESONANCE);
-    setupMidiComponent(&slider_FilterEnvAmount,  CC_FILTER_ENV_AMOUNT, PROGRAM_FIELD_FILTER_ENV_AMOUNT);
-    setupMidiComponent(&slider_FilterAttack,     CC_FILTER_ATTACK,     PROGRAM_FIELD_FILTER_ATTACK);
-    setupMidiComponent(&slider_FilterDecay,      CC_FILTER_DECAY,      PROGRAM_FIELD_FILTER_DECAY);
-    setupMidiComponent(&slider_FilterSustain,    CC_FILTER_SUSTAIN,    PROGRAM_FIELD_FILTER_SUSTAIN);
-    setupMidiComponent(&slider_FilterRelease,    CC_FILTER_RELEASE,    PROGRAM_FIELD_FILTER_RELEASE);
+    setupMidiComponent(&slider_FilterCutoff,     Pro800CCMessages::FILTER_CUTOFF,     Pro800ProgramField::FILTER_CUTOFF);
+    setupMidiComponent(&slider_FilterResonance,  Pro800CCMessages::FILTER_RESONANCE,  Pro800ProgramField::FILTER_RESONANCE);
+    setupMidiComponent(&slider_FilterEnvAmount,  Pro800CCMessages::FILTER_ENV_AMOUNT, Pro800ProgramField::FILTER_ENV_AMOUNT);
+    setupMidiComponent(&slider_FilterAttack,     Pro800CCMessages::FILTER_ATTACK,     Pro800ProgramField::FILTER_ATTACK);
+    setupMidiComponent(&slider_FilterDecay,      Pro800CCMessages::FILTER_DECAY,      Pro800ProgramField::FILTER_DECAY);
+    setupMidiComponent(&slider_FilterSustain,    Pro800CCMessages::FILTER_SUSTAIN,    Pro800ProgramField::FILTER_SUSTAIN);
+    setupMidiComponent(&slider_FilterRelease,    Pro800CCMessages::FILTER_RELEASE,    Pro800ProgramField::FILTER_RELEASE);
 
-    setupMidiComponent(&radio_FilterTrackingFull, CC_FILTER_KEYBOARD_TRACKING, PROGRAM_FIELD_FILTER_KEY_TRACKING); // use special handling in overridden setComponentValue()
-    setupMidiComponent(&radio_FilterTrackingHalf, CC_FILTER_KEYBOARD_TRACKING, PROGRAM_FIELD_FILTER_KEY_TRACKING); 
-    setupMidiComponent(&radio_FilterTrackingOff,  CC_FILTER_KEYBOARD_TRACKING, PROGRAM_FIELD_FILTER_KEY_TRACKING);
+    setupMidiComponent(&radio_FilterTrackingFull, Pro800CCMessages::FILTER_KEYBOARD_TRACKING, Pro800ProgramField::FILTER_KEY_TRACKING); // use special handling in overridden setComponentValue()
+    setupMidiComponent(&radio_FilterTrackingHalf, Pro800CCMessages::FILTER_KEYBOARD_TRACKING, Pro800ProgramField::FILTER_KEY_TRACKING); 
+    setupMidiComponent(&radio_FilterTrackingOff,  Pro800CCMessages::FILTER_KEYBOARD_TRACKING, Pro800ProgramField::FILTER_KEY_TRACKING);
     
     addAndMakeVisible(group_Filter);
 }
@@ -268,10 +267,10 @@ void FrontPanelTab::setupGroupAmplifier()
     setupRotarySlider(slider_AmplifierSustain, group_AmplifierSustain);
     setupRotarySlider(slider_AmplifierRelease, group_AmplifierRelease);
 
-    setupMidiComponent(&slider_AmplifierAttack,  CC_AMP_ATTACK,  PROGRAM_FIELD_AMP_ATTACK);
-    setupMidiComponent(&slider_AmplifierDecay,   CC_AMP_DECAY,   PROGRAM_FIELD_AMP_DECAY);
-    setupMidiComponent(&slider_AmplifierSustain, CC_AMP_SUSTAIN, PROGRAM_FIELD_AMP_SUSTAIN);
-    setupMidiComponent(&slider_AmplifierRelease, CC_AMP_RELEASE, PROGRAM_FIELD_AMP_RELEASE);
+    setupMidiComponent(&slider_AmplifierAttack,  Pro800CCMessages::AMP_ATTACK,  Pro800ProgramField::AMP_ATTACK);
+    setupMidiComponent(&slider_AmplifierDecay,   Pro800CCMessages::AMP_DECAY,   Pro800ProgramField::AMP_DECAY);
+    setupMidiComponent(&slider_AmplifierSustain, Pro800CCMessages::AMP_SUSTAIN, Pro800ProgramField::AMP_SUSTAIN);
+    setupMidiComponent(&slider_AmplifierRelease, Pro800CCMessages::AMP_RELEASE, Pro800ProgramField::AMP_RELEASE);
 
     group_Amplifier.addComponents({&group_AmplifierAttack, &group_AmplifierDecay, &group_AmplifierSustain, &group_AmplifierRelease});
     addAndMakeVisible(this->group_Amplifier);
@@ -283,8 +282,8 @@ void FrontPanelTab::setupGroupMaster()
     setupRotarySlider(slider_MasterTune, group_MasterTune);
     setupRotarySlider(slider_MasterVolume, group_MasterVolume);
 
-    setupMidiComponent(&slider_MasterVolume, CC_MASTER_VOLUME, PROGRAM_FIELD_NONE);
-    setupMidiComponent(&slider_MasterTune,   CC_MASTER_TUNE,   PROGRAM_FIELD_NONE);
+    setupMidiComponent(&slider_MasterVolume, Pro800CCMessages::MASTER_VOLUME, Pro800ProgramField::NONE);
+    setupMidiComponent(&slider_MasterTune,   Pro800CCMessages::MASTER_TUNE,   Pro800ProgramField::NONE);
 
     group_Master.addComponents({&group_MasterTune, &group_MasterVolume});
     addAndMakeVisible(this->group_Master);

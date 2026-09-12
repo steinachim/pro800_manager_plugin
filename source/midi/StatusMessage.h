@@ -35,7 +35,7 @@ public:
     static constexpr uint8_t RESPONSE_ID = 0x01;
 
     explicit StatusMessage(const juce::MidiMessage &message);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_STATUS_MESSAGE;}
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_STATUS;}
 
     virtual bool isValid() const override;
 

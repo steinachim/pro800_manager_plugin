@@ -23,7 +23,7 @@
 #include "midi/VersionMessage.h"
 
 Pro800ManagerEditor::Pro800ManagerEditor (MidiHandler *handler, Pro800ManagerAudioProcessor& p)
-    : AudioProcessorEditor (&p), MidiComponent(handler, false, {MessageType::PRO800_VERSION_MESSAGE})
+    : AudioProcessorEditor (&p), MidiComponent(handler, false, {MessageType::PRO800_VERSION})
 {
     // midi connection area
     button_ConnectMidi.onClick = [this] { connectMidiDevices(); };

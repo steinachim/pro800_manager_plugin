@@ -31,7 +31,7 @@ public:
     static juce::MidiMessage request();
 
     explicit VersionMessage(const juce::MidiMessage &message);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_VERSION_MESSAGE;}
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_VERSION;}
 
     virtual bool isValid() const override;
 

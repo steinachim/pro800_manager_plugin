@@ -23,8 +23,10 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 
 #include "../tailoring/Pro800Constants.h"
+#include "../tailoring/Pro800CCConstants.h"
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <variant>
 #include <vector>
@@ -75,7 +77,7 @@ public:
     void registerMessageComponent(MessageType type, MidiComponent *component);
     void unregisterMessageComponent(MessageType type, MidiComponent *component);
 
-    void sendMidiCCMessage(uint8_t midiCC, uint8_t value);
+    void sendMidiCCMessage(Pro800CCMessages midiCC, uint8_t value);
     void sendProgramChange (uint8_t program);
 
     /** Sends immediately. Thread-safe. */
@@ -144,7 +146,10 @@ private:
     std::unique_ptr<juce::MidiOutput> midiOutput;
 
     juce::Array<MidiComponent *> midiCCComponents;
-    juce::HashMap<MessageType, juce::Array<MidiComponent *>> midiComponents;
+    std::map<MessageType, juce::Array<MidiComponent *>> midiComponents;
+
+    /** A copy of the components registered for the type (empty if none): safe to iterate while they (un)register. */
+    juce::Array<MidiComponent *> componentsFor(MessageType type) const;
 
     uint8_t midiChannel = 1;
 

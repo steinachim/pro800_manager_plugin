@@ -23,7 +23,7 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 
-SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_SETTINGS_MESSAGE})
+SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_SETTINGS})
 {
     button_RefreshSettings.onClick = [this] {
         sendMidiMessage(SettingsMessage::request());
@@ -57,15 +57,13 @@ void SettingsTab::handlePro800SettingsUpdate()
 
   setSettingsGroupsEnabled(true);
 
-  for (juce::HashMap<Pro800Settings, juce::Component*>::Iterator it(this->settingsListeners); it.next();)
+  for (const auto &[setting, component] : this->settingsListeners)
   {
-    Pro800Settings setting = it.getKey();
-    juce::Component *component = it.getValue();
 
     // special case handling for weird UI cases
-    if ( setting == Pro800Settings::SETTINGS_VOICE_KILL )
+    if ( setting == Pro800Settings::VOICE_KILL )
     {
-        uint8_t value = (uint8_t)settingsMessage->getValue(SETTINGS_VOICE_KILL);
+        uint8_t value = (uint8_t)settingsMessage->getValue(Pro800Settings::VOICE_KILL);
 
         for ( int i = 0; i < 8; i++ )
         {
@@ -159,16 +157,16 @@ void SettingsTab::setupGroupConnections()
     &label_ConnectionsSoftThru,               &checkBox_ConnectionsSoftThru
   });
 
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_RX_CHANNEL,    &combo_ConnectionsMidiInputChannel);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_TX_CHANNEL,    &combo_ConnectionsMidiOutputChannel);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_CC_MODE,       &combo_ConnectionsMidiCC);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_MIDI_PC_MODE,       &combo_ConnectionsMidiPC);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_FORWARD,    &checkBox_ConnectionsSyncInForwardEnabled);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_POLARITY,   &combo_ConnectionsSyncInPolarity);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_START_STOP, &checkBox_ConnectionsSyncInStartStopEnabled);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_IN_PPQN,       &combo_ConnectionsSyncInPPQN);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_LOCAL_ENABLE,       &checkBox_ConnectionsLocalEnable);
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_SOFT_THRU,          &checkBox_ConnectionsSoftThru);
+  this->setupSettingsComponent(Pro800Settings::MIDI_RX_CHANNEL,    &combo_ConnectionsMidiInputChannel);
+  this->setupSettingsComponent(Pro800Settings::MIDI_TX_CHANNEL,    &combo_ConnectionsMidiOutputChannel);
+  this->setupSettingsComponent(Pro800Settings::MIDI_CC_MODE,       &combo_ConnectionsMidiCC);
+  this->setupSettingsComponent(Pro800Settings::MIDI_PC_MODE,       &combo_ConnectionsMidiPC);
+  this->setupSettingsComponent(Pro800Settings::SYNC_IN_FORWARD,    &checkBox_ConnectionsSyncInForwardEnabled);
+  this->setupSettingsComponent(Pro800Settings::SYNC_IN_POLARITY,   &combo_ConnectionsSyncInPolarity);
+  this->setupSettingsComponent(Pro800Settings::SYNC_IN_START_STOP, &checkBox_ConnectionsSyncInStartStopEnabled);
+  this->setupSettingsComponent(Pro800Settings::SYNC_IN_PPQN,       &combo_ConnectionsSyncInPPQN);
+  this->setupSettingsComponent(Pro800Settings::LOCAL_ENABLE,       &checkBox_ConnectionsLocalEnable);
+  this->setupSettingsComponent(Pro800Settings::SOFT_THRU,          &checkBox_ConnectionsSoftThru);
 
   addAndMakeVisible(group_Connections);
 }
@@ -181,7 +179,7 @@ void SettingsTab::setupGroupTranspose()
     &label_TransposeAmount, &spinBox_TransposeAmount
   });
 
-  this->setupSettingsComponent(Pro800Settings::SETTINGS_TRANSPOSE, &spinBox_TransposeAmount);
+  this->setupSettingsComponent(Pro800Settings::TRANSPOSE, &spinBox_TransposeAmount);
 
   addAndMakeVisible(group_Transpose);
 }
@@ -212,7 +210,7 @@ void SettingsTab::setupGroupVoices()
 
   for ( int i = 0; i < 8; i++ )
   {
-    setupSettingsComponent(Pro800Settings::SETTINGS_VOICE_KILL, &checkBox_Voice[i]);
+    setupSettingsComponent(Pro800Settings::VOICE_KILL, &checkBox_Voice[i]);
   }
 
   addAndMakeVisible(group_Voices);
@@ -253,9 +251,9 @@ void SettingsTab::setupGroupDisplay()
     &label_DisplayPresetNameEnabled, &checkBox_DisplayPresetNameEnabled
   });
 
-  setupSettingsComponent(Pro800Settings::SETTINGS_BRIGHTNESS,             &spinBox_DisplayBrightness);
-  setupSettingsComponent(Pro800Settings::SETTINGS_DISPLAY_PARAMETER_TIME, &spinBox_DisplayParameterTime);
-  setupSettingsComponent(Pro800Settings::SETTINGS_SHOW_PRESET_NAME,       &checkBox_DisplayPresetNameEnabled);
+  setupSettingsComponent(Pro800Settings::BRIGHTNESS,             &spinBox_DisplayBrightness);
+  setupSettingsComponent(Pro800Settings::DISPLAY_PARAMETER_TIME, &spinBox_DisplayParameterTime);
+  setupSettingsComponent(Pro800Settings::SHOW_PRESET_NAME,       &checkBox_DisplayPresetNameEnabled);
 
   addAndMakeVisible(group_Display);
 }
@@ -271,7 +269,7 @@ void SettingsTab::setupGroupAutoTune()
     &label_AutoTunePrecision, &combo_AutoTunePrecision
   });
 
-  setupSettingsComponent(Pro800Settings::SETTINGS_TUNER_PRECISION, &combo_AutoTunePrecision);
+  setupSettingsComponent(Pro800Settings::TUNER_PRECISION, &combo_AutoTunePrecision);
 
   addAndMakeVisible(group_AutoTune);
 }
@@ -291,8 +289,8 @@ void SettingsTab::setupGroupMiscellaneous()
     &label_MiscPedalPriority,           &combo_MiscPedalPriority
   });
 
-  setupSettingsComponent(Pro800Settings::SETTINGS_EXTERNAL_CV_AMOUNT, &spinBox_MiscExternalFilterModAmount);
-  setupSettingsComponent(Pro800Settings::SETTINGS_VOICE_PRIORITY,     &combo_MiscVoicePriority);
+  setupSettingsComponent(Pro800Settings::EXTERNAL_CV_AMOUNT, &spinBox_MiscExternalFilterModAmount);
+  setupSettingsComponent(Pro800Settings::VOICE_PRIORITY,     &combo_MiscVoicePriority);
 
   addAndMakeVisible(group_Miscellaneous);
 }
@@ -329,11 +327,11 @@ void SettingsTab::setupGroupSync()
   });
 
 
-  setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_SOURCE, &combo_SyncSource);
-  setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_CLOCK_BPM, &spinBox_SyncClockBPM);
-  setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_CLOCK_SUBDIVISION, &combo_SyncClockSubdivision);
-  setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_CLOCK_SWING, &spinBox_SyncClockSwing);
-  setupSettingsComponent(Pro800Settings::SETTINGS_SYNC_CLOCK_NOTE_LENGTH, &spinBox_SyncClockNoteLength);
+  setupSettingsComponent(Pro800Settings::SYNC_SOURCE, &combo_SyncSource);
+  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_BPM, &spinBox_SyncClockBPM);
+  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_SUBDIVISION, &combo_SyncClockSubdivision);
+  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_SWING, &spinBox_SyncClockSwing);
+  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_NOTE_LENGTH, &spinBox_SyncClockNoteLength);
 
   addAndMakeVisible(group_Sync);
 }
@@ -373,10 +371,10 @@ void SettingsTab::setSettingsGroupsEnabled(bool enable)
 
 void SettingsTab::setupSettingsComponent(Pro800Settings setting, juce::Component *component)
 {
-    this->settingsListeners.set(setting, component);
+    this->settingsListeners[setting] = component;
 
     // special case handling for weird UI cases
-    if ( setting == Pro800Settings::SETTINGS_VOICE_KILL )
+    if ( setting == Pro800Settings::VOICE_KILL )
     {
         juce::ToggleButton *checkBox = dynamic_cast<juce::ToggleButton*>(component);
         if ( checkBox == nullptr )
@@ -393,7 +391,7 @@ void SettingsTab::setupSettingsComponent(Pro800Settings setting, juce::Component
             enabledVoices = (uint8_t)((enabledVoices << (uint8_t)1) | (this->checkBox_Voice[i].getToggleState() ? (uint8_t)1 : (uint8_t)0));
           }
 
-          updateSettings(Pro800Settings::SETTINGS_VOICE_KILL, enabledVoices);
+          updateSettings(Pro800Settings::VOICE_KILL, enabledVoices);
         };
 
         return;

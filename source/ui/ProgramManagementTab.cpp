@@ -22,7 +22,7 @@
 #include "../midi/Pro800MessageFactory.h"
 #include "ProgramModel.h"
 
-ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget *parent) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM_MESSAGE})
+ProgramManagementTab::ProgramManagementTab(MidiHandler *midiHandler, MainWidget *parent) : juce::Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_PROGRAM})
 {
     this->mainWidget = parent;
     model_ProgramListSynth = std::make_unique<ProgramModel>(ProgramModel::SYNTH, &listBox_ProgramListSynth);

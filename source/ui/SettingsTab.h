@@ -23,6 +23,8 @@
 
 #include "EqualSpacingGroupComponent.h"
 
+#include <map>
+
 class SettingsTab : public juce::Component, public MidiComponent
 {
     public:
@@ -47,7 +49,7 @@ private:
     void setSettingsGroupsEnabled(bool enable);
 
     void setupSettingsComponent(Pro800Settings setting, juce::Component *component);
-    juce::HashMap<Pro800Settings, juce::Component*> settingsListeners;
+    std::map<Pro800Settings, juce::Component*> settingsListeners;
 
     juce::TextButton button_RefreshSettings { "Refresh Settings" };
 

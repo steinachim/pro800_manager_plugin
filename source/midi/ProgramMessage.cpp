@@ -53,7 +53,7 @@ void ProgramMessage::upgradeOlderPresetVersion()
         return;
     }
 
-    const size_t versionPos = DATA_START_POS + PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_VERSION).firstByte;
+    const size_t versionPos = DATA_START_POS + PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::PRESET_VERSION).firstByte;
     if ( oldSize <= versionPos + 1 ) // version byte plus the trailing 0xF7
     {
         return;
@@ -73,7 +73,7 @@ void ProgramMessage::upgradeOlderPresetVersion()
     setUint8Value(oldSize - 1, 0x00);
     setUint8Value(PROGRAM_MESSAGE_SIZE - 1, 0xF7);
 
-    setValue(PROGRAM_FIELD_VERSION, SUPPORTED_PRESET_VERSION);
+    setValue(Pro800ProgramField::PRESET_VERSION, SUPPORTED_PRESET_VERSION);
 }
 
 bool ProgramMessage::isValid() const
@@ -113,72 +113,69 @@ std::string ProgramMessage::getProgramName() const
         return "--- Uninitialized ---";
     }
 
-    size_t firstByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_FIRST_CHAR).firstByte;
-    size_t lastByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_LAST_CHAR).firstByte;
+    size_t firstByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_FIRST_CHAR).firstByte;
+    size_t lastByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_LAST_CHAR).firstByte;
     return getStringValue(firstByte, lastByte);
 }
 
 void ProgramMessage::setProgramName(const std::string &newName)
 {
-    size_t firstByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_FIRST_CHAR).firstByte;
-    size_t lastByte = PRO800_PROGRAM_FIELDS.at(PROGRAM_FIELD_NAME_LAST_CHAR).firstByte;
+    size_t firstByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_FIRST_CHAR).firstByte;
+    size_t lastByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_LAST_CHAR).firstByte;
     setStringValue(firstByte, lastByte, newName);
 }
 
 bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination) const
 {
-    const uint8_t lfoDestinations = (uint8_t)getValue(PROGRAM_FIELD_LFO_DEST);
+    const uint8_t lfoDestinations = (uint8_t)getValue(Pro800ProgramField::LFO_DEST);
     return lfoDestinations & destination;
 }
 
 void ProgramMessage::setLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination, bool enabled)
 {
-    uint8_t lfoDestinations = (uint8_t)getValue(PROGRAM_FIELD_LFO_DEST);
+    uint8_t lfoDestinations = (uint8_t)getValue(Pro800ProgramField::LFO_DEST);
     uint8_t targetValue = (enabled ? destination : 0);
 
     lfoDestinations = (lfoDestinations & ~destination) | targetValue;
-    setValue (PROGRAM_FIELD_LFO_DEST, lfoDestinations);
+    setValue (Pro800ProgramField::LFO_DEST, lfoDestinations);
 }
 
 int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
 {
-    int value = 0;
-
-    switch ((int)ccNumber)
+    if ( ccNumber == Pro800CCMessages::LFO_MOD_DEST_FREQ_AB )
     {
-        case CC_LFO_MOD_DEST_FREQ_AB:
-            value = isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB) ? CC_ON : CC_OFF;
-            break;
-
-        case CC_LFO_MOD_DEST_PW_AB:
-            value = isLfoDestinationEnabled (PROGRAM_LFO_DEST_PW_AB) ? CC_ON : CC_OFF;
-            break;
-
-        case CC_LFO_MOD_DEST_FILTER:
-            value = isLfoDestinationEnabled (PROGRAM_LFO_DEST_FILTER) ? CC_ON : CC_OFF;
-            break;
-
-        case CC_LFO_TARGET:
-            value = CC_LFO_TARGET_OSC_AB;
-            if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_A))
-            {
-                value = CC_LFO_TARGET_OSC_A;
-            }
-            else if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_B))
-            {
-                value = CC_LFO_TARGET_OSC_B;
-            }
-            else if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB_VCA))
-            {
-                value = CC_LFO_TARGET_VCA;
-            }
-            break;
-
-        default:
-            juce::Logger::writeToLog("ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " + juce::String((int)ccNumber));
-            break;
+        return isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB) ? CC_ON : CC_OFF;
     }
-    return value;
+
+    if ( ccNumber == Pro800CCMessages::LFO_MOD_DEST_PW_AB )
+    {
+        return isLfoDestinationEnabled (PROGRAM_LFO_DEST_PW_AB) ? CC_ON : CC_OFF;
+    }
+
+    if ( ccNumber == Pro800CCMessages::LFO_MOD_DEST_FILTER )
+    {
+        return isLfoDestinationEnabled (PROGRAM_LFO_DEST_FILTER) ? CC_ON : CC_OFF;
+    }
+
+    if ( ccNumber == Pro800CCMessages::LFO_TARGET )
+    {
+        if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_A))
+        {
+            return CC_LFO_TARGET_OSC_A;
+        }
+        if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_B))
+        {
+            return CC_LFO_TARGET_OSC_B;
+        }
+        if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB_VCA))
+        {
+            return CC_LFO_TARGET_VCA;
+        }
+        return CC_LFO_TARGET_OSC_AB;
+    }
+
+    juce::Logger::writeToLog("ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " + juce::String(static_cast<int>(ccNumber)));
+    return 0;
 }
 
 juce::String ProgramMessage::toString() const

@@ -31,12 +31,13 @@ struct Pro800Parameter
     bool isSigned = false; // for int values only
 };
 
-enum MessageType {
-    MIDI_LOG_MESSAGE,
-    PRO800_UNKNOWN_MESSAGE,
-    PRO800_SETTINGS_MESSAGE,
-    PRO800_VERSION_MESSAGE,
-    PRO800_STATUS_MESSAGE,
-    PRO800_PROGRAM_MESSAGE
+enum class MessageType
+{
+    MIDI_LOG,        // every message sent or received, for logging
+    PRO800_UNKNOWN,  // a Pro-800 SysEx message of a type this plugin does not know
+    PRO800_SETTINGS,
+    PRO800_VERSION,
+    PRO800_STATUS,
+    PRO800_PROGRAM
 };
 
