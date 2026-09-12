@@ -416,7 +416,8 @@ void SynthSession::reloadStoredProgram()
             return;
         }
 
-        // the pointer was never read: read it now and show that record
+        // the pointer was never read (the settings could not be read when connecting): read it now. The controls are
+        // left as they are, like after connecting - updatePointer() only mirrors a pointer that moved from a known one
         readSettings (false, [this] (std::shared_ptr<SettingsMessage> newSettings) {
             if (newSettings != nullptr)
             {
