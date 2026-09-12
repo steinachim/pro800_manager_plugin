@@ -21,12 +21,13 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 class MidiHandler;
+class SynthSession;
 
-/** The tab bar holding the plugin's pages. The tabs talk to each other through the MidiHandler, not through this class. */
+/** The tab bar holding the plugin's pages. The tabs talk to each other through the MidiHandler and the SynthSession, not through this class. */
 class MainWidget : public juce::TabbedComponent
 {
 public:
-    explicit MainWidget (MidiHandler* midiHandler);
+    MainWidget (MidiHandler* midiHandler, SynthSession& synthSession);
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWidget)

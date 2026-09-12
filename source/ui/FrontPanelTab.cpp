@@ -24,7 +24,7 @@
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800ProgramConstants.h"
 
-FrontPanelTab::FrontPanelTab (MidiHandler* midiHandler) : MidiComponent (midiHandler, true)
+FrontPanelTab::FrontPanelTab (MidiHandler* midiHandler, SynthSession& synthSession) : MidiComponent (midiHandler, synthSession, true)
 {
     setupGroupOscA();
     setupGroupOscB();
@@ -73,6 +73,10 @@ void FrontPanelTab::setComponentValue(juce::Component *component, int value, int
 {
     if ( getProgramField(*component) == Pro800ProgramField::FILTER_KEY_TRACKING )
     {
+        for (auto* radio : { &radio_FilterTrackingFull, &radio_FilterTrackingHalf, &radio_FilterTrackingOff })
+        {
+            setControlKnown(radio, true);
+        }
         this->radio_FilterTrackingFull.setToggleState(value == PROGRAM_FILTER_KEYBOARD_TRACKING_FULL, juce::NotificationType::dontSendNotification);
         this->radio_FilterTrackingHalf.setToggleState(value == PROGRAM_FILTER_KEYBOARD_TRACKING_HALF, juce::NotificationType::dontSendNotification);
         this->radio_FilterTrackingOff.setToggleState (value == PROGRAM_FILTER_KEYBOARD_TRACKING_OFF,  juce::NotificationType::dontSendNotification);

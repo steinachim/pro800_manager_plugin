@@ -27,11 +27,12 @@ class MidiHandler;
 class AdvancedTab : public juce::Component, public MidiComponent
 {
 public:
-    AdvancedTab (MidiHandler* parent);
+    AdvancedTab (MidiHandler* midiHandler, SynthSession& synthSession);
     virtual ~AdvancedTab() override;
 
     void resized() override;
-    void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix) override;
+    void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix, bool isPolling) override;
+    void handlePro800VersionUpdate() override;
 
 private:
     // the log keeps at most this many lines (oldest are dropped); a program dump is ~100 lines
@@ -51,7 +52,11 @@ private:
     juce::TextButton button_sendMessage;
 
     juce::ToggleButton checkBox_enableLogging { "Enable Logging" };
+    juce::ToggleButton checkBox_hidePolling { "Hide Polling" };
     juce::TextButton button_clearLog { "Clear Log" };
+
+    // off by default and reset on every connect: the named hazards (Pro800Hazards) are refused unless it is on
+    juce::ToggleButton checkBox_allowHazards { "Allow hazardous messages" };
 
 #if JUCE_DEBUG
     // developer aid for probing unknown SysEx commands, not part of the release UI
@@ -63,7 +68,11 @@ private:
         Custom = 1,
         DumpProgram,
         RequestVersion,
+        RequestDeviceName,
+        RequestProductCode,
         GetSettings,
+        ReloadPreset,
+        ReadPanel,
         PressButton,
         NoteOn,
         NoteOff
@@ -78,13 +87,17 @@ private:
 
     // clang-format off
         static inline const std::map<PreparedMessageId, PreparedMessage> PREPARED_MESSAGES = {
-            {Custom,         {"Custom", "", "Enter your own command"}},
-            {DumpProgram,    {"Dump Program", "F0 00 20 32 00 01 24 00 77 XX XX F7", "Replace XX XX with the program number"}},
-            {RequestVersion, {"Request Version", "F0 00 20 32 00 01 24 00 08 00 F7", "Report program version, also checks compatibility"}},
-            {GetSettings,    {"Get Settings", "F0 00 20 32 00 01 24 00 77 7E 03 F7", "Get global system status"}},
-            {PressButton,    {"Press Button", "F0 00 20 32 00 01 24 00 71 XX F7", "Emulate button press: \n00-09 = 0-9\n0C = PRESET\n0D = REC\n0E = PERF\n0F = SETTINGS\n10 = SEQ1\n11 = SEQ2\n13 = SYNC CLOCK\n14 = SYNC SOURCE"}},
-            {NoteOn,         {"Note On", "9[channel] KK VV", "Send note-on"}},
-            {NoteOff,        {"Note Off", "8[channel] KK VV", "Send note-off"}}
+            {Custom,             {"Custom", "", "Enter your own command"}},
+            {DumpProgram,        {"Dump Program", "F0 00 20 32 00 01 24 00 77 XX XX F7", "Replace XX XX with the program number (7-bit LSB, MSB). An empty slot answers F0 F7, an address above 399 a failure status"}},
+            {RequestVersion,     {"Request Version", "F0 00 20 32 00 01 24 00 08 00 F7", "Report the firmware version, also checks compatibility"}},
+            {RequestDeviceName,  {"Request Device Name", "F0 00 20 32 00 01 24 00 06 F7", "Answers with 'PRO-800'"}},
+            {RequestProductCode, {"Request Product Code", "F0 00 20 32 00 01 24 00 04 F7", "Answers with Behringer's product code 'P0E9I'"}},
+            {GetSettings,        {"Get Settings", "F0 00 20 32 00 01 24 00 77 7E 03 F7", "Get the settings block (address 510)"}},
+            {ReloadPreset,       {"Reload Stored Preset", "F0 00 20 32 00 01 24 00 32 00 F7", "Recalls the preset the settings block points at and discards unsaved edits (what Revert does). Only parameter 00 is safe!"}},
+            {ReadPanel,          {"Read Panel State", "F0 00 20 32 00 01 24 00 70 XX F7", "Reads one physical control (answer: 71 XX VV):\n00-14 = buttons, 1 only while held (same codes as Press Button)\n18 Osc A Rect, 19 Osc B Rect\n1A/1B Filter Keyboard Full/Half\n1C LFO Shape (1 = Tri/Sine/Saw)\n1D/1E/1F LFO Dest Freq/PW/Filter\n20 Osc A Saw, 21 Osc A Tri, 22 Osc A Sync\n23 Osc B Saw, 24 Osc B Tri\n25/26 Poly-Mod Dest Freq A/Filter\n27 Poly-Mod Unison Track\n28-2B DIP switches 1-4 (weights 1/2/4/8, sum = MIDI channel - 1)"}},
+            {PressButton,        {"Press Button", "F0 00 20 32 00 01 24 00 71 XX F7", "Emulate a button press:\n00-09 = 0-9\n0A = ARP UP-DN\n0B = ARP ASSIGN\n0C = PRESET (also recalls the preset)\n0D = REC\n0E = PERF\n0F = SETTINGS\n10 = SEQ1\n11 = SEQ2\n12 = TUNE\n13 = SYNC CLOCK\n14 = SYNC SOURCE\n16/17 = value wheel: steps the preset selection in preset mode!\nREC, two digits, PRESET saves the edit buffer into that slot of the current bank"}},
+            {NoteOn,             {"Note On", "9[channel] KK VV", "Send note-on"}},
+            {NoteOff,            {"Note Off", "8[channel] KK VV", "Send note-off"}}
         };
     // clang-format on
 

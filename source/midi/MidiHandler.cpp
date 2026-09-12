@@ -21,7 +21,6 @@
 #include "Pro800MessageFactory.h"
 #include "Pro800MidiMessage.h"
 #include "ProgramMessage.h"
-#include "VersionMessage.h"
 
 #include "../ui/MidiComponent.h"
 
@@ -72,6 +71,7 @@ void MidiHandler::BackgroundSender::run()
 
 //==============================================================================
 MidiHandler::MidiHandler()
+    : sysExExchange ([this] (const juce::MidiMessage& message, bool isPolling) { sendMidiMessage (message, isPolling); })
 {
 }
 
@@ -106,10 +106,23 @@ void MidiHandler::setMidiChannel (uint8_t channel)
     this->midiChannel = channel;
 }
 
+uint8_t MidiHandler::getMidiChannel() const
+{
+    return this->midiChannel;
+}
+
+void MidiHandler::setInboundChannel (uint8_t channel)
+{
+    this->inboundChannel = channel;
+}
+
 void MidiHandler::connectMidiDevices (const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier)
 {
     // the sender thread must not be in the middle of using the old output device
     cancelBackgroundSending();
+
+    // whatever was waiting for a reply from the old device will not get one
+    cancelExchanges();
 
     {
         const juce::ScopedLock lock (this->deviceLock);
@@ -122,10 +135,14 @@ void MidiHandler::connectMidiDevices (const juce::String& inputDeviceIdentifier,
         }
     }
 
-    if (this->midiInput)
-    {
-        sendMidiMessage (VersionMessage::request());
-    }
+    this->portOpenedAt = juce::Time::getMillisecondCounterHiRes();
+    this->recentChannelVoice.clear();
+}
+
+bool MidiHandler::hasOpenDevices() const
+{
+    const juce::ScopedLock lock (this->deviceLock);
+    return this->midiInput != nullptr && this->midiOutput != nullptr;
 }
 
 //==============================================================================
@@ -176,23 +193,47 @@ void MidiHandler::handleEvent (const MidiEvent& event)
     const juce::MidiMessage& message = event.message;
 
     // getChannel() is 0 for SysEx and other channel-less messages: those always pass
-    if (message.getChannel() != 0 && message.getChannel() != this->midiChannel)
+    if (!event.sent && message.getChannel() != 0)
     {
-        // not our channel
-        return;
+        if (this->inboundChannel != 0 && message.getChannel() != this->inboundChannel)
+        {
+            return; // not our channel
+        }
+
+        // the synth's own MIDI Thru sends everything we send straight back; and right after the port opens it
+        // delivers the knob movements that were buffered while nothing listened (docs, "Transport behaviour")
+        if (consumeEcho (message) || juce::Time::getMillisecondCounterHiRes() - this->portOpenedAt < PORT_OPEN_BURST_MS)
+        {
+            return;
+        }
+    }
+
+    // a received SysEx may be the reply an exchange is waiting for; it is still passed on to the components below
+    bool consumedByExchange = false;
+    bool isPolling = event.isPolling;
+    if (!event.sent && message.isSysEx())
+    {
+        isPolling = this->sysExExchange.isCurrentPolling();
+        consumedByExchange = this->sysExExchange.offerInbound (message);
+        isPolling = consumedByExchange && isPolling;
     }
 
     // note: iterate over copies of the component lists so that a component may (un)register from within its handler
     const juce::String logPrefix = (event.sent ? "Sent message:" : "Received message:");
     for (auto* component : componentsFor (MessageType::MIDI_LOG))
     {
-        component->handleMidiLog (message, logPrefix);
+        component->handleMidiLog (message, logPrefix, isPolling);
     }
 
     if (event.sent)
     {
         // we sent it ourselves. Don't do anything.
         return;
+    }
+
+    if (message.getChannel() != 0)
+    {
+        this->listeners.call ([&] (Listener& l) { l.channelVoiceReceived (message); });
     }
 
     if (message.isController())
@@ -212,7 +253,10 @@ void MidiHandler::handleEvent (const MidiEvent& event)
         std::shared_ptr<Pro800MidiMessage> pro800Message = Pro800MessageFactory::createMidiMessage (message);
         if (!pro800Message)
         {
-            juce::Logger::writeToLog ("[WARNING] Received invalid pro800Message");
+            if (!consumedByExchange) // an empty slot's bare F0 F7 is a regular answer to a read, not an invalid message
+            {
+                juce::Logger::writeToLog ("[WARNING] Received invalid pro800Message");
+            }
             return;
         }
 
@@ -223,6 +267,27 @@ void MidiHandler::handleEvent (const MidiEvent& event)
             component->handlePro800Message (type, pro800Message);
         }
     }
+}
+
+bool MidiHandler::consumeEcho (const juce::MidiMessage& message)
+{
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    while (!this->recentChannelVoice.empty() && now - this->recentChannelVoice.front().sentAt > ECHO_WINDOW_MS)
+    {
+        this->recentChannelVoice.pop_front();
+    }
+
+    const std::vector<uint8_t> bytes (message.getRawData(), message.getRawData() + message.getRawDataSize());
+    for (auto it = this->recentChannelVoice.begin(); it != this->recentChannelVoice.end(); ++it)
+    {
+        if (it->bytes == bytes)
+        {
+            this->recentChannelVoice.erase (it); // the synth echoes each message once
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //==============================================================================
@@ -259,26 +324,37 @@ juce::Array<MidiComponent*> MidiHandler::componentsFor (MessageType type) const
 //==============================================================================
 void MidiHandler::sendMidiCCMessage (Pro800CCMessages midiCC, uint8_t value)
 {
-    sendMidiMessage (juce::MidiMessage::controllerEvent (midiChannel, static_cast<int> (midiCC), (int) value));
+    sendChannelVoice (juce::MidiMessage::controllerEvent (midiChannel, static_cast<int> (midiCC), (int) value));
 }
 
 void MidiHandler::sendProgramChange (uint8_t program)
 {
-    sendMidiMessage (juce::MidiMessage::programChange (midiChannel, (int) program));
+    sendChannelVoice (juce::MidiMessage::programChange (midiChannel, (int) program));
 }
 
-void MidiHandler::loadProgram (const ProgramMessage& program)
+void MidiHandler::sendChannelVoice (const juce::MidiMessage& message)
 {
-    const uint16_t programNumber = program.getProgramNumber();
-    const auto bank = (uint8_t) (programNumber / 100);
-    const auto programInBank = (uint8_t) (programNumber % 100);
+    JUCE_ASSERT_MESSAGE_THREAD
 
-    sendMidiCCMessage (Pro800CCMessages::BANK_SELECT, bank);
-    sendProgramChange (programInBank);
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    this->recentChannelVoice.push_back ({ std::vector<uint8_t> (message.getRawData(), message.getRawData() + message.getRawDataSize()), now });
+    this->lastChannelVoiceSentAt = now;
 
+    sendMidiMessage (message);
+
+    this->listeners.call ([&] (Listener& l) { l.channelVoiceSent (message); });
+}
+
+bool MidiHandler::channelVoiceSentWithin (int milliseconds) const
+{
+    return juce::Time::getMillisecondCounterHiRes() - this->lastChannelVoiceSentAt < milliseconds;
+}
+
+void MidiHandler::mirrorProgram (const ProgramMessage& program)
+{
     if (!program.isValid())
     {
-        return; // an empty placeholder: the synth has the real data, our controls have nothing to show
+        return; // an empty placeholder: our controls have nothing to show
     }
 
     const juce::Array<MidiComponent*> ccComponents (this->midiCCComponents);
@@ -288,7 +364,32 @@ void MidiHandler::loadProgram (const ProgramMessage& program)
     }
 }
 
+void MidiHandler::exchange (SysExExchange::Request request)
+{
+    this->sysExExchange.enqueue (std::move (request));
+}
+
+void MidiHandler::cancelExchanges()
+{
+    this->sysExExchange.cancelAll();
+}
+
+bool MidiHandler::isExchangeBusy() const
+{
+    return this->sysExExchange.isBusy();
+}
+
+bool MidiHandler::isBackgroundSending() const
+{
+    return this->backgroundSender.isThreadRunning();
+}
+
 void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
+{
+    sendMidiMessage (message, false);
+}
+
+void MidiHandler::sendMidiMessage (const juce::MidiMessage& message, bool isPolling)
 {
     const juce::ScopedLock lock (this->deviceLock);
 
@@ -298,7 +399,7 @@ void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
         return;
     }
 
-    queueEvent (MidiEvent { message, true }); // for the log
+    queueEvent (MidiEvent { message, true, isPolling }); // for the log
     this->midiOutput->sendMessageNow (message);
 }
 

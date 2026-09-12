@@ -30,7 +30,9 @@
 #include <vector>
 
 class MidiHandler;
+class PanelMessage;
 class SettingsMessage;
+class SynthSession;
 class VersionMessage;
 class ProgramMessage;
 class Pro800MidiMessage;
@@ -66,8 +68,8 @@ public:
     /** Adds the items to the combo box in the given order, with ids derived from the values (see COMBO_BOX_ID_OFFSET). */
     static void addEnumItems (juce::ComboBox& comboBox, const std::vector<EnumItem>& items);
 
-    /** registerMidiCC: receive incoming CCs and take part in loadProgram(); messageTypes: the Pro-800 messages to receive. */
-    MidiComponent (MidiHandler* midiHandler, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
+    /** registerMidiCC: receive incoming CCs and mirror loaded programs; messageTypes: the Pro-800 messages to receive. */
+    MidiComponent (MidiHandler* midiHandler, SynthSession& synthSession, bool registerMidiCC = false, const juce::Array<MessageType> messageTypes = juce::Array<MessageType>());
     virtual ~MidiComponent();
 
     /** Dispatches a received Pro-800 message to the matching handlePro800*() callback. */
@@ -77,12 +79,12 @@ public:
     virtual void handlePro800SettingsUpdate();
     virtual void handlePro800VersionUpdate();
     virtual void handlePro800ProgramDump (const std::shared_ptr<ProgramMessage>& programMessage);
-    virtual void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix);
+    virtual void handlePro800PanelUpdate (const std::shared_ptr<PanelMessage>& panelMessage);
+    /** isPolling: routine background traffic (the session keeping the current preset up to date), worth hiding from a log. */
+    virtual void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix, bool isPolling);
 
     void requestFactoryReset();
     void requestProgramDump();
-    /** Switches the synth to the program and updates the mirroring controls, see MidiHandler::loadProgram(). */
-    void loadProgram (const ProgramMessage& program);
 
     /** Writes the programs to the synth, paced in the background so that the UI stays responsive. */
     void sendPrograms (const std::vector<std::shared_ptr<ProgramMessage>>& programs);
@@ -95,6 +97,7 @@ public:
 
 protected:
     MidiHandler& getMidiHandler() const;
+    SynthSession& getSynthSession() const;
 
     /** The program field / CC a control was linked to via setupMidiComponent() (NONE if not linked). */
     static Pro800ProgramField getProgramField (const juce::Component& component);
@@ -102,19 +105,30 @@ protected:
 
     void setupMidiComponent (juce::Component* component, Pro800CCMessages midiCC, Pro800ProgramField programField, Pro800Settings settingsField = Pro800Settings::NONE);
 
-    std::shared_ptr<SettingsMessage>& getCurrentSettings();
+    /** The synth's settings block as the session last read it (nullptr before the first read). */
+    std::shared_ptr<SettingsMessage> getCurrentSettings() const;
+
+    /** Changes one setting on the synth: the session patches its block, writes it and keeps the value until the synth confirms it. */
     void updateSettings (Pro800Settings setting, int value);
 
     std::shared_ptr<VersionMessage>& getCurrentVersion();
 
     virtual void setComponentValue (juce::Component* component, int value, int maxValue = -1);
 
+    /**
+     * A control whose value has not come from anywhere yet (no preset loaded, nothing received) is shown dimmed,
+     * so that its resting position is not mistaken for the synth's state. setComponentValue() and the user's own
+     * gesture clear that.
+     */
+    static void setControlKnown (juce::Component* component, bool known);
+    static constexpr float UNKNOWN_CONTROL_ALPHA = 0.45f;
+
 private:
     juce::Array<MessageType> registeredMessageTypes = juce::Array<MessageType>();
     std::map<Pro800CCMessages, juce::Array<juce::Component*>> registeredCCComponents;
 
-    MidiHandler* midiHandler; // non-owning: lifetime managed by the audio processor/editor
+    MidiHandler* midiHandler; // non-owning: lifetime managed by the audio processor
+    SynthSession* synthSession; // non-owning: lifetime managed by the audio processor
 
-    std::shared_ptr<SettingsMessage> currentSettings = std::shared_ptr<SettingsMessage>();
     std::shared_ptr<VersionMessage> currentVersion = std::shared_ptr<VersionMessage>();
 };

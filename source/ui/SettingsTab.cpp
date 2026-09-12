@@ -22,11 +22,12 @@
 
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
+#include "../session/SynthSession.h"
 
-SettingsTab::SettingsTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, false, { MessageType::PRO800_SETTINGS })
+SettingsTab::SettingsTab (MidiHandler* midiHandler, SynthSession& synthSession) : Component(), MidiComponent (midiHandler, synthSession, false, { MessageType::PRO800_SETTINGS })
 {
     button_RefreshSettings.onClick = [this] {
-        sendMidiMessage (SettingsMessage::request());
+        getSynthSession().refresh();
     };
 
     addAndMakeVisible (button_RefreshSettings);

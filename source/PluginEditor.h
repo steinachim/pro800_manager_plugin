@@ -21,14 +21,16 @@
 #include "juce_audio_utils/juce_audio_utils.h"
 
 #include "PluginProcessor.h"
+#include "session/SynthSession.h"
 #include "ui/MainWidget.h"
 #include "ui/MidiComponent.h"
 #include "ui/MidiDeviceComboBox.h"
+#include "ui/StatusStrip.h"
 #include <memory>
 
 class MidiHandler;
 
-class Pro800ManagerEditor : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, public MidiComponent
+class Pro800ManagerEditor : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, public MidiComponent, private SynthSession::Listener
 {
 public:
     Pro800ManagerEditor (MidiHandler* midiHandler, Pro800ManagerAudioProcessor&);
@@ -40,26 +42,40 @@ public:
     void handleNoteOn (juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
     void handleNoteOff (juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
 
-    void handlePro800VersionUpdate() override;
-
 private:
+    /** Combo box item ids: this one is "Auto", 1-16 are the channels. */
+    static constexpr int CHANNEL_ITEM_AUTO = 100;
+    static constexpr int CHANNEL_ITEM_ALL = 101;
+
+    /** The synth's USB-MIDI port is "BEHRINGER PRO 800" (the exact spelling varies by OS and hub). */
+    static inline const juce::String PRO800_PORT_NAME_FRAGMENT { "PRO 800" };
+
     void refreshMidiDeviceLists();
     void connectMidiDevices();
+
+    // SynthSession::Listener: connection badge, channel combo, keyboard
+    void synthSessionChanged() override;
+    void warnAboutUnsupportedFirmware();
+
+    juce::String warnedFirmwareVersion; // the unsupported version already shown in a dialog
 
     juce::TooltipWindow tooltipWindow { this, 500 };
 
     juce::MidiKeyboardState keyboardState;
 
-    juce::Label label_FirmwareVersion { "", "Not Connected" };
-    juce::Label label_MidiChannel { "", "MIDI Channel:" };
-    juce::Slider spinBox_MidiChannel { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
-    juce::Label label_MidiInput { "", "MIDI Input:" };
+    juce::Label label_Connection { "", "Not connected" };
+    juce::Label label_MidiChannel { "", "Send:" };
+    juce::ComboBox combo_MidiChannel;
+    juce::Label label_ReceiveChannel { "", "Receive:" };
+    juce::ComboBox combo_ReceiveChannel;
+    juce::Label label_MidiInput { "", "In:" };
     MidiDeviceComboBox combo_MidiInputList;
-    juce::Label label_MidiOutput { "", "MIDI Output:" };
+    juce::Label label_MidiOutput { "", "Out:" };
     MidiDeviceComboBox combo_MidiOutputList;
     juce::TextButton button_RefreshMidi { "Refresh" };
     juce::TextButton button_ConnectMidi { "Connect" };
 
+    StatusStrip statusStrip;
     std::unique_ptr<MainWidget> tabBar;
     juce::MidiKeyboardComponent keyboardPanel { keyboardState, juce::MidiKeyboardComponent::Orientation::horizontalKeyboard };
     juce::TextButton button_ShowHideKeyboard { "Hide Keyboard" };

@@ -21,6 +21,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "../midi/MidiHandler.h"
+#include "../session/SynthSession.h"
 #include "LocalProgramListBox.h"
 #include "MidiComponent.h"
 
@@ -29,10 +30,10 @@
 
 class ProgramModel;
 
-class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private MidiHandler::Listener
+class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private MidiHandler::Listener, private SynthSession::Listener
 {
 public:
-    explicit ProgramManagementTab (MidiHandler* handler);
+    ProgramManagementTab (MidiHandler* handler, SynthSession& session);
     virtual ~ProgramManagementTab() override;
 
     void resized() override;
@@ -46,6 +47,10 @@ private:
     void backgroundSendingProgress (const juce::String& description, int numSent, int numTotal) override;
     void backgroundSendingFinished (bool cancelled) override;
     void setTransferRunning (bool running);
+
+    // SynthSession::Listener: the preset the synth is on, and whether a Load may be started
+    void synthSessionChanged() override;
+    void updateLoadButton();
 
     void loadSelectedProgram();
     void compareSelectedPrograms();

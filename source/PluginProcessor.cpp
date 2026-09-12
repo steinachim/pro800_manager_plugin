@@ -28,6 +28,7 @@ Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor()
                      )
 {
     this->midiHandler = std::make_unique<MidiHandler>();
+    this->synthSession = std::make_unique<SynthSession> (*this->midiHandler);
 }
 // clang-format on
 

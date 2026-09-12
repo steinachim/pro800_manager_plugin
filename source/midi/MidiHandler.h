@@ -24,8 +24,10 @@
 
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800Constants.h"
+#include "SysExExchange.h"
 
 #include <cstdint>
+#include <deque>
 #include <map>
 #include <memory>
 #include <variant>
@@ -49,17 +51,29 @@ class MidiHandler : public juce::MidiInputCallback, private juce::AsyncUpdater
 public:
     static constexpr int PROGRAM_DUMP_REQUEST_INTERVAL_MS = 10;
 
-    /** Receives the progress of background sending. All callbacks arrive on the message thread. */
+    /** Receives the progress of background sending and the channel-voice traffic. All callbacks arrive on the message thread. */
     struct Listener
     {
         virtual ~Listener() = default;
 
         /** Called after each message of a background sequence has been sent. */
-        virtual void backgroundSendingProgress (const juce::String& description, int numSent, int numTotal) = 0;
+        virtual void backgroundSendingProgress (const juce::String& /*description*/, int /*numSent*/, int /*numTotal*/) {}
 
         /** Called when a background sequence has ended, either completely or because it was cancelled. */
-        virtual void backgroundSendingFinished (bool cancelled) = 0;
+        virtual void backgroundSendingFinished (bool /*cancelled*/) {}
+
+        /** A channel-voice message (CC, program change, note) went out through sendChannelVoice(). */
+        virtual void channelVoiceSent (const juce::MidiMessage& /*message*/) {}
+
+        /** A channel-voice message from the synth passed the channel filter and was not the echo of one we sent. */
+        virtual void channelVoiceReceived (const juce::MidiMessage& /*message*/) {}
     };
+
+    /** The synth echoes every channel-voice message back (MIDI Thru); an echo arriving later than this is not recognised as one. */
+    static constexpr int ECHO_WINDOW_MS = 1000;
+
+    /** Knob movements made while nothing held the port arrive as a burst right after it is opened; they are stale and dropped. */
+    static constexpr int PORT_OPEN_BURST_MS = 500;
 
     MidiHandler();
     ~MidiHandler() override;
@@ -67,10 +81,16 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
 
+    /** The channel (1-16) channel-voice messages go out on. */
     void setMidiChannel (uint8_t channel);
+    uint8_t getMidiChannel() const;
 
-    /** Closes the current devices and opens the given ones (empty identifier = none). Cancels background sending. */
+    /** The channel incoming channel-voice messages are accepted on; 0 = every channel. */
+    void setInboundChannel (uint8_t channel);
+
+    /** Closes the current devices and opens the given ones (empty identifier = none). Cancels background sending and pending exchanges. */
     void connectMidiDevices (const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier);
+    bool hasOpenDevices() const;
 
     void registerMidiCCComponent (MidiComponent* component);
     void unregisterMidiCCComponent (MidiComponent* component);
@@ -82,11 +102,31 @@ public:
     void sendProgramChange (uint8_t program);
 
     /**
-     * Switches the synth to the program's slot and, if the program is valid, sets the controls of all
-     * CC components from it. (The Pro-800 cannot be asked for its current state, so the controls are
-     * updated from the data we have.)
+     * Sends a channel-voice message now (message thread) and remembers it, so that the synth's echo of it is
+     * dropped on the way in and channelVoiceSentWithin() can report it.
      */
-    void loadProgram (const ProgramMessage& program);
+    void sendChannelVoice (const juce::MidiMessage& message);
+
+    /** True if a channel-voice message went out within the last milliseconds: the next SysEx request is likely to need its retry. */
+    bool channelVoiceSentWithin (int milliseconds) const;
+
+    /**
+     * Sets the controls of all CC components from the program (a stored record: the Pro-800 cannot be asked
+     * for the sound it is playing). Sends nothing.
+     */
+    void mirrorProgram (const ProgramMessage& program);
+
+    /** Sends a request and calls back with the reply (see SysExExchange). Message thread only. */
+    void exchange (SysExExchange::Request request);
+
+    /** Completes every pending exchange with no reply. */
+    void cancelExchanges();
+
+    /** True while a request is in flight or queued. */
+    bool isExchangeBusy() const;
+
+    /** True while a background sequence (program dump, program transfer) is running: its replies would confuse an exchange. */
+    bool isBackgroundSending() const;
 
     /** Sends immediately. Thread-safe. */
     void sendMidiMessage (const juce::MidiMessage& message);
@@ -114,7 +154,7 @@ private:
 
     // clang-format off
     // events that other threads hand over to the message thread
-    struct MidiEvent     { juce::MidiMessage message; bool sent; };
+    struct MidiEvent     { juce::MidiMessage message; bool sent; bool isPolling = false; };
     struct ProgressEvent { juce::String description; int numSent; int numTotal; };
     struct FinishedEvent { bool cancelled; };
     using QueuedEvent = std::variant<MidiEvent, ProgressEvent, FinishedEvent>;
@@ -125,6 +165,11 @@ private:
     void handleEvent (const MidiEvent& event);
     void handleEvent (const ProgressEvent& event);
     void handleEvent (const FinishedEvent& event);
+
+    /** True if the message is the echo of a channel-voice message we sent recently; forgets that message. */
+    bool consumeEcho (const juce::MidiMessage& message);
+
+    void sendMidiMessage (const juce::MidiMessage& message, bool isPolling);
 
     class BackgroundSender : public juce::Thread
     {
@@ -162,6 +207,18 @@ private:
     juce::Array<MidiComponent*> componentsFor (MessageType type) const;
 
     uint8_t midiChannel = 1;
+    uint8_t inboundChannel = 0;
+
+    struct SentChannelVoice
+    {
+        std::vector<uint8_t> bytes;
+        double sentAt;
+    };
+    std::deque<SentChannelVoice> recentChannelVoice; // message thread only
+    double lastChannelVoiceSentAt = 0.0;
+    double portOpenedAt = 0.0;
+
+    SysExExchange sysExExchange;
 
     // declared last: stopped in the destructor before anything else is torn down
     BackgroundSender backgroundSender { *this };

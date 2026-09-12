@@ -24,16 +24,16 @@
 #include "ProgramManagementTab.h"
 #include "SettingsTab.h"
 
-MainWidget::MainWidget (MidiHandler* midiHandler) : TabbedComponent (juce::TabbedButtonBar::TabsAtTop)
+MainWidget::MainWidget (MidiHandler* midiHandler, SynthSession& synthSession) : TabbedComponent (juce::TabbedButtonBar::TabsAtTop)
 {
     auto colour = findColour (juce::ResizableWindow::backgroundColourId);
 
     // the tabs are owned by this TabbedComponent (deleteComponentWhenNotNeeded = true)
     // clang-format off
-    addTab("Front Panel",        colour, new FrontPanelTab(midiHandler),        true);
-    addTab("Performance",        colour, new PerformanceTab(midiHandler),       true);
-    addTab("Settings",           colour, new SettingsTab(midiHandler),          true);
-    addTab("Program Management", colour, new ProgramManagementTab(midiHandler), true);
-    addTab("Advanced",           colour, new AdvancedTab(midiHandler),          true);
+    addTab("Front Panel",        colour, new FrontPanelTab(midiHandler, synthSession),        true);
+    addTab("Performance",        colour, new PerformanceTab(midiHandler, synthSession),       true);
+    addTab("Settings",           colour, new SettingsTab(midiHandler, synthSession),          true);
+    addTab("Program Management", colour, new ProgramManagementTab(midiHandler, synthSession), true);
+    addTab("Advanced",           colour, new AdvancedTab(midiHandler, synthSession),          true);
     // clang-format on
 }

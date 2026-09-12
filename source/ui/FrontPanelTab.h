@@ -27,7 +27,7 @@ class MidiHandler;
 class FrontPanelTab : public juce::Component, public MidiComponent
 {
 public:
-    FrontPanelTab (MidiHandler* midiHandler);
+    FrontPanelTab (MidiHandler* midiHandler, SynthSession& synthSession);
     virtual ~FrontPanelTab() override;
 
     void resized() override;

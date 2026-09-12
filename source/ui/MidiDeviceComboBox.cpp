@@ -52,3 +52,17 @@ juce::String MidiDeviceComboBox::getSelectedDeviceIdentifier() const
 
     return this->devices[index].identifier;
 }
+
+bool MidiDeviceComboBox::selectDeviceContaining (const juce::String& nameFragment)
+{
+    for (int i = 0; i < this->devices.size(); i++)
+    {
+        if (this->devices[i].name.containsIgnoreCase (nameFragment))
+        {
+            setSelectedId (FIRST_DEVICE_ITEM_ID + i, juce::dontSendNotification);
+            return true;
+        }
+    }
+
+    return false;
+}

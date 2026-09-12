@@ -58,9 +58,15 @@ std::shared_ptr<ProgramMessage> ProgramModel::getProgramForRow (int rowNumber)
 
 void ProgramModel::paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
+    const bool isCurrent = (rowNumber == currentRow);
+
     if (rowIsSelected || rowNumber == highlightedRow)
     {
         g.fillAll (juce::Colours::lightblue);
+    }
+    else if (isCurrent)
+    {
+        g.fillAll (juce::Colours::darkolivegreen);
     }
 
     auto program = getProgramForRow (rowNumber);
@@ -73,7 +79,7 @@ void ProgramModel::paintListBoxItem (int rowNumber, juce::Graphics& g, int width
     juce::AttributedString s;
     s.setWordWrap (juce::AttributedString::none);
     s.setJustification (juce::Justification::centredLeft);
-    s.append (getNameForRow (rowNumber), textColor);
+    s.append ((isCurrent ? juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xb6 ")) : juce::String ("   ")) + getNameForRow (rowNumber), textColor);
     s.draw (g, juce::Rectangle<int> (width, height).expanded (-4, 50).toFloat());
 }
 
@@ -187,4 +193,25 @@ void ProgramModel::highlightRow (int row)
 {
     this->highlightedRow = row;
     parentListBox->repaintRow (row);
+}
+
+void ProgramModel::markCurrentRow (int row)
+{
+    if (row == this->currentRow)
+    {
+        return;
+    }
+
+    const int previous = this->currentRow;
+    this->currentRow = row;
+    parentListBox->repaintRow (previous);
+    parentListBox->repaintRow (row);
+}
+
+void ProgramModel::selectedRowsChanged (int /*lastRowSelected*/)
+{
+    if (onSelectionChanged)
+    {
+        onSelectionChanged();
+    }
 }

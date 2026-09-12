@@ -36,6 +36,9 @@ public:
     /** The identifier of the selected device, or an empty string for "None". */
     juce::String getSelectedDeviceIdentifier() const;
 
+    /** Selects the first device whose name contains the text (case-insensitive). Returns false if there is none. */
+    bool selectDeviceContaining (const juce::String& nameFragment);
+
 private:
     // combo box item ids must be non-zero: 1 = "None", devices[i] = FIRST_DEVICE_ITEM_ID + i
     static constexpr int NONE_ITEM_ID = 1;

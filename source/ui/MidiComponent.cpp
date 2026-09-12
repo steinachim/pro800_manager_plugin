@@ -19,18 +19,21 @@
 #include "MidiComponent.h"
 
 #include "../midi/MidiHandler.h"
+#include "../midi/PanelMessage.h"
 #include "../midi/Pro800FactoryResetMessage.h"
 #include "../midi/ProgramMessage.h"
 #include "../midi/SettingsMessage.h"
 #include "../midi/VersionMessage.h"
+#include "../session/SynthSession.h"
 
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800CCUtils.h"
 
-MidiComponent::MidiComponent (MidiHandler* handler, bool registerMidiCC, const juce::Array<MessageType> messageTypes)
+MidiComponent::MidiComponent (MidiHandler* handler, SynthSession& session, bool registerMidiCC, const juce::Array<MessageType> messageTypes)
 {
     this->registeredMessageTypes = messageTypes;
     this->midiHandler = handler;
+    this->synthSession = &session;
 
     for (auto type : this->registeredMessageTypes)
     {
@@ -76,6 +79,11 @@ MidiHandler& MidiComponent::getMidiHandler() const
     return *this->midiHandler;
 }
 
+SynthSession& MidiComponent::getSynthSession() const
+{
+    return *this->synthSession;
+}
+
 Pro800ProgramField MidiComponent::getProgramField (const juce::Component& component)
 {
     const int stored = component.getProperties().getWithDefault (PROGRAM_FIELD_PROPERTY, static_cast<int> (Pro800ProgramField::NONE));
@@ -106,17 +114,12 @@ void MidiComponent::requestProgramDump()
     this->midiHandler->requestProgramDump();
 }
 
-void MidiComponent::loadProgram (const ProgramMessage& program)
-{
-    this->midiHandler->loadProgram (program);
-}
-
 void MidiComponent::handlePro800Message (MessageType type, const std::shared_ptr<Pro800MidiMessage>& message)
 {
     switch (type)
     {
         case MessageType::PRO800_SETTINGS:
-            this->currentSettings = std::dynamic_pointer_cast<SettingsMessage> (message);
+            // the session has already taken the block (it sees every reply before the components do)
             handlePro800SettingsUpdate();
             break;
 
@@ -135,6 +138,10 @@ void MidiComponent::handlePro800Message (MessageType type, const std::shared_ptr
             handlePro800ProgramDump (programMessage);
             break;
         }
+
+        case MessageType::PRO800_PANEL:
+            handlePro800PanelUpdate (std::dynamic_pointer_cast<PanelMessage> (message));
+            break;
 
         case MessageType::MIDI_LOG:
         case MessageType::PRO800_UNKNOWN:
@@ -189,7 +196,12 @@ void MidiComponent::handlePro800ProgramDump (const std::shared_ptr<ProgramMessag
     // do nothing by default
 }
 
-void MidiComponent::handleMidiLog (const juce::MidiMessage& /*message*/, const juce::String& /*logPrefix*/)
+void MidiComponent::handlePro800PanelUpdate (const std::shared_ptr<PanelMessage>& /*panelMessage*/)
+{
+    // do nothing by default
+}
+
+void MidiComponent::handleMidiLog (const juce::MidiMessage& /*message*/, const juce::String& /*logPrefix*/, bool /*isPolling*/)
 {
     // do nothing by default
 }
@@ -207,9 +219,12 @@ void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMess
     }
 
     this->registeredCCComponents[midiCC].add (component);
+    setControlKnown (component, false);
+
     if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
         slider->onValueChange = ([this, slider, midiCC] {
+            setControlKnown (slider, true);
             double sliderValue = slider->getValue();
             uint8_t midiValue = 0;
 
@@ -232,6 +247,7 @@ void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMess
         {
             // radio button
             button->onClick = [this, button, midiCC] {
+                setControlKnown (button, true);
                 int value = button->getProperties()[RADIO_VALUE_PROPERTY];
                 const Pro800ProgramField linkedField = getProgramField (*button);
 
@@ -246,6 +262,7 @@ void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMess
         else
         {
             button->onClick = ([this, button, midiCC] {
+                setControlKnown (button, true);
                 bool buttonState = button->getToggleState();
                 int value = buttonState ? CC_ON : CC_OFF;
 
@@ -256,6 +273,7 @@ void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMess
     else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
         comboBox->onChange = ([this, comboBox, midiCC] {
+            setControlKnown (comboBox, true);
             int value = comboBox->getSelectedId() - COMBO_BOX_ID_OFFSET;
 
             const Pro800ProgramField linkedField = getProgramField (*comboBox);
@@ -273,21 +291,14 @@ void MidiComponent::setupMidiComponent (juce::Component* component, Pro800CCMess
     }
 }
 
-std::shared_ptr<SettingsMessage>& MidiComponent::getCurrentSettings()
+std::shared_ptr<SettingsMessage> MidiComponent::getCurrentSettings() const
 {
-    return this->currentSettings;
+    return this->synthSession->getSettings();
 }
 
 void MidiComponent::updateSettings (Pro800Settings setting, int value)
 {
-    if (!this->currentSettings)
-    {
-        juce::Logger::writeToLog ("[WARNING] updateSettings: Load settings first!");
-        return;
-    }
-
-    this->currentSettings->setValue (setting, value);
-    midiHandler->sendMidiMessage (this->currentSettings->toMidiMessage());
+    this->synthSession->writeSetting (setting, value);
 }
 
 std::shared_ptr<VersionMessage>& MidiComponent::getCurrentVersion()
@@ -295,8 +306,25 @@ std::shared_ptr<VersionMessage>& MidiComponent::getCurrentVersion()
     return this->currentVersion;
 }
 
+void MidiComponent::setControlKnown (juce::Component* component, bool known)
+{
+    if (component == nullptr)
+    {
+        return;
+    }
+
+    component->setAlpha (known ? 1.0f : UNKNOWN_CONTROL_ALPHA);
+
+    if (auto* tooltipClient = dynamic_cast<juce::SettableTooltipClient*> (component))
+    {
+        tooltipClient->setTooltip (known ? juce::String() : "Value unknown until a preset is loaded or reverted to");
+    }
+}
+
 void MidiComponent::setComponentValue (juce::Component* component, int value, int maxValue)
 {
+    setControlKnown (component, true);
+
     if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
         // scale value to slider

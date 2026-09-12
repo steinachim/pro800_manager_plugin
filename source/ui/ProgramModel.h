@@ -20,6 +20,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include <functional>
+
 class ProgramMessage;
 
 class ProgramModel : public juce::ListBoxModel
@@ -51,6 +53,13 @@ public:
     bool updateElement (std::shared_ptr<ProgramMessage> message);
     void highlightRow (int row);
 
+    /** Marks the row as the preset the synth is currently on (-1 = none); drawn distinctly from a selection. */
+    void markCurrentRow (int row);
+    int getCurrentRow() const { return this->currentRow; }
+
+    void selectedRowsChanged (int lastRowSelected) override;
+    std::function<void()> onSelectionChanged;
+
 private:
     enum NameChangeResult {
         OK,
@@ -60,6 +69,7 @@ private:
     std::unique_ptr<juce::AlertWindow> nameChangeMessageBox;
 
     int highlightedRow = -1;
+    int currentRow = -1;
 
     ModelType modelType;
     juce::Array<std::shared_ptr<ProgramMessage>> rows;

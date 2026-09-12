@@ -21,6 +21,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "midi/MidiHandler.h"
+#include "session/SynthSession.h"
 #include <memory>
 
 class Pro800ManagerEditor;
@@ -57,8 +58,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    SynthSession& getSynthSession() { return *this->synthSession; }
+
 private:
     std::unique_ptr<MidiHandler> midiHandler;
+    std::unique_ptr<SynthSession> synthSession; // after the handler: it is destroyed first and unregisters from it
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pro800ManagerAudioProcessor)
 };

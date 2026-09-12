@@ -18,9 +18,11 @@
 
 #include "AdvancedTab.h"
 #include "../midi/MidiHandler.h"
+#include "../midi/Pro800Hazards.h"
 #include "../midi/Pro800MessageFactory.h"
 
-AdvancedTab::AdvancedTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, false, { MessageType::MIDI_LOG })
+AdvancedTab::AdvancedTab (MidiHandler* midiHandler, SynthSession& synthSession)
+    : Component(), MidiComponent (midiHandler, synthSession, false, { MessageType::MIDI_LOG, MessageType::PRO800_VERSION })
 {
     juce::String comboToolTip = "";
     for (const auto& [id, preparedMessage] : PREPARED_MESSAGES)
@@ -70,13 +72,27 @@ AdvancedTab::AdvancedTab (MidiHandler* midiHandler) : Component(), MidiComponent
         logDocument.replaceAllContent ({});
     };
 
+    checkBox_hidePolling.setToggleState (true, juce::dontSendNotification);
+    checkBox_hidePolling.setTooltip ("Leave out the settings reads the plugin sends every few seconds to follow the preset selected on the synth");
+
+    checkBox_allowHazards.setTooltip ("Send the messages the Pro-800 must normally never receive: factory reset (7D), bootloader (03 30), "
+                                      "the broken 32 xx state, the deafening channel write (0E) and the name-blanking 50. Off again after every connect.");
+
     addAndMakeVisible (codeEditor_midiMessageLog);
 
     addAndMakeVisible (combo_PreparedMessages);
     addAndMakeVisible (textEdit_inputMidiMessage);
     addAndMakeVisible (button_sendMessage);
+    addAndMakeVisible (checkBox_allowHazards);
     addAndMakeVisible (checkBox_enableLogging);
+    addAndMakeVisible (checkBox_hidePolling);
     addAndMakeVisible (button_clearLog);
+}
+
+void AdvancedTab::handlePro800VersionUpdate()
+{
+    // a fresh connection starts with the guard on
+    checkBox_allowHazards.setToggleState (false, juce::dontSendNotification);
 }
 
 void AdvancedTab::sendInputMessage()
@@ -113,6 +129,28 @@ void AdvancedTab::sendInputMessage()
         return;
     }
 
+    if (const auto hazard = Pro800Hazards::hazardReason (bytes))
+    {
+        if (!checkBox_allowHazards.getToggleState())
+        {
+            addLogMessage ("Refused: " + *hazard + "\nTick 'Allow hazardous messages' to send it anyway.");
+            return;
+        }
+
+        if (Pro800Hazards::isIrreversible (bytes))
+        {
+            juce::AlertWindow::showOkCancelBox (juce::MessageBoxIconType::WarningIcon, "Send a hazardous message?", *hazard + "\n\nSend it anyway?", "Send", "Cancel", this, juce::ModalCallbackFunction::create ([safeThis = juce::Component::SafePointer<AdvancedTab> (this), bytes] (int result) {
+                if (result == 1 && safeThis != nullptr)
+                {
+                    safeThis->sendMidiMessage (juce::MidiMessage (bytes.data(), (int) bytes.size()));
+                }
+            }));
+            return;
+        }
+
+        addLogMessage ("Sending a hazardous message: " + *hazard);
+    }
+
     sendMidiMessage (juce::MidiMessage (bytes.data(), (int) bytes.size()));
 }
 
@@ -127,6 +165,7 @@ void AdvancedTab::resized()
 
     auto logTopArea = area.removeFromTop (buttonHeight).reduced (4);
     button_clearLog.setBounds (logTopArea.removeFromRight (100));
+    checkBox_hidePolling.setBounds (logTopArea.removeFromRight (120));
     checkBox_enableLogging.setBounds (logTopArea);
     codeEditor_midiMessageLog.setBounds (area.removeFromTop (area.getHeight() - buttonHeight).reduced (4));
 
@@ -135,13 +174,14 @@ void AdvancedTab::resized()
     button_debug.setBounds (area.removeFromRight (100).reduced (4));
 #endif
     button_sendMessage.setBounds (area.removeFromRight (100).reduced (4));
+    checkBox_allowHazards.setBounds (area.removeFromRight (200).reduced (4));
     combo_PreparedMessages.setBounds (area.removeFromLeft (200).reduced (4));
     textEdit_inputMidiMessage.setBounds (area.reduced (4));
 }
 
-void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix)
+void AdvancedTab::handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix, bool isPolling)
 {
-    if (!checkBox_enableLogging.getToggleState())
+    if (!checkBox_enableLogging.getToggleState() || (isPolling && checkBox_hidePolling.getToggleState()))
         return;
 
     // always show the raw bytes (the ground truth when reverse-engineering the protocol),

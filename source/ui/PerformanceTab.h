@@ -26,7 +26,7 @@
 class PerformanceTab : public juce::Component, public MidiComponent
 {
 public:
-    PerformanceTab (MidiHandler* midiHandler);
+    PerformanceTab (MidiHandler* midiHandler, SynthSession& synthSession);
     ~PerformanceTab() override;
 
     void resized() override;

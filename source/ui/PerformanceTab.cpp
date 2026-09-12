@@ -21,7 +21,7 @@
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800ProgramConstants.h"
 
-PerformanceTab::PerformanceTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, true)
+PerformanceTab::PerformanceTab (MidiHandler* midiHandler, SynthSession& synthSession) : Component(), MidiComponent (midiHandler, synthSession, true)
 {
     setupGroupLFO();
     setupGroupVibrato();

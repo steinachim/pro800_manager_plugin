@@ -22,12 +22,14 @@
 #include "../midi/ProgramMessage.h"
 #include "ProgramModel.h"
 
-ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler) : juce::Component(), MidiComponent (midiHandler, false, { MessageType::PRO800_PROGRAM })
+ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler, SynthSession& session)
+    : juce::Component(), MidiComponent (midiHandler, session, false, { MessageType::PRO800_PROGRAM })
 {
     model_ProgramListSynth = std::make_unique<ProgramModel> (ProgramModel::SYNTH, &listBox_ProgramListSynth);
     model_ProgramListLocal = std::make_unique<ProgramModel> (ProgramModel::LOCAL, &listBox_ProgramListLocal);
     listBox_ProgramListSynth.setModel (model_ProgramListSynth.get());
     listBox_ProgramListSynth.setMultipleSelectionEnabled (true);
+    model_ProgramListSynth->onSelectionChanged = [this] { updateLoadButton(); };
 
     listBox_ProgramListLocal.setModel (model_ProgramListLocal.get());
     listBox_ProgramListLocal.setMultipleSelectionEnabled (true);
@@ -81,12 +83,34 @@ ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler) : juce::Co
     addChildComponent (progressBar_Transfer); // hidden until a transfer starts
     addChildComponent (button_CancelTransfer);
 
+    button_Load.setTooltip ("Selects the preset on the synth and makes it recall it - like selecting it on the synth, unsaved edits there are discarded");
+
     getMidiHandler().addListener (this);
+    getSynthSession().addListener (this);
+    synthSessionChanged();
 }
 
 ProgramManagementTab::~ProgramManagementTab()
 {
+    getSynthSession().removeListener (this);
     getMidiHandler().removeListener (this);
+}
+
+//==============================================================================
+void ProgramManagementTab::synthSessionChanged()
+{
+    const auto& pointer = getSynthSession().getPointer();
+    model_ProgramListSynth->markCurrentRow (pointer.program.has_value() && getSynthSession().isConnected() ? *pointer.program : -1);
+    updateLoadButton();
+}
+
+void ProgramManagementTab::updateLoadButton()
+{
+    const auto selectedRows = listBox_ProgramListSynth.getSelectedRows();
+    const auto program = selectedRows.isEmpty() ? nullptr : model_ProgramListSynth->getProgramForRow (selectedRows[0]);
+
+    // an empty slot cannot be loaded: what the reload does with an empty pointer is not known
+    button_Load.setEnabled (getSynthSession().canStartAction() && program != nullptr && program->isValid());
 }
 
 //==============================================================================
@@ -116,6 +140,9 @@ void ProgramManagementTab::setTransferRunning (bool running)
     button_RefreshDump.setEnabled (!running);
     button_LocalToSynth.setEnabled (!running);
     button_LocalToSynthAll.setEnabled (!running);
+
+    // and a Load, whose replies the transfer's would get mixed up with
+    updateLoadButton();
 }
 
 void ProgramManagementTab::resized()
@@ -241,12 +268,34 @@ void ProgramManagementTab::loadSelectedProgram()
     }
 
     auto programMessage = model_ProgramListSynth->getProgramForRow (selectedRows[0]);
-    if (!programMessage)
+    if (!programMessage || !programMessage->isValid())
     {
         return;
     }
 
-    loadProgram (*programMessage);
+    const int program = programMessage->getProgramNumber();
+
+    // the synth discards its unsaved edits on any preset change; only warn when the plugin knows of some
+    const auto& provenance = getSynthSession().getProvenance();
+    if (provenance.isEdited())
+    {
+        const juce::String current = getSynthSession().getPointer().label();
+        juce::AlertWindow::showOkCancelBox (juce::MessageBoxIconType::QuestionIcon,
+            "Discard the changes on the synth?",
+            current + " has been changed since it was loaded. Loading " + juce::String (programMessage->getProgramBankNumber()) + " discards those changes on the synth.",
+            "Load anyway",
+            "Cancel",
+            this,
+            juce::ModalCallbackFunction::create ([safeThis = juce::Component::SafePointer<ProgramManagementTab> (this), program] (int result) {
+                if (result == 1 && safeThis != nullptr)
+                {
+                    safeThis->getSynthSession().selectProgram (program);
+                }
+            }));
+        return;
+    }
+
+    getSynthSession().selectProgram (program);
 }
 
 //==============================================================================
