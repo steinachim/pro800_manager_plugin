@@ -31,15 +31,15 @@ class EqualSpacingGroupComponent : public juce::GroupComponent
 {
 public:
     EqualSpacingGroupComponent();
-    EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha = 255, int numRows = 1, int numCols = 1);
+    EqualSpacingGroupComponent (const juce::String& text, uint8_t outlineAlpha = 255, int numRows = 1, int numCols = 1);
 
-    void setOutlineAlpha(uint8_t outlineAlpha);
-    void setInnerMargin(int margin);
+    void setOutlineAlpha (uint8_t outlineAlpha);
+    void setInnerMargin (int margin);
 
     void resized() override;
 
-    void addComponent(juce::Component *component, int rowSpan = 1, int colSpan = 1);
-    void addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> &rowSpans = {}, const juce::Array<int> &colSpans = {});
+    void addComponent (juce::Component* component, int rowSpan = 1, int colSpan = 1);
+    void addComponents (const juce::Array<juce::Component*>& components, const juce::Array<int>& rowSpans = {}, const juce::Array<int>& colSpans = {});
 
 private:
     struct Span
@@ -48,7 +48,7 @@ private:
         int cols = 1;
     };
 
-    Span spanOf(juce::Component *component) const;
+    Span spanOf (juce::Component* component) const;
 
     // drops the span of a child that was removed (or destroyed), so that no stale entry can outlive it
     void childrenChanged() override;
@@ -57,7 +57,7 @@ private:
     int numCols = 1;
     int innerMargin = 2;
 
-    std::map<juce::Component *, Span> spans;
+    std::map<juce::Component*, Span> spans;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EqualSpacingGroupComponent)
 };

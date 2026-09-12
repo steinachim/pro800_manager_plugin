@@ -20,33 +20,33 @@
 
 EqualSpacingGroupComponent::EqualSpacingGroupComponent() : juce::GroupComponent()
 {
-    this->setTextLabelPosition(juce::Justification::left); // every group in this plugin uses a left-aligned title
+    this->setTextLabelPosition (juce::Justification::left); // every group in this plugin uses a left-aligned title
 }
 
-EqualSpacingGroupComponent::EqualSpacingGroupComponent(const juce::String &text, uint8_t outlineAlpha, int rows, int cols) : EqualSpacingGroupComponent()
+EqualSpacingGroupComponent::EqualSpacingGroupComponent (const juce::String& text, uint8_t outlineAlpha, int rows, int cols) : EqualSpacingGroupComponent()
 {
-    this->setText(text);
-    this->numRows = juce::jmax(1, rows); // a zero-sized grid would divide by zero in resized()
-    this->numCols = juce::jmax(1, cols);
+    this->setText (text);
+    this->numRows = juce::jmax (1, rows); // a zero-sized grid would divide by zero in resized()
+    this->numCols = juce::jmax (1, cols);
 
-    setOutlineAlpha(outlineAlpha);
+    setOutlineAlpha (outlineAlpha);
 }
 
-void EqualSpacingGroupComponent::setOutlineAlpha(uint8_t outlineAlpha)
+void EqualSpacingGroupComponent::setOutlineAlpha (uint8_t outlineAlpha)
 {
-    auto outlineColour = this->findColour(outlineColourId);
-    this->setColour(outlineColourId, outlineColour.withAlpha(outlineAlpha));
+    auto outlineColour = this->findColour (outlineColourId);
+    this->setColour (outlineColourId, outlineColour.withAlpha (outlineAlpha));
 }
 
-void EqualSpacingGroupComponent::setInnerMargin(int margin)
+void EqualSpacingGroupComponent::setInnerMargin (int margin)
 {
     this->innerMargin = margin;
 }
 
 void EqualSpacingGroupComponent::resized()
 {
-    auto area = getLocalBounds().reduced(10);
-    area.removeFromTop(15);
+    auto area = getLocalBounds().reduced (10);
+    area.removeFromTop (15);
 
     const int fullWidth = area.getWidth();
     const int fullHeight = area.getHeight();
@@ -56,15 +56,15 @@ void EqualSpacingGroupComponent::resized()
 
     int col = 0;
     int row = 0;
-    for ( auto *widget : getChildren() )
+    for (auto* widget : getChildren())
     {
-        const Span span = spanOf(widget);
+        const Span span = spanOf (widget);
         const int widgetHeight = fullHeight * span.rows / numRows;
         const int widgetWidth = fullWidth * span.cols / numCols;
-        widget->setBounds(area.withTrimmedLeft(col * colWidth).withTrimmedTop(row * rowHeight).withWidth(widgetWidth).withHeight(widgetHeight).reduced(innerMargin));
+        widget->setBounds (area.withTrimmedLeft (col * colWidth).withTrimmedTop (row * rowHeight).withWidth (widgetWidth).withHeight (widgetHeight).reduced (innerMargin));
 
         col += span.cols;
-        if ( col >= numCols ) // >=: a span that overshoots the row must still wrap
+        if (col >= numCols) // >=: a span that overshoots the row must still wrap
         {
             col = 0;
             row += span.rows;
@@ -72,36 +72,36 @@ void EqualSpacingGroupComponent::resized()
     }
 }
 
-void EqualSpacingGroupComponent::addComponent(juce::Component *component, int rows, int cols)
+void EqualSpacingGroupComponent::addComponent (juce::Component* component, int rows, int cols)
 {
-    addComponents( {component}, {rows}, {cols});
+    addComponents ({ component }, { rows }, { cols });
 }
 
-void EqualSpacingGroupComponent::addComponents(const juce::Array<juce::Component *> &components, const juce::Array<int> &rowSpans, const juce::Array<int> &colSpans)
+void EqualSpacingGroupComponent::addComponents (const juce::Array<juce::Component*>& components, const juce::Array<int>& rowSpans, const juce::Array<int>& colSpans)
 {
-    for ( int i = 0; i < components.size(); i++ )
+    for (int i = 0; i < components.size(); i++)
     {
         // spans default to 1 where no (or no more) values were given
         Span span;
-        span.rows = i < rowSpans.size() ? juce::jmax(1, rowSpans[i]) : 1;
-        span.cols = i < colSpans.size() ? juce::jmax(1, colSpans[i]) : 1;
+        span.rows = i < rowSpans.size() ? juce::jmax (1, rowSpans[i]) : 1;
+        span.cols = i < colSpans.size() ? juce::jmax (1, colSpans[i]) : 1;
 
         this->spans[components[i]] = span;
-        addAndMakeVisible(components[i]);
+        addAndMakeVisible (components[i]);
     }
 }
 
-EqualSpacingGroupComponent::Span EqualSpacingGroupComponent::spanOf(juce::Component *component) const
+EqualSpacingGroupComponent::Span EqualSpacingGroupComponent::spanOf (juce::Component* component) const
 {
-    const auto entry = this->spans.find(component);
+    const auto entry = this->spans.find (component);
     return entry != this->spans.end() ? entry->second : Span();
 }
 
 void EqualSpacingGroupComponent::childrenChanged()
 {
-    const auto &children = getChildren();
-    for ( auto entry = this->spans.begin(); entry != this->spans.end(); )
+    const auto& children = getChildren();
+    for (auto entry = this->spans.begin(); entry != this->spans.end();)
     {
-        entry = children.contains(entry->first) ? std::next(entry) : this->spans.erase(entry);
+        entry = children.contains (entry->first) ? std::next (entry) : this->spans.erase (entry);
     }
 }

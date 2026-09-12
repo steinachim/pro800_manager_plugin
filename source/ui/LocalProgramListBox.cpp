@@ -18,12 +18,12 @@
 
 #include "LocalProgramListBox.h"
 
-#include "ProgramModel.h"
 #include "../midi/ProgramMessage.h"
+#include "ProgramModel.h"
 
-bool LocalProgramListBox::isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails& dragSourceDetails) 
+bool LocalProgramListBox::isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& dragSourceDetails)
 {
-    bool interested = dragSourceDetails.description.toString().startsWith(ProgramModel::DRAG_SOURCE_DESCRIPTION);
+    bool interested = dragSourceDetails.description.toString().startsWith (ProgramModel::DRAG_SOURCE_DESCRIPTION);
     return interested;
 }
 
@@ -32,7 +32,7 @@ void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
     juce::StringArray sourceRows;
     sourceRows.addTokens (dragSourceDetails.description.toString().substring (ProgramModel::DRAG_SOURCE_DESCRIPTION.length() + 1), ",", "");
 
-    if ( sourceRows.isEmpty() )
+    if (sourceRows.isEmpty())
         return;
 
     auto sourceListBox = dynamic_cast<juce::ListBox*> (dragSourceDetails.sourceComponent.get());
@@ -89,45 +89,42 @@ void LocalProgramListBox::itemDropped (const SourceDetails& dragSourceDetails)
         // Set the program number to the target row
         targetProgramMessage->setProgramNumber ((uint16_t) targetRow);
         localModel->updateElement (targetProgramMessage);
-
-
     }
-    
+
     localModel->highlightRow (-1);
     this->deselectAllRows();
     sourceListBox->deselectAllRows();
 }
 
-void LocalProgramListBox::itemDragEnter(const SourceDetails& /*dragSourceDetails*/) 
+void LocalProgramListBox::itemDragEnter (const SourceDetails& /*dragSourceDetails*/)
 {
     // nothing to be done
 }
 
-void LocalProgramListBox::itemDragMove(const SourceDetails& dragSourceDetails) 
+void LocalProgramListBox::itemDragMove (const SourceDetails& dragSourceDetails)
 {
-    if (!isInterestedInDragSource(dragSourceDetails))
-        return; 
+    if (!isInterestedInDragSource (dragSourceDetails))
+        return;
 
-    int targetRow = this->getRowContainingPosition(dragSourceDetails.localPosition.getX(), dragSourceDetails.localPosition.getY());
+    int targetRow = this->getRowContainingPosition (dragSourceDetails.localPosition.getX(), dragSourceDetails.localPosition.getY());
 
-    auto localModel = dynamic_cast<ProgramModel*>(getListBoxModel());
-    if ( !localModel )
-         return;
+    auto localModel = dynamic_cast<ProgramModel*> (getListBoxModel());
+    if (!localModel)
+        return;
 
-    localModel->highlightRow(targetRow);
+    localModel->highlightRow (targetRow);
     this->repaint();
-
 }
 
-void LocalProgramListBox::itemDragExit (const SourceDetails& dragSourceDetails) 
+void LocalProgramListBox::itemDragExit (const SourceDetails& dragSourceDetails)
 {
-    if (!isInterestedInDragSource(dragSourceDetails))
-        return; 
+    if (!isInterestedInDragSource (dragSourceDetails))
+        return;
 
-    auto localModel = dynamic_cast<ProgramModel*>(getListBoxModel());
-    if ( !localModel )
-         return;
+    auto localModel = dynamic_cast<ProgramModel*> (getListBoxModel());
+    if (!localModel)
+        return;
 
-    localModel->highlightRow(-1);
+    localModel->highlightRow (-1);
     this->repaint();
 }

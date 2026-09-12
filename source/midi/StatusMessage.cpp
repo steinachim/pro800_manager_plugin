@@ -18,35 +18,35 @@
 
 #include "StatusMessage.h"
 
-const std::map<StatusMessage::Status, const char *> StatusMessage::STATUS_STRING = {
-    {STATUS_OK, "OK"},
-    {STATUS_ERROR, "Error"},
-    {STATUS_INVALID, "Invalid Status"}};
+const std::map<StatusMessage::Status, const char*> StatusMessage::STATUS_STRING = {
+    { STATUS_OK, "OK" },
+    { STATUS_ERROR, "Error" },
+    { STATUS_INVALID, "Invalid Status" }
+};
 
-StatusMessage::StatusMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
+StatusMessage::StatusMessage (const juce::MidiMessage& message) : Pro800MidiMessage (message)
 {
-
 }
 
 bool StatusMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && isDataPosition(POS_STATUS_BYTE);
+    return Pro800MidiMessage::isValid() && isDataPosition (POS_STATUS_BYTE);
 }
 
 juce::String StatusMessage::toString() const
 {
     const Status status = this->getStatus();
-    const auto statusString = STATUS_STRING.find(status);
+    const auto statusString = STATUS_STRING.find (status);
 
     juce::String result = "Pro-800 Status response: ";
-    if ( statusString != STATUS_STRING.end() )
+    if (statusString != STATUS_STRING.end())
     {
         result += statusString->second;
     }
     else
     {
         // the device answered with a status byte we don't know: report it instead of throwing
-        result += "Unknown status " + juce::String::toHexString((int)status);
+        result += "Unknown status " + juce::String::toHexString ((int) status);
     }
 
     return result;
@@ -56,7 +56,7 @@ StatusMessage::Status StatusMessage::getStatus() const
 {
     if (isValid())
     {
-        return (Status)this->getUint8Value(POS_STATUS_BYTE);
+        return (Status) this->getUint8Value (POS_STATUS_BYTE);
     }
     else
     {

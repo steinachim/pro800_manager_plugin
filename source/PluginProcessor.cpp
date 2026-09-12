@@ -19,6 +19,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+// clang-format off
 Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor()
      : AudioProcessor(BusesProperties()
                       // workaround: not really used, but added to allow plugin in Audio FX section in Logic
@@ -28,6 +29,7 @@ Pro800ManagerAudioProcessor::Pro800ManagerAudioProcessor()
 {
     this->midiHandler = std::make_unique<MidiHandler>();
 }
+// clang-format on
 
 Pro800ManagerAudioProcessor::~Pro800ManagerAudioProcessor()
 {
@@ -109,19 +111,17 @@ juce::AudioProcessorEditor* Pro800ManagerAudioProcessor::createEditor()
     return new Pro800ManagerEditor (midiHandler.get(), *this);
 }
 
-
 void Pro800ManagerAudioProcessor::getStateInformation (juce::MemoryBlock& /*destData*/)
 {
-    juce::Logger::writeToLog("getStateInformation called");
+    juce::Logger::writeToLog ("getStateInformation called");
 }
 
 void Pro800ManagerAudioProcessor::setStateInformation (const void* /*data*/, int /*sizeInBytes*/)
 {
-    juce::Logger::writeToLog("setStateInformation called");
+    juce::Logger::writeToLog ("setStateInformation called");
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new Pro800ManagerAudioProcessor();
 }
-

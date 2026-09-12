@@ -22,17 +22,16 @@
 
 juce::MidiMessage VersionMessage::request()
 {
-    return makeRequest({REQUEST_ID, 0x00});
+    return makeRequest ({ REQUEST_ID, 0x00 });
 }
 
-VersionMessage::VersionMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message)
+VersionMessage::VersionMessage (const juce::MidiMessage& message) : Pro800MidiMessage (message)
 {
-
 }
 
 bool VersionMessage::isValid() const
 {
-    return Pro800MidiMessage::isValid() && isDataPosition(VERSION_FIELD_3);
+    return Pro800MidiMessage::isValid() && isDataPosition (VERSION_FIELD_3);
 }
 
 juce::String VersionMessage::toString() const
@@ -60,9 +59,9 @@ std::string VersionMessage::getVersionString() const
     else
     {
         std::stringstream ss;
-        ss << (int)getUint8Value(VERSION_FIELD_1) << "." 
-           << (int)getUint8Value(VERSION_FIELD_2) << "." 
-           << (int)getUint8Value(VERSION_FIELD_3);
+        ss << (int) getUint8Value (VERSION_FIELD_1) << "."
+           << (int) getUint8Value (VERSION_FIELD_2) << "."
+           << (int) getUint8Value (VERSION_FIELD_3);
         return ss.str();
     }
 }
@@ -70,18 +69,18 @@ std::string VersionMessage::getVersionString() const
 std::string VersionMessage::getSupportedVersions() const
 {
     std::stringstream ss;
-    for ( const auto &version : SUPPORTED_FIRMWARE_VERSIONS )
+    for (const auto& version : SUPPORTED_FIRMWARE_VERSIONS)
     {
         ss << version << ", ";
     }
     std::string versionString = ss.str();
-    versionString.erase(versionString.end()-2, versionString.end());
+    versionString.erase (versionString.end() - 2, versionString.end());
     return versionString;
 }
 
 bool VersionMessage::isSupported() const
 {
-    return SUPPORTED_FIRMWARE_VERSIONS.find(getVersionString()) != SUPPORTED_FIRMWARE_VERSIONS.end();
+    return SUPPORTED_FIRMWARE_VERSIONS.find (getVersionString()) != SUPPORTED_FIRMWARE_VERSIONS.end();
 }
 
 uint8_t VersionMessage::getResponseType() const

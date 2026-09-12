@@ -25,7 +25,7 @@
 
 class Pro800ManagerEditor;
 
-class Pro800ManagerAudioProcessor  : public juce::AudioProcessor
+class Pro800ManagerAudioProcessor : public juce::AudioProcessor
 {
 public:
     Pro800ManagerAudioProcessor();
@@ -35,7 +35,7 @@ public:
     void releaseResources() override;
 
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-    
+
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     juce::AudioProcessorEditor* createEditor() override;
@@ -59,6 +59,6 @@ public:
 
 private:
     std::unique_ptr<MidiHandler> midiHandler;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pro800ManagerAudioProcessor)
 };

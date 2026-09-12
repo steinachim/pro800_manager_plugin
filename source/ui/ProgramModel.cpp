@@ -20,7 +20,7 @@
 
 #include "../midi/ProgramMessage.h"
 
-ProgramModel::ProgramModel(ModelType type, juce::ListBox *parent) : juce::ListBoxModel()
+ProgramModel::ProgramModel (ModelType type, juce::ListBox* parent) : juce::ListBoxModel()
 {
     this->modelType = type;
     this->parentListBox = parent;
@@ -46,7 +46,7 @@ juce::String ProgramModel::getNameForRow (int rowNumber)
     return juce::String();
 }
 
-std::shared_ptr<ProgramMessage> ProgramModel::getProgramForRow(int rowNumber)
+std::shared_ptr<ProgramMessage> ProgramModel::getProgramForRow (int rowNumber)
 {
     if (rows.size() > rowNumber)
     {
@@ -63,9 +63,9 @@ void ProgramModel::paintListBoxItem (int rowNumber, juce::Graphics& g, int width
         g.fillAll (juce::Colours::lightblue);
     }
 
-    auto program = getProgramForRow(rowNumber);
+    auto program = getProgramForRow (rowNumber);
     juce::Colour textColor = juce::Colours::white;
-    if ( !program || !program->isValid() )
+    if (!program || !program->isValid())
     {
         textColor = juce::Colours::grey;
     }
@@ -77,13 +77,13 @@ void ProgramModel::paintListBoxItem (int rowNumber, juce::Graphics& g, int width
     s.draw (g, juce::Rectangle<int> (width, height).expanded (-4, 50).toFloat());
 }
 
-void ProgramModel::listBoxItemDoubleClicked (int row, const juce::MouseEvent &/*event*/)
+void ProgramModel::listBoxItemDoubleClicked (int row, const juce::MouseEvent& /*event*/)
 {
-    if (modelType == SYNTH )
+    if (modelType == SYNTH)
     {
         return;
     }
-    
+
     if (rows.size() <= row)
     {
         return;
@@ -91,59 +91,58 @@ void ProgramModel::listBoxItemDoubleClicked (int row, const juce::MouseEvent &/*
 
     auto programMessage = rows[row];
 
-    if ( !programMessage->isValid() )
+    if (!programMessage->isValid())
     {
         return;
     }
 
-    this->nameChangeMessageBox = std::make_unique<juce::AlertWindow>("Preset Name Change", "Please enter the new preset name", juce::MessageBoxIconType::NoIcon);
-    this->nameChangeMessageBox->addTextEditor(NAME_CHANGE_INPUT, programMessage->getProgramName());
-    this->nameChangeMessageBox->addButton("OK", NameChangeResult::OK);
-    this->nameChangeMessageBox->addButton("Cancel", NameChangeResult::CANCEL);
+    this->nameChangeMessageBox = std::make_unique<juce::AlertWindow> ("Preset Name Change", "Please enter the new preset name", juce::MessageBoxIconType::NoIcon);
+    this->nameChangeMessageBox->addTextEditor (NAME_CHANGE_INPUT, programMessage->getProgramName());
+    this->nameChangeMessageBox->addButton ("OK", NameChangeResult::OK);
+    this->nameChangeMessageBox->addButton ("Cancel", NameChangeResult::CANCEL);
 
     // the model may be gone by the time the dialog closes (the callback is also fired when the window is destroyed)
-    juce::WeakReference<ProgramModel> weakThis(this);
-    this->nameChangeMessageBox->enterModalState(true, juce::ModalCallbackFunction::create([weakThis, programMessage] (int modalResult) {
-        if ( weakThis == nullptr )
+    juce::WeakReference<ProgramModel> weakThis (this);
+    this->nameChangeMessageBox->enterModalState (true, juce::ModalCallbackFunction::create ([weakThis, programMessage] (int modalResult) {
+        if (weakThis == nullptr)
             return;
 
-        weakThis->nameChangeMessageBox->setVisible(false);
+        weakThis->nameChangeMessageBox->setVisible (false);
 
-        if ( modalResult != NameChangeResult::OK)
+        if (modalResult != NameChangeResult::OK)
             return;
 
-        juce::String resultString = weakThis->nameChangeMessageBox->getTextEditorContents(NAME_CHANGE_INPUT);
-        programMessage->setProgramName(resultString.toStdString());
-        weakThis->parentListBox->repaintRow(programMessage->getProgramNumber());
+        juce::String resultString = weakThis->nameChangeMessageBox->getTextEditorContents (NAME_CHANGE_INPUT);
+        programMessage->setProgramName (resultString.toStdString());
+        weakThis->parentListBox->repaintRow (programMessage->getProgramNumber());
     }));
 }
 
-void ProgramModel::deleteKeyPressed (int /*lastRowSelected*/) 
+void ProgramModel::deleteKeyPressed (int /*lastRowSelected*/)
 {
-    if ( modelType != LOCAL )
+    if (modelType != LOCAL)
     {
         return;
     }
 
     auto selectedRows = this->parentListBox->getSelectedRows();
 
-    for( int i = 0; i < selectedRows.size(); i++ )
+    for (int i = 0; i < selectedRows.size(); i++)
     {
-        uint16_t row = (uint16_t)selectedRows[i];
-        if ( rows.size() > row )
+        uint16_t row = (uint16_t) selectedRows[i];
+        if (rows.size() > row)
         {
             auto emptyMessage = std::make_shared<ProgramMessage>();
-            emptyMessage->setProgramNumber(row);
-            rows.set(row, emptyMessage);
-            parentListBox->repaintRow(row);
+            emptyMessage->setProgramNumber (row);
+            rows.set (row, emptyMessage);
+            parentListBox->repaintRow (row);
         }
-    }   
+    }
 }
-
 
 juce::var ProgramModel::getDragSourceDescription (const juce::SparseSet<int>& selectedRows)
 {
-    if ( modelType != LOCAL)
+    if (modelType != LOCAL)
     {
         return juce::var();
     }
@@ -159,33 +158,33 @@ juce::var ProgramModel::getDragSourceDescription (const juce::SparseSet<int>& se
 void ProgramModel::reset()
 {
     rows.clear();
-    for ( uint16_t i = 0; i < ProgramMessage::NUM_PROGRAMS; i++ )
+    for (uint16_t i = 0; i < ProgramMessage::NUM_PROGRAMS; i++)
     {
         auto emptyMessage = std::make_shared<ProgramMessage>();
-        emptyMessage->setProgramNumber(i);
-        rows.add( emptyMessage );        
-    } 
+        emptyMessage->setProgramNumber (i);
+        rows.add (emptyMessage);
+    }
     parentListBox->repaint();
 }
 
-bool ProgramModel::updateElement(std::shared_ptr<ProgramMessage> message)
+bool ProgramModel::updateElement (std::shared_ptr<ProgramMessage> message)
 {
     int programNumber = message->getProgramNumber();
 
-    if ( programNumber >= rows.size() )
+    if (programNumber >= rows.size())
     {
-        juce::Logger::writeToLog("ProgramModel::updateElement() - received program out of range");
+        juce::Logger::writeToLog ("ProgramModel::updateElement() - received program out of range");
         return false;
     }
 
-    rows.set(programNumber, message);
+    rows.set (programNumber, message);
 
-    parentListBox->repaintRow(programNumber);
+    parentListBox->repaintRow (programNumber);
     return true;
 }
 
-void ProgramModel::highlightRow(int row)
+void ProgramModel::highlightRow (int row)
 {
     this->highlightedRow = row;
-    parentListBox->repaintRow(row);
+    parentListBox->repaintRow (row);
 }

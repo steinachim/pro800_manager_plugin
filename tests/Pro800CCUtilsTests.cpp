@@ -23,37 +23,36 @@
 #include "tailoring/Pro800CCUtils.h"
 #include "tailoring/Pro800ProgramConstants.h"
 
-TEST_CASE("Pro800CCUtils: enum values survive the trip through a 7-bit CC value", "[cc]")
+TEST_CASE ("Pro800CCUtils: enum values survive the trip through a 7-bit CC value", "[cc]")
 {
     // every enum size used in the program field table
-    for ( const int numValues : { (int) PROGRAM_ON_OFF_NUM_VALUES, (int) PROGRAM_FILTER_KEYBOARD_TRACKING_NUM_VALUES, (int) PROGRAM_MOD_WHEEL_AMOUNT_NUM_VALUES,
-                                  (int) PROGRAM_LFO_SHAPE_NUM_VALUES, (int) PROGRAM_ARP_MODE_NUM_VALUES } )
+    for (const int numValues : { (int) PROGRAM_ON_OFF_NUM_VALUES, (int) PROGRAM_FILTER_KEYBOARD_TRACKING_NUM_VALUES, (int) PROGRAM_MOD_WHEEL_AMOUNT_NUM_VALUES, (int) PROGRAM_LFO_SHAPE_NUM_VALUES, (int) PROGRAM_ARP_MODE_NUM_VALUES })
     {
-        for ( int enumValue = 0; enumValue < numValues; enumValue++ )
+        for (int enumValue = 0; enumValue < numValues; enumValue++)
         {
-            const int cc = Pro800CCUtils::ccFromProgramEnumValue(enumValue, numValues);
-            INFO("numValues " << numValues << ", enum " << enumValue << " -> CC " << cc);
+            const int cc = Pro800CCUtils::ccFromProgramEnumValue (enumValue, numValues);
+            INFO ("numValues " << numValues << ", enum " << enumValue << " -> CC " << cc);
 
-            REQUIRE(cc >= 0);
-            REQUIRE(cc <= 127);
-            REQUIRE(Pro800CCUtils::programEnumValueFromCC(cc, numValues) == enumValue);
+            REQUIRE (cc >= 0);
+            REQUIRE (cc <= 127);
+            REQUIRE (Pro800CCUtils::programEnumValueFromCC (cc, numValues) == enumValue);
         }
     }
 }
 
-TEST_CASE("Pro800CCUtils: continuous values pass through unchanged", "[cc]")
+TEST_CASE ("Pro800CCUtils: continuous values pass through unchanged", "[cc]")
 {
-    for ( int value = 0; value <= 127; value++ )
+    for (int value = 0; value <= 127; value++)
     {
-        REQUIRE(Pro800CCUtils::ccFromProgramEnumValue(value, 0) == value);
-        REQUIRE(Pro800CCUtils::programEnumValueFromCC(value, 0) == value);
+        REQUIRE (Pro800CCUtils::ccFromProgramEnumValue (value, 0) == value);
+        REQUIRE (Pro800CCUtils::programEnumValueFromCC (value, 0) == value);
     }
 }
 
-TEST_CASE("Pro800CCUtils: the top of the CC range maps to the last enum value", "[cc]")
+TEST_CASE ("Pro800CCUtils: the top of the CC range maps to the last enum value", "[cc]")
 {
     // the synth may send any value within a step, 127 included
-    REQUIRE(Pro800CCUtils::programEnumValueFromCC(127, PROGRAM_ON_OFF_NUM_VALUES) == PROGRAM_ON);
-    REQUIRE(Pro800CCUtils::programEnumValueFromCC(127, PROGRAM_LFO_SHAPE_NUM_VALUES) == PROGRAM_LFO_SHAPE_SAW);
-    REQUIRE(Pro800CCUtils::programEnumValueFromCC(127, PROGRAM_ARP_MODE_NUM_VALUES) == PROGRAM_ARP_ASSIGN);
+    REQUIRE (Pro800CCUtils::programEnumValueFromCC (127, PROGRAM_ON_OFF_NUM_VALUES) == PROGRAM_ON);
+    REQUIRE (Pro800CCUtils::programEnumValueFromCC (127, PROGRAM_LFO_SHAPE_NUM_VALUES) == PROGRAM_LFO_SHAPE_SAW);
+    REQUIRE (Pro800CCUtils::programEnumValueFromCC (127, PROGRAM_ARP_MODE_NUM_VALUES) == PROGRAM_ARP_ASSIGN);
 }

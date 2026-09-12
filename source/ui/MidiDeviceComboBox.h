@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 /**
  * A combo box listing MIDI devices ("None" plus one entry per device). It keeps the device infos,
@@ -31,7 +31,7 @@ public:
     MidiDeviceComboBox() = default;
 
     /** Replaces the list. The selection is kept if that device is still available, otherwise "None". */
-    void setDevices(const juce::Array<juce::MidiDeviceInfo> &newDevices);
+    void setDevices (const juce::Array<juce::MidiDeviceInfo>& newDevices);
 
     /** The identifier of the selected device, or an empty string for "None". */
     juce::String getSelectedDeviceIdentifier() const;

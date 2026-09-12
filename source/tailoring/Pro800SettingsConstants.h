@@ -18,12 +18,11 @@
 
 #pragma once
 
-#include <map>
 #include "Pro800Constants.h"
+#include <map>
 
 // scoped: identifies a settings field. (The value enums below stay unscoped: they are plain wire values.)
-enum class Pro800Settings
-{
+enum class Pro800Settings {
     NONE = -1, // placeholder for no field
 
     PRESET_NUM,
@@ -56,6 +55,7 @@ enum class Pro800Settings
 };
 
 // inline: one instance for the whole program instead of one per translation unit
+// clang-format off
 inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
 {
     {Pro800Settings::PRESET_NUM,              {6, 2, "Preset Number"}},
@@ -96,9 +96,9 @@ inline const std::map<Pro800Settings, Pro800Parameter> PRO800_SETTINGS_FIELDS =
     {Pro800Settings::LOCAL_ENABLE,            {44, 1, "Local Enable"}}, // see: Pro800SettingsOnOff
     {Pro800Settings::SOFT_THRU,               {45, 1, "Soft Thru"}}, // see: Pro800SettingsOnOff
 };
+// clang-format on
 
-enum Pro800SettingsMidiReceiveChannel
-{
+enum Pro800SettingsMidiReceiveChannel {
     SETTINGS_MIDI_RX_ALL = 0,
     SETTINGS_MIDI_RX_DIPS = 1,
     SETTINGS_MIDI_RX_1 = 2,
@@ -120,8 +120,7 @@ enum Pro800SettingsMidiReceiveChannel
     SETTINGS_MIDI_RX_OFF = 18
 };
 
-enum Pro800SettingsMidiTransmitChannel
-{
+enum Pro800SettingsMidiTransmitChannel {
     SETTINGS_MIDI_TX_THRU = 0,
     SETTINGS_MIDI_TX_DIPS = 1,
     SETTINGS_MIDI_TX_1 = 2,
@@ -142,37 +141,32 @@ enum Pro800SettingsMidiTransmitChannel
     SETTINGS_MIDI_TX_16 = 17
 };
 
-enum Pro800SettingsMidiMode
-{
+enum Pro800SettingsMidiMode {
     SETTINGS_MIDI_MODE_OFF = 0,
     SETTINGS_MIDI_MODE_TX = 1,
     SETTINGS_MIDI_MODE_RX = 2,
     SETTINGS_MIDI_MODE_TX_RX = 3
 };
 
-enum Pro800SettingsSyncSource
-{
+enum Pro800SettingsSyncSource {
     SETTINGS_SYNC_SOURCE_INTERNAL = 0,
     SETTINGS_SYNC_SOURCE_MIDI = 1,
     SETTINGS_SYNC_SOURCE_USB = 2,
     SETTINGS_SYNC_SOURCE_EXTERNAL = 3
 };
 
-enum Pro800SettingsOnOff
-{
+enum Pro800SettingsOnOff {
     SETTINGS_OFF = 0,
     SETTINGS_ON = 1
 };
 
-enum Pro800SettingsPolarity
-{
+enum Pro800SettingsPolarity {
     SETTINGS_POLARITY_RISE = 0,
     SETTINGS_POLARITY_FALL = 1,
     SETTINGS_POLARITY_BOTH = 2
 };
 
-enum Pro800SettingsSyncInPPQN
-{
+enum Pro800SettingsSyncInPPQN {
     SETTINGS_SYNC_IN_1PPS = 0,
     SETTINGS_SYNC_IN_1PPQN = 1,
     SETTINGS_SYNC_IN_2PPQN = 2,
@@ -181,8 +175,7 @@ enum Pro800SettingsSyncInPPQN
     SETTINGS_SYNC_IN_48PPQN = 5
 };
 
-enum Pro800SettingsSyncClockSubdivision
-{
+enum Pro800SettingsSyncClockSubdivision {
     SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4 = 0,
     SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4T = 1,
     SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8 = 2,
@@ -193,23 +186,20 @@ enum Pro800SettingsSyncClockSubdivision
     SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32T = 7
 };
 
-enum Pro800SettingsTunerPrecision
-{
+enum Pro800SettingsTunerPrecision {
     SETTINGS_TUNER_PRECISION_0_5CT = 0,
     SETTINGS_TUNER_PRECISION_1CT = 1,
     SETTINGS_TUNER_PRECISION_1_5CT = 2,
     SETTINGS_TUNER_PRECISION_2CT = 3
 };
 
-enum Pro800SettingsVoicePriority
-{
+enum Pro800SettingsVoicePriority {
     SETTINGS_VOICE_PRIORITY_LAST = 0,
     SETTINGS_VOICE_PRIORITY_LOW = 1,
     SETTINGS_VOICE_PRIORITY_HIGH = 2
 };
 
-enum Pro800SettingsPresetMode
-{
+enum Pro800SettingsPresetMode {
     SETTINGS_PRESET_MODE_MANUAL = 0,
     SETTINGS_PRESET_MODE_LOADED = 1,
     SETTINGS_PRESET_MODE_EDITED = 2

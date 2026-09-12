@@ -25,7 +25,7 @@ class LocalProgramListBox : public juce::ListBox, public juce::DragAndDropTarget
 public:
     LocalProgramListBox() = default;
 
-    virtual bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails& dragSourceDetails) override;
+    virtual bool isInterestedInDragSource (const juce::DragAndDropTarget::SourceDetails& dragSourceDetails) override;
     virtual void itemDropped (const SourceDetails& dragSourceDetails) override;
     virtual void itemDragEnter (const SourceDetails& dragSourceDetails) override;
     virtual void itemDragMove (const SourceDetails& dragSourceDetails) override;

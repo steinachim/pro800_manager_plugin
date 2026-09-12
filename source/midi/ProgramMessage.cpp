@@ -18,23 +18,23 @@
 
 #include "ProgramMessage.h"
 
-juce::MidiMessage ProgramMessage::request(int programNumber)
+juce::MidiMessage ProgramMessage::request (int programNumber)
 {
     uint8_t programLSB = (programNumber & 0x7F);
-    uint8_t programMSB = (uint8_t)(programNumber >> 7);
+    uint8_t programMSB = (uint8_t) (programNumber >> 7);
 
-    return Pro800DataMessage::request(programLSB, programMSB);
+    return Pro800DataMessage::request (programLSB, programMSB);
 }
 
 ProgramMessage::ProgramMessage() : Pro800DataMessage()
 {
 }
 
-ProgramMessage::ProgramMessage(const juce::MidiMessage &message) : ProgramMessage(message.getRawData(), message.getRawDataSize())
+ProgramMessage::ProgramMessage (const juce::MidiMessage& message) : ProgramMessage (message.getRawData(), message.getRawDataSize())
 {
 }
 
-ProgramMessage::ProgramMessage(const uint8_t *newRawData, int newRawDataSize) : Pro800DataMessage(newRawData, newRawDataSize)
+ProgramMessage::ProgramMessage (const uint8_t* newRawData, int newRawDataSize) : Pro800DataMessage (newRawData, newRawDataSize)
 {
     upgradeOlderPresetVersion();
 }
@@ -48,32 +48,32 @@ void ProgramMessage::upgradeOlderPresetVersion()
     // Anything that is not a well-formed program dump carrying a version byte is left untouched;
     // in particular the 12-byte "empty slot" placeholder must stay invalid.
     const size_t oldSize = getRawDataSize();
-    if ( oldSize >= PROGRAM_MESSAGE_SIZE || !Pro800MidiMessage::isValid() )
+    if (oldSize >= PROGRAM_MESSAGE_SIZE || !Pro800MidiMessage::isValid())
     {
         return;
     }
 
-    const size_t versionPos = DATA_START_POS + PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::PRESET_VERSION).firstByte;
-    if ( oldSize <= versionPos + 1 ) // version byte plus the trailing 0xF7
+    const size_t versionPos = DATA_START_POS + PRO800_PROGRAM_FIELDS.at (Pro800ProgramField::PRESET_VERSION).firstByte;
+    if (oldSize <= versionPos + 1) // version byte plus the trailing 0xF7
     {
         return;
     }
 
     // raw read: the message is not a valid current-layout program yet, so getValue() would refuse.
     // Preset versions are < 128, so the overflow bit is irrelevant here.
-    const uint8_t version = getUint8Value(versionPos);
-    if ( version == 0 || version >= SUPPORTED_PRESET_VERSION )
+    const uint8_t version = getUint8Value (versionPos);
+    if (version == 0 || version >= SUPPORTED_PRESET_VERSION)
     {
         return;
     }
 
-    resizeRawData(PROGRAM_MESSAGE_SIZE); // zero-filled
+    resizeRawData (PROGRAM_MESSAGE_SIZE); // zero-filled
 
     // move 0xF7 from previous last position to new last position
-    setUint8Value(oldSize - 1, 0x00);
-    setUint8Value(PROGRAM_MESSAGE_SIZE - 1, 0xF7);
+    setUint8Value (oldSize - 1, 0x00);
+    setUint8Value (PROGRAM_MESSAGE_SIZE - 1, 0xF7);
 
-    setValue(Pro800ProgramField::PRESET_VERSION, SUPPORTED_PRESET_VERSION);
+    setValue (Pro800ProgramField::PRESET_VERSION, SUPPORTED_PRESET_VERSION);
 }
 
 bool ProgramMessage::isValid() const
@@ -84,11 +84,12 @@ bool ProgramMessage::isValid() const
 
 uint16_t ProgramMessage::getProgramNumber() const
 {
-    uint8_t programLSB = (uint8_t)getUint8Value(ADDRESS_LSB_POS);
-    uint8_t programMSB = (uint8_t)getUint8Value(ADDRESS_MSB_POS);
-    return (uint16_t)((programMSB << 7) | programLSB);
+    uint8_t programLSB = (uint8_t) getUint8Value (ADDRESS_LSB_POS);
+    uint8_t programMSB = (uint8_t) getUint8Value (ADDRESS_MSB_POS);
+    return (uint16_t) ((programMSB << 7) | programLSB);
 }
 
+// clang-format off
 std::string ProgramMessage::getProgramBankNumber() const
 {
     const uint16_t programNumber = getProgramNumber();
@@ -97,43 +98,44 @@ std::string ProgramMessage::getProgramBankNumber() const
 
     return juce::String::formatted("%c%02d", 'A' + bank, program).toStdString();
 }
+// clang-format on
 
-void ProgramMessage::setProgramNumber(uint16_t programNumber)
+void ProgramMessage::setProgramNumber (uint16_t programNumber)
 {
     uint8_t programLSB = programNumber & 0x7F;
     uint8_t programMSB = (programNumber >> 7) & 0x7F;
-    setUint8Value(ADDRESS_LSB_POS, programLSB);
-    setUint8Value(ADDRESS_MSB_POS, programMSB);
+    setUint8Value (ADDRESS_LSB_POS, programLSB);
+    setUint8Value (ADDRESS_MSB_POS, programMSB);
 }
 
 std::string ProgramMessage::getProgramName() const
 {
-    if ( !isValid() )
+    if (!isValid())
     {
         return "--- Uninitialized ---";
     }
 
-    size_t firstByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_FIRST_CHAR).firstByte;
-    size_t lastByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_LAST_CHAR).firstByte;
-    return getStringValue(firstByte, lastByte);
+    size_t firstByte = PRO800_PROGRAM_FIELDS.at (Pro800ProgramField::NAME_FIRST_CHAR).firstByte;
+    size_t lastByte = PRO800_PROGRAM_FIELDS.at (Pro800ProgramField::NAME_LAST_CHAR).firstByte;
+    return getStringValue (firstByte, lastByte);
 }
 
-void ProgramMessage::setProgramName(const std::string &newName)
+void ProgramMessage::setProgramName (const std::string& newName)
 {
-    size_t firstByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_FIRST_CHAR).firstByte;
-    size_t lastByte = PRO800_PROGRAM_FIELDS.at(Pro800ProgramField::NAME_LAST_CHAR).firstByte;
-    setStringValue(firstByte, lastByte, newName);
+    size_t firstByte = PRO800_PROGRAM_FIELDS.at (Pro800ProgramField::NAME_FIRST_CHAR).firstByte;
+    size_t lastByte = PRO800_PROGRAM_FIELDS.at (Pro800ProgramField::NAME_LAST_CHAR).firstByte;
+    setStringValue (firstByte, lastByte, newName);
 }
 
-bool ProgramMessage::isLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination) const
+bool ProgramMessage::isLfoDestinationEnabled (Pro800ProgramLfoDestinationBitMask destination) const
 {
-    const uint8_t lfoDestinations = (uint8_t)getValue(Pro800ProgramField::LFO_DEST);
+    const uint8_t lfoDestinations = (uint8_t) getValue (Pro800ProgramField::LFO_DEST);
     return lfoDestinations & destination;
 }
 
-void ProgramMessage::setLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination, bool enabled)
+void ProgramMessage::setLfoDestinationEnabled (Pro800ProgramLfoDestinationBitMask destination, bool enabled)
 {
-    uint8_t lfoDestinations = (uint8_t)getValue(Pro800ProgramField::LFO_DEST);
+    uint8_t lfoDestinations = (uint8_t) getValue (Pro800ProgramField::LFO_DEST);
     uint8_t targetValue = (enabled ? destination : 0);
 
     lfoDestinations = (lfoDestinations & ~destination) | targetValue;
@@ -142,22 +144,22 @@ void ProgramMessage::setLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask
 
 int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
 {
-    if ( ccNumber == Pro800CCMessages::LFO_MOD_DEST_FREQ_AB )
+    if (ccNumber == Pro800CCMessages::LFO_MOD_DEST_FREQ_AB)
     {
         return isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_AB) ? CC_ON : CC_OFF;
     }
 
-    if ( ccNumber == Pro800CCMessages::LFO_MOD_DEST_PW_AB )
+    if (ccNumber == Pro800CCMessages::LFO_MOD_DEST_PW_AB)
     {
         return isLfoDestinationEnabled (PROGRAM_LFO_DEST_PW_AB) ? CC_ON : CC_OFF;
     }
 
-    if ( ccNumber == Pro800CCMessages::LFO_MOD_DEST_FILTER )
+    if (ccNumber == Pro800CCMessages::LFO_MOD_DEST_FILTER)
     {
         return isLfoDestinationEnabled (PROGRAM_LFO_DEST_FILTER) ? CC_ON : CC_OFF;
     }
 
-    if ( ccNumber == Pro800CCMessages::LFO_TARGET )
+    if (ccNumber == Pro800CCMessages::LFO_TARGET)
     {
         if (isLfoDestinationEnabled (PROGRAM_LFO_DEST_FREQ_A))
         {
@@ -174,7 +176,7 @@ int ProgramMessage::getLfoDestinationValue (Pro800CCMessages ccNumber) const
         return CC_LFO_TARGET_OSC_AB;
     }
 
-    juce::Logger::writeToLog("ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " + juce::String(static_cast<int>(ccNumber)));
+    juce::Logger::writeToLog ("ProgramMessage::getLfoDestinationValue(): Unsupported CC number: " + juce::String (static_cast<int> (ccNumber)));
     return 0;
 }
 
@@ -182,15 +184,15 @@ juce::String ProgramMessage::toString() const
 {
     juce::String header = "Pro800 Program Dump: ";
     header << getProgramBankNumber() << " - '" << getProgramName() << "'\n";
-    return header + fieldsToString(PRO800_PROGRAM_FIELDS);
+    return header + fieldsToString (PRO800_PROGRAM_FIELDS);
 }
 
-int ProgramMessage::getValue(Pro800ProgramField field) const
+int ProgramMessage::getValue (Pro800ProgramField field) const
 {
-    return getFieldValue(PRO800_PROGRAM_FIELDS, field);
+    return getFieldValue (PRO800_PROGRAM_FIELDS, field);
 }
 
-void ProgramMessage::setValue(Pro800ProgramField field, int value)
+void ProgramMessage::setValue (Pro800ProgramField field, int value)
 {
-    setFieldValue(PRO800_PROGRAM_FIELDS, field, value);
+    setFieldValue (PRO800_PROGRAM_FIELDS, field, value);
 }

@@ -24,7 +24,7 @@
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800ProgramConstants.h"
 
-FrontPanelTab::FrontPanelTab(MidiHandler *midiHandler) : MidiComponent(midiHandler, true)
+FrontPanelTab::FrontPanelTab (MidiHandler* midiHandler) : MidiComponent (midiHandler, true)
 {
     setupGroupOscA();
     setupGroupOscB();
@@ -43,31 +43,32 @@ FrontPanelTab::~FrontPanelTab()
 
 void FrontPanelTab::resized()
 {
-    auto area = getLocalBounds().reduced(10);
+    auto area = getLocalBounds().reduced (10);
     int groupHeight = area.getHeight() / 4;
-    int groupWidth = area.getWidth()/2;
-    
-    auto leftArea = area.withTrimmedRight(groupWidth);
-    auto rightArea = area.withTrimmedLeft(groupWidth);
-    
+    int groupWidth = area.getWidth() / 2;
+
+    auto leftArea = area.withTrimmedRight (groupWidth);
+    auto rightArea = area.withTrimmedLeft (groupWidth);
+
     // left column
-    this->group_OscillatorA.setBounds(leftArea.removeFromTop(groupHeight));
-    this->group_OscillatorB.setBounds(leftArea.removeFromTop(groupHeight));
-    
-    this->group_PolyMod.setBounds(leftArea.withHeight(groupHeight).withRight(4*groupWidth/5));
-    this->group_Noise.setBounds(leftArea.withHeight(groupHeight).withLeft(4*groupWidth/5));
-    leftArea.removeFromTop(groupHeight);
-    
-    this->group_LFO.setBounds(leftArea.withHeight(groupHeight).withRight(4*groupWidth/5));
-    this->group_Glide.setBounds(leftArea.withHeight(groupHeight).withLeft(4*groupWidth/5));
-    leftArea.removeFromTop(groupHeight);
-    
+    this->group_OscillatorA.setBounds (leftArea.removeFromTop (groupHeight));
+    this->group_OscillatorB.setBounds (leftArea.removeFromTop (groupHeight));
+
+    this->group_PolyMod.setBounds (leftArea.withHeight (groupHeight).withRight (4 * groupWidth / 5));
+    this->group_Noise.setBounds (leftArea.withHeight (groupHeight).withLeft (4 * groupWidth / 5));
+    leftArea.removeFromTop (groupHeight);
+
+    this->group_LFO.setBounds (leftArea.withHeight (groupHeight).withRight (4 * groupWidth / 5));
+    this->group_Glide.setBounds (leftArea.withHeight (groupHeight).withLeft (4 * groupWidth / 5));
+    leftArea.removeFromTop (groupHeight);
+
     // right column
-    this->group_Filter.setBounds(rightArea.removeFromTop(2*groupHeight));
-    this->group_Amplifier.setBounds(rightArea.removeFromTop(groupHeight));
-    this->group_Master.setBounds(rightArea.removeFromTop(groupHeight));
+    this->group_Filter.setBounds (rightArea.removeFromTop (2 * groupHeight));
+    this->group_Amplifier.setBounds (rightArea.removeFromTop (groupHeight));
+    this->group_Master.setBounds (rightArea.removeFromTop (groupHeight));
 }
 
+// clang-format off
 void FrontPanelTab::setComponentValue(juce::Component *component, int value, int maxValue)
 {
     if ( getProgramField(*component) == Pro800ProgramField::FILTER_KEY_TRACKING )
@@ -300,3 +301,4 @@ void FrontPanelTab::setupRotarySlider(juce::Slider &slider, EqualSpacingGroupCom
     parent.addComponent(&slider);
     parent.setInnerMargin(0);
 }
+// clang-format on

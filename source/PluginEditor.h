@@ -28,17 +28,17 @@
 
 class MidiHandler;
 
-class Pro800ManagerEditor  : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, public MidiComponent
+class Pro800ManagerEditor : public juce::AudioProcessorEditor, public juce::MidiKeyboardState::Listener, public MidiComponent
 {
 public:
-    Pro800ManagerEditor (MidiHandler *midiHandler, Pro800ManagerAudioProcessor&);
+    Pro800ManagerEditor (MidiHandler* midiHandler, Pro800ManagerAudioProcessor&);
     ~Pro800ManagerEditor() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void handleNoteOn(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
-    void handleNoteOff(juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
+    void handleNoteOn (juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
+    void handleNoteOff (juce::MidiKeyboardState* source, int midiChannel, int midiNoteNumber, float velocity) override;
 
     void handlePro800VersionUpdate() override;
 

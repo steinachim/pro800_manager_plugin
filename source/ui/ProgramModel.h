@@ -27,21 +27,20 @@ class ProgramModel : public juce::ListBoxModel
 public:
     static inline const juce::String DRAG_SOURCE_DESCRIPTION { "LocalProgramListBoxDrag" };
 
-    enum ModelType
-    {
+    enum ModelType {
         LOCAL,
         SYNTH
     };
 
-    ProgramModel(ModelType type, juce::ListBox* parent);
+    ProgramModel (ModelType type, juce::ListBox* parent);
     ~ProgramModel() override;
 
     int getNumRows() override;
-    juce::String getNameForRow(int rowNumber) override;
-    std::shared_ptr<ProgramMessage > getProgramForRow(int rowNumber);
+    juce::String getNameForRow (int rowNumber) override;
+    std::shared_ptr<ProgramMessage> getProgramForRow (int rowNumber);
 
-    void paintListBoxItem(int rowNumber, juce::Graphics &g, int width, int height, bool rowIsSelected) override;
-    void listBoxItemDoubleClicked (int row, const juce::MouseEvent &event) override;
+    void paintListBoxItem (int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
+    void listBoxItemDoubleClicked (int row, const juce::MouseEvent& event) override;
     void deleteKeyPressed (int lastRowSelected) override;
 
     juce::var getDragSourceDescription (const juce::SparseSet<int>& selectedRows) override;
@@ -49,11 +48,11 @@ public:
     void reset();
 
     /** Replaces the row given by the program's number. Returns false if that number is out of range. */
-    bool updateElement(std::shared_ptr<ProgramMessage> message);
-    void highlightRow(int row);
+    bool updateElement (std::shared_ptr<ProgramMessage> message);
+    void highlightRow (int row);
 
 private:
-    enum NameChangeResult{
+    enum NameChangeResult {
         OK,
         CANCEL
     };

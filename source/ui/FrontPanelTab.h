@@ -18,23 +18,23 @@
 
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
 #include "EqualSpacingGroupComponent.h"
 #include "MidiComponent.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 class MidiHandler;
 
 class FrontPanelTab : public juce::Component, public MidiComponent
 {
 public:
-    FrontPanelTab(MidiHandler *midiHandler);
+    FrontPanelTab (MidiHandler* midiHandler);
     virtual ~FrontPanelTab() override;
-    
+
     void resized() override;
 
 protected:
-    virtual void setComponentValue(juce::Component *component, int value, int maxValue = -1) override;
-    
+    virtual void setComponentValue (juce::Component* component, int value, int maxValue = -1) override;
+
 private:
     void setupGroupOscA();
     void setupGroupOscB();
@@ -46,13 +46,13 @@ private:
     void setupGroupAmplifier();
     void setupGroupMaster();
 
-    void setupRotarySlider(juce::Slider &slider, EqualSpacingGroupComponent &parent);
+    void setupRotarySlider (juce::Slider& slider, EqualSpacingGroupComponent& parent);
 
     EqualSpacingGroupComponent group_OscillatorA { "Oscillator A", 255, 1, 5 };
     EqualSpacingGroupComponent group_OscAFrequency { "Frequency", 30 };
     EqualSpacingGroupComponent group_OscASync { "Sync", 30 };
-    EqualSpacingGroupComponent group_OscAShape { "Shape", 30, 3};
-    EqualSpacingGroupComponent group_OscAPulseWidth { "Pulse Width", 30};
+    EqualSpacingGroupComponent group_OscAShape { "Shape", 30, 3 };
+    EqualSpacingGroupComponent group_OscAPulseWidth { "Pulse Width", 30 };
     EqualSpacingGroupComponent group_OscALevel { "Level", 30 };
     juce::Slider slider_OscAFrequency;
     juce::Slider slider_OscAPulseWidth;
@@ -62,12 +62,11 @@ private:
     juce::ToggleButton checkBox_OscAShapeTri;
     juce::ToggleButton checkBox_OscAShapeRect;
 
-
     EqualSpacingGroupComponent group_OscillatorB { "Oscillator B", 255, 1, 5 };
     EqualSpacingGroupComponent group_OscBFrequency { "Frequency", 30 };
-    EqualSpacingGroupComponent group_OscBFine { "Fine", 30};
-    EqualSpacingGroupComponent group_OscBShape { "Shape", 30, 3};
-    EqualSpacingGroupComponent group_OscBPulseWidth { "Pulse Width", 30};
+    EqualSpacingGroupComponent group_OscBFine { "Fine", 30 };
+    EqualSpacingGroupComponent group_OscBShape { "Shape", 30, 3 };
+    EqualSpacingGroupComponent group_OscBPulseWidth { "Pulse Width", 30 };
     EqualSpacingGroupComponent group_OscBLevel { "Level", 30 };
     juce::Slider slider_OscBFrequency;
     juce::Slider slider_OscBFine;
@@ -77,11 +76,10 @@ private:
     juce::ToggleButton checkBox_OscBShapeTri;
     juce::ToggleButton checkBox_OscBShapeRect;
 
-
-    EqualSpacingGroupComponent group_PolyMod {"Poly Mod", 255, 1, 4};
-    EqualSpacingGroupComponent group_PolyModSourceAmount { "Source Amount", 30, 1, 2};
-    EqualSpacingGroupComponent group_PolyModDestination { "Destination", 30, 2};
-    EqualSpacingGroupComponent group_PolyModUnisonTrack { "Unison Track", 30};
+    EqualSpacingGroupComponent group_PolyMod { "Poly Mod", 255, 1, 4 };
+    EqualSpacingGroupComponent group_PolyModSourceAmount { "Source Amount", 30, 1, 2 };
+    EqualSpacingGroupComponent group_PolyModDestination { "Destination", 30, 2 };
+    EqualSpacingGroupComponent group_PolyModUnisonTrack { "Unison Track", 30 };
     EqualSpacingGroupComponent group_PolyModSourceFilterEnv { "Filter Env", 0 };
     EqualSpacingGroupComponent group_PolyModSourceOscB { "OSC B", 0 };
     juce::Slider slider_PolyModSourceFilterEnv;
@@ -90,13 +88,11 @@ private:
     juce::ToggleButton checkBox_PolyModDestFilter;
     juce::ToggleButton checkBox_PolyModUnisonTrack;
 
-
-    EqualSpacingGroupComponent group_Noise {"Noise"};
+    EqualSpacingGroupComponent group_Noise { "Noise" };
     EqualSpacingGroupComponent group_NoiseLevel { "Noise Level", 30 };
     juce::Slider slider_NoiseLevel;
 
-
-    EqualSpacingGroupComponent group_LFO {"LFO Mod", 255, 1, 4};
+    EqualSpacingGroupComponent group_LFO { "LFO Mod", 255, 1, 4 };
     EqualSpacingGroupComponent group_LFOFrequency { "Frequency", 30 };
     EqualSpacingGroupComponent group_LFOShape { "Shape", 30, 4 };
     EqualSpacingGroupComponent group_LFOInitialAmount { "Initial Amount", 30 };
@@ -108,13 +104,11 @@ private:
     juce::ToggleButton checkBox_LFODestPulseWidthAB;
     juce::ToggleButton checkBox_LFODestFilter;
 
-
-    EqualSpacingGroupComponent group_Glide {"Glide"};
+    EqualSpacingGroupComponent group_Glide { "Glide" };
     EqualSpacingGroupComponent group_GlideAmount { "Glide Amount", 30 };
     juce::Slider slider_GlideAmount;
 
-    
-    EqualSpacingGroupComponent group_Filter {"Filter", 255, 2, 4};
+    EqualSpacingGroupComponent group_Filter { "Filter", 255, 2, 4 };
     EqualSpacingGroupComponent group_FilterCutoff { "Cutoff", 30 };
     EqualSpacingGroupComponent group_FilterResonance { "Resonance", 30 };
     EqualSpacingGroupComponent group_FilterEnvAmount { "Env Amount", 30 };
@@ -134,8 +128,7 @@ private:
     juce::Slider slider_FilterSustain;
     juce::Slider slider_FilterRelease;
 
-    
-    EqualSpacingGroupComponent group_Amplifier {"Amplifier", 255, 1, 4};
+    EqualSpacingGroupComponent group_Amplifier { "Amplifier", 255, 1, 4 };
     EqualSpacingGroupComponent group_AmplifierAttack { "Attack", 30 };
     EqualSpacingGroupComponent group_AmplifierDecay { "Decay", 30 };
     EqualSpacingGroupComponent group_AmplifierSustain { "Sustain", 30 };
@@ -145,13 +138,11 @@ private:
     juce::Slider slider_AmplifierSustain;
     juce::Slider slider_AmplifierRelease;
 
-    
     EqualSpacingGroupComponent group_Master { "Master", 255, 1, 2 };
     EqualSpacingGroupComponent group_MasterTune { "Master Tune", 30 };
     EqualSpacingGroupComponent group_MasterVolume { "Master Volume", 30 };
     juce::Slider slider_MasterTune;
     juce::Slider slider_MasterVolume;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FrontPanelTab)
 };
-

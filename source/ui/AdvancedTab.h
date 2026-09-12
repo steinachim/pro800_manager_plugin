@@ -18,65 +18,65 @@
 
 #pragma once
 
+#include "MidiComponent.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
-#include "MidiComponent.h"
 
 class MidiHandler;
 
 class AdvancedTab : public juce::Component, public MidiComponent
 {
-    public:
-        AdvancedTab(MidiHandler *parent);
-        virtual ~AdvancedTab() override;
+public:
+    AdvancedTab (MidiHandler* parent);
+    virtual ~AdvancedTab() override;
 
-        void resized() override;
-        void handleMidiLog(const juce::MidiMessage &message, const juce::String &logPrefix) override;
+    void resized() override;
+    void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix) override;
 
-    private:
-        // the log keeps at most this many lines (oldest are dropped); a program dump is ~100 lines
-        static constexpr int MAX_LOG_LINES = 20000;
+private:
+    // the log keeps at most this many lines (oldest are dropped); a program dump is ~100 lines
+    static constexpr int MAX_LOG_LINES = 20000;
 
-        void sendInputMessage();
-        void addLogMessage(const juce::String &newMessage);
+    void sendInputMessage();
+    void addLogMessage (const juce::String& newMessage);
 
-        juce::ComboBox combo_PreparedMessages;
-        juce::TextEditor textEdit_inputMidiMessage;
+    juce::ComboBox combo_PreparedMessages;
+    juce::TextEditor textEdit_inputMidiMessage;
 
-        // CodeEditorComponent instead of TextEditor: it is line-based and only lays out the visible
-        // lines, so appending stays cheap no matter how long the log gets
-        juce::CodeDocument logDocument;
-        juce::CodeEditorComponent codeEditor_midiMessageLog { logDocument, nullptr };
+    // CodeEditorComponent instead of TextEditor: it is line-based and only lays out the visible
+    // lines, so appending stays cheap no matter how long the log gets
+    juce::CodeDocument logDocument;
+    juce::CodeEditorComponent codeEditor_midiMessageLog { logDocument, nullptr };
 
-        juce::TextButton button_sendMessage;
+    juce::TextButton button_sendMessage;
 
-        juce::ToggleButton checkBox_enableLogging { "Enable Logging" };
-        juce::TextButton button_clearLog { "Clear Log" };
+    juce::ToggleButton checkBox_enableLogging { "Enable Logging" };
+    juce::TextButton button_clearLog { "Clear Log" };
 
 #if JUCE_DEBUG
-        // developer aid for probing unknown SysEx commands, not part of the release UI
-        juce::TextButton button_debug;
-        juce::Slider slider_debugInput { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft};
+    // developer aid for probing unknown SysEx commands, not part of the release UI
+    juce::TextButton button_debug;
+    juce::Slider slider_debugInput { juce::Slider::SliderStyle::IncDecButtons, juce::Slider::TextEntryBoxPosition::TextBoxLeft };
 #endif
 
-        enum PreparedMessageId
-        {
-            Custom = 1,
-            DumpProgram,
-            RequestVersion,
-            GetSettings,
-            PressButton,
-            NoteOn,
-            NoteOff
-        };
+    enum PreparedMessageId {
+        Custom = 1,
+        DumpProgram,
+        RequestVersion,
+        GetSettings,
+        PressButton,
+        NoteOn,
+        NoteOff
+    };
 
-        struct PreparedMessage
-        {
-            juce::String name;
-            juce::String byteString;
-            juce::String description;
-        };
+    struct PreparedMessage
+    {
+        juce::String name;
+        juce::String byteString;
+        juce::String description;
+    };
 
+    // clang-format off
         static inline const std::map<PreparedMessageId, PreparedMessage> PREPARED_MESSAGES = {
             {Custom,         {"Custom", "", "Enter your own command"}},
             {DumpProgram,    {"Dump Program", "F0 00 20 32 00 01 24 00 77 XX XX F7", "Replace XX XX with the program number"}},
@@ -86,6 +86,7 @@ class AdvancedTab : public juce::Component, public MidiComponent
             {NoteOn,         {"Note On", "9[channel] KK VV", "Send note-on"}},
             {NoteOff,        {"Note Off", "8[channel] KK VV", "Send note-off"}}
         };
-    
+    // clang-format on
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AdvancedTab)
 };

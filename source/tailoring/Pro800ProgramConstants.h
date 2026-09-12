@@ -18,11 +18,10 @@
 
 #pragma once
 
-#include <map>
 #include "Pro800Constants.h"
+#include <map>
 
-enum class Pro800ProgramField
-{
+enum class Pro800ProgramField {
     NONE = -1, // placeholder for no field
 
     STORAGE_CODE = 0,
@@ -126,9 +125,10 @@ enum class Pro800ProgramField
     TUNING_A,
     TUNING_A_SHARP,
     TUNING_B
-    
+
 };
 
+// clang-format off
 enum Pro800ProgramLfoDestinationBitMask
 {
     PROGRAM_LFO_DEST_FREQ_AB = 1,       // bit 0 --> Pro800CCMessages::LFO_MOD_DEST_FREQ_AB (on/off)
@@ -138,17 +138,16 @@ enum Pro800ProgramLfoDestinationBitMask
     PROGRAM_LFO_DEST_FREQ_B  = 16,      // bit 4 --> Pro800CCMessages::LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
     PROGRAM_LFO_DEST_FREQ_AB_VCA  = 32, // bit 5 --> Pro800CCMessages::LFO_TARGET (0=A+B,33=A,66=B,99=A+B+VCA)
 };
+// clang-format on
 
-enum Pro800ProgramFilterKeyboardTracking
-{
+enum Pro800ProgramFilterKeyboardTracking {
     PROGRAM_FILTER_KEYBOARD_TRACKING_OFF = 0,
     PROGRAM_FILTER_KEYBOARD_TRACKING_HALF = 1,
     PROGRAM_FILTER_KEYBOARD_TRACKING_FULL = 2,
     PROGRAM_FILTER_KEYBOARD_TRACKING_NUM_VALUES = 3
 };
 
-enum Pro800ProgramLfoShape
-{
+enum Pro800ProgramLfoShape {
     PROGRAM_LFO_SHAPE_PULSE = 0,
     PROGRAM_LFO_SHAPE_TRIANGLE = 1,
     PROGRAM_LFO_SHAPE_RANDOM = 2,
@@ -158,29 +157,25 @@ enum Pro800ProgramLfoShape
     PROGRAM_LFO_SHAPE_NUM_VALUES = 6
 };
 
-enum Pro800ProgramLfoSpeed
-{
+enum Pro800ProgramLfoSpeed {
     PROGRAM_LFO_SPEED_SLOW = 0,
     PROGRAM_LFO_SPEED_FAST = 1,
     PROGRAM_LFO_SPEED_NUM_VALUES = 2
 };
 
-enum Pro800ProgramEnvelopeSpeed
-{
+enum Pro800ProgramEnvelopeSpeed {
     PROGRAM_ENV_SPEED_FAST = 0,
     PROGRAM_ENV_SPEED_SLOW = 1,
     PROGRAM_ENV_SPEED_NUM_VALUES = 2
 };
 
-enum Pro800ProgramEnvelopeShape
-{
+enum Pro800ProgramEnvelopeShape {
     PROGRAM_ENV_SHAPE_LINEAR = 0,
     PROGRAM_ENV_SHAPE_EXPONENTIAL = 1,
     PROGRAM_ENV_SHAPE_NUM_VALUES = 2
 };
 
-enum Pro800ProgramModWheelAmount
-{
+enum Pro800ProgramModWheelAmount {
     PROGRAM_MOD_WHEEL_AMOUNT_MIN = 0,
     PROGRAM_MOD_WHEEL_AMOUNT_LOW = 1,
     PROGRAM_MOD_WHEEL_AMOUNT_HIGH = 2,
@@ -188,15 +183,13 @@ enum Pro800ProgramModWheelAmount
     PROGRAM_MOD_WHEEL_AMOUNT_NUM_VALUES = 4
 };
 
-enum Pro800ProgramModWheelTarget
-{
+enum Pro800ProgramModWheelTarget {
     PROGRAM_MOD_WHEEL_TARGET_LFO = 0,
     PROGRAM_MOD_WHEEL_TARGET_VIBRATO = 1,
     PROGRAM_MOD_WHEEL_TARGET_NUM_VALUES = 2
 };
 
-enum Pro800ProgramPitchBendTarget
-{
+enum Pro800ProgramPitchBendTarget {
     PROGRAM_PITCH_BEND_TARGET_OFF = 0,
     PROGRAM_PITCH_BEND_TARGET_VCO = 1,
     PROGRAM_PITCH_BEND_TARGET_VCF = 2,
@@ -204,8 +197,7 @@ enum Pro800ProgramPitchBendTarget
     PROGRAM_PITCH_BEND_TARGET_NUM_VALUES = 4
 };
 
-enum Pro800ProgramFreqPotMode
-{
+enum Pro800ProgramFreqPotMode {
     PROGRAM_FREQ_POT_MODE_FREE = 0,
     PROGRAM_FREQ_POT_MODE_SEMI = 1,
     PROGRAM_FREQ_POT_MODE_OCT = 2,
@@ -213,8 +205,7 @@ enum Pro800ProgramFreqPotMode
     PROGRAM_FREQ_POT_MODE_NUM_VALUES = 4
 };
 
-enum Pro800ProgramKeyboardTrackingReference
-{
+enum Pro800ProgramKeyboardTrackingReference {
     PROGRAM_KEYBOARD_TRACKING_REF_C1 = 0,
     PROGRAM_KEYBOARD_TRACKING_REF_C2 = 1,
     PROGRAM_KEYBOARD_TRACKING_REF_C3 = 2,
@@ -222,22 +213,19 @@ enum Pro800ProgramKeyboardTrackingReference
     PROGRAM_KEYBOARD_TRACKING_REF_NUM_VALUES = 4
 };
 
-enum Pro800ProgramOnOff
-{
+enum Pro800ProgramOnOff {
     PROGRAM_OFF = 0,
     PROGRAM_ON = 1,
     PROGRAM_ON_OFF_NUM_VALUES = 2
 };
 
-enum Pro800ProgramGlideMode
-{
+enum Pro800ProgramGlideMode {
     PROGRAM_GLIDE_MODE_TIME = 0,
     PROGRAM_GLIDE_MODE_SPEED = 1,
     PROGRAM_GLIDE_MODE_NUM_VALUES = 2
 };
 
-enum Pro800ArpMode
-{
+enum Pro800ArpMode {
     PROGRAM_ARP_MODE_OFF = 0,
     PROGRAM_ARP_MODE_UP = 1,
     PROGRAM_ARP_MODE_DOWN = 2,
@@ -249,6 +237,7 @@ enum Pro800ArpMode
 };
 
 // inline: one instance for the whole program instead of one per translation unit
+// clang-format off
 inline const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS =
 {
     // 0 = overflow
@@ -397,3 +386,4 @@ inline const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS
     {Pro800ProgramField::PITCHBEND_RANGE,           {196, 2, "Pitchbend Range"}},
    
 };
+// clang-format on

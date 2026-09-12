@@ -20,12 +20,11 @@
 
 juce::MidiMessage SettingsMessage::request()
 {
-    return Pro800DataMessage::request(ADDRESS_LOW, ADDRESS_HIGH);
+    return Pro800DataMessage::request (ADDRESS_LOW, ADDRESS_HIGH);
 }
 
-SettingsMessage::SettingsMessage(const juce::MidiMessage &message) : Pro800DataMessage(message)
+SettingsMessage::SettingsMessage (const juce::MidiMessage& message) : Pro800DataMessage (message)
 {
-
 }
 
 bool SettingsMessage::isValid() const
@@ -35,15 +34,15 @@ bool SettingsMessage::isValid() const
 
 juce::String SettingsMessage::toString() const
 {
-    return "Pro800 Settings Dump:\n" + fieldsToString(PRO800_SETTINGS_FIELDS);
+    return "Pro800 Settings Dump:\n" + fieldsToString (PRO800_SETTINGS_FIELDS);
 }
 
-void SettingsMessage::setValue(Pro800Settings setting, int value)
+void SettingsMessage::setValue (Pro800Settings setting, int value)
 {
-    setFieldValue(PRO800_SETTINGS_FIELDS, setting, value);
+    setFieldValue (PRO800_SETTINGS_FIELDS, setting, value);
 }
 
-int SettingsMessage::getValue(Pro800Settings setting) const
+int SettingsMessage::getValue (Pro800Settings setting) const
 {
-    return getFieldValue(PRO800_SETTINGS_FIELDS, setting);
+    return getFieldValue (PRO800_SETTINGS_FIELDS, setting);
 }

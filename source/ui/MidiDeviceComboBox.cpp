@@ -18,34 +18,34 @@
 
 #include "MidiDeviceComboBox.h"
 
-void MidiDeviceComboBox::setDevices(const juce::Array<juce::MidiDeviceInfo> &newDevices)
+void MidiDeviceComboBox::setDevices (const juce::Array<juce::MidiDeviceInfo>& newDevices)
 {
     const juce::String previouslySelected = getSelectedDeviceIdentifier();
 
     this->devices = newDevices;
 
-    clear(juce::dontSendNotification);
-    addItem("None", NONE_ITEM_ID);
+    clear (juce::dontSendNotification);
+    addItem ("None", NONE_ITEM_ID);
 
     int selectedItemId = NONE_ITEM_ID;
-    for ( int i = 0; i < this->devices.size(); i++ )
+    for (int i = 0; i < this->devices.size(); i++)
     {
         const int itemId = FIRST_DEVICE_ITEM_ID + i;
-        addItem(this->devices[i].name, itemId);
+        addItem (this->devices[i].name, itemId);
 
-        if ( this->devices[i].identifier == previouslySelected )
+        if (this->devices[i].identifier == previouslySelected)
         {
             selectedItemId = itemId;
         }
     }
 
-    setSelectedId(selectedItemId, juce::dontSendNotification);
+    setSelectedId (selectedItemId, juce::dontSendNotification);
 }
 
 juce::String MidiDeviceComboBox::getSelectedDeviceIdentifier() const
 {
     const int index = getSelectedId() - FIRST_DEVICE_ITEM_ID;
-    if ( index < 0 || index >= this->devices.size() )
+    if (index < 0 || index >= this->devices.size())
     {
         return {}; // "None" or nothing selected
     }

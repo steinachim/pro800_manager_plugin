@@ -23,6 +23,7 @@
 // and Pro800CCUtils::programEnumValueFromCC().
 
 // scoped: identifies a controller. (The value enums below stay unscoped: they are plain wire values.)
+// clang-format off
 enum class Pro800CCMessages
 {
     NONE = -1, // placeholder for no CC
@@ -125,17 +126,16 @@ enum class Pro800CCMessages
     // Menu: Performance 0
     GLIDE_MODE = 79 // see: Pro800ProgramGlideMode
 };
+// clang-format on
 
-enum Pro800CcLfoTarget
-{
-    CC_LFO_TARGET_OSC_AB = 0, 
-    CC_LFO_TARGET_OSC_A = 33, 
-    CC_LFO_TARGET_OSC_B = 66, 
-    CC_LFO_TARGET_VCA = 99    
+enum Pro800CcLfoTarget {
+    CC_LFO_TARGET_OSC_AB = 0,
+    CC_LFO_TARGET_OSC_A = 33,
+    CC_LFO_TARGET_OSC_B = 66,
+    CC_LFO_TARGET_VCA = 99
 };
 
-enum Pro800CcOnOff
-{
+enum Pro800CcOnOff {
     CC_OFF = 0,
     CC_ON = 64
 };

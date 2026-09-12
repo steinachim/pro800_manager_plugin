@@ -18,12 +18,12 @@
 
 #pragma once
 
+#include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_core/juce_core.h>
 #include <juce_events/juce_events.h>
-#include <juce_audio_devices/juce_audio_devices.h>
 
-#include "../tailoring/Pro800Constants.h"
 #include "../tailoring/Pro800CCConstants.h"
+#include "../tailoring/Pro800Constants.h"
 
 #include <cstdint>
 #include <map>
@@ -55,30 +55,30 @@ public:
         virtual ~Listener() = default;
 
         /** Called after each message of a background sequence has been sent. */
-        virtual void backgroundSendingProgress(const juce::String& description, int numSent, int numTotal) = 0;
+        virtual void backgroundSendingProgress (const juce::String& description, int numSent, int numTotal) = 0;
 
         /** Called when a background sequence has ended, either completely or because it was cancelled. */
-        virtual void backgroundSendingFinished(bool cancelled) = 0;
+        virtual void backgroundSendingFinished (bool cancelled) = 0;
     };
 
     MidiHandler();
     ~MidiHandler() override;
 
-    void addListener(Listener* listener);
-    void removeListener(Listener* listener);
+    void addListener (Listener* listener);
+    void removeListener (Listener* listener);
 
-    void setMidiChannel(uint8_t channel);
+    void setMidiChannel (uint8_t channel);
 
     /** Closes the current devices and opens the given ones (empty identifier = none). Cancels background sending. */
-    void connectMidiDevices(const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier);
+    void connectMidiDevices (const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier);
 
-    void registerMidiCCComponent(MidiComponent *component);
-    void unregisterMidiCCComponent(MidiComponent *component);
+    void registerMidiCCComponent (MidiComponent* component);
+    void unregisterMidiCCComponent (MidiComponent* component);
 
-    void registerMessageComponent(MessageType type, MidiComponent *component);
-    void unregisterMessageComponent(MessageType type, MidiComponent *component);
+    void registerMessageComponent (MessageType type, MidiComponent* component);
+    void unregisterMessageComponent (MessageType type, MidiComponent* component);
 
-    void sendMidiCCMessage(Pro800CCMessages midiCC, uint8_t value);
+    void sendMidiCCMessage (Pro800CCMessages midiCC, uint8_t value);
     void sendProgramChange (uint8_t program);
 
     /**
@@ -86,10 +86,10 @@ public:
      * CC components from it. (The Pro-800 cannot be asked for its current state, so the controls are
      * updated from the data we have.)
      */
-    void loadProgram(const ProgramMessage& program);
+    void loadProgram (const ProgramMessage& program);
 
     /** Sends immediately. Thread-safe. */
-    void sendMidiMessage(const juce::MidiMessage& message);
+    void sendMidiMessage (const juce::MidiMessage& message);
 
     /**
      * Sends the messages one by one from a background thread, pausing intervalMs between them,
@@ -97,7 +97,7 @@ public:
      * Progress is reported to the listeners; progressDescription is passed along for display
      * (e.g. "Sending program" -> "Sending program 12/400").
      */
-    void sendMidiMessagesInBackground(std::vector<juce::MidiMessage> messages, int intervalMs, const juce::String& progressDescription);
+    void sendMidiMessagesInBackground (std::vector<juce::MidiMessage> messages, int intervalMs, const juce::String& progressDescription);
 
     /** Requests a dump of all programs from the device (in the background, see above). */
     void requestProgramDump();
@@ -107,30 +107,32 @@ public:
 
 private:
     // MidiInputCallback (MIDI driver thread)
-    void handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage& message) override;
+    void handleIncomingMidiMessage (juce::MidiInput* source, const juce::MidiMessage& message) override;
 
     // AsyncUpdater (message thread)
     void handleAsyncUpdate() override;
 
+    // clang-format off
     // events that other threads hand over to the message thread
     struct MidiEvent     { juce::MidiMessage message; bool sent; };
     struct ProgressEvent { juce::String description; int numSent; int numTotal; };
     struct FinishedEvent { bool cancelled; };
     using QueuedEvent = std::variant<MidiEvent, ProgressEvent, FinishedEvent>;
+    // clang-format on
 
-    void queueEvent(QueuedEvent event); // any thread
+    void queueEvent (QueuedEvent event); // any thread
 
-    void handleEvent(const MidiEvent& event);
-    void handleEvent(const ProgressEvent& event);
-    void handleEvent(const FinishedEvent& event);
+    void handleEvent (const MidiEvent& event);
+    void handleEvent (const ProgressEvent& event);
+    void handleEvent (const FinishedEvent& event);
 
     class BackgroundSender : public juce::Thread
     {
     public:
-        explicit BackgroundSender(MidiHandler& handler);
+        explicit BackgroundSender (MidiHandler& handler);
 
         /** Cancels a running sequence, then starts sending the given one. Message thread only. */
-        void send(std::vector<juce::MidiMessage> newMessages, int newIntervalMs, const juce::String& newDescription);
+        void send (std::vector<juce::MidiMessage> newMessages, int newIntervalMs, const juce::String& newDescription);
 
         void run() override;
 
@@ -153,11 +155,11 @@ private:
     std::unique_ptr<juce::MidiInput> midiInput;
     std::unique_ptr<juce::MidiOutput> midiOutput;
 
-    juce::Array<MidiComponent *> midiCCComponents;
-    std::map<MessageType, juce::Array<MidiComponent *>> midiComponents;
+    juce::Array<MidiComponent*> midiCCComponents;
+    std::map<MessageType, juce::Array<MidiComponent*>> midiComponents;
 
     /** A copy of the components registered for the type (empty if none): safe to iterate while they (un)register. */
-    juce::Array<MidiComponent *> componentsFor(MessageType type) const;
+    juce::Array<MidiComponent*> componentsFor (MessageType type) const;
 
     uint8_t midiChannel = 1;
 

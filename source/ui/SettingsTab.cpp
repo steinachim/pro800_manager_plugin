@@ -23,14 +23,14 @@
 #include "../midi/MidiHandler.h"
 #include "../midi/SettingsMessage.h"
 
-SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(midiHandler, false, {MessageType::PRO800_SETTINGS})
+SettingsTab::SettingsTab (MidiHandler* midiHandler) : Component(), MidiComponent (midiHandler, false, { MessageType::PRO800_SETTINGS })
 {
     button_RefreshSettings.onClick = [this] {
-        sendMidiMessage(SettingsMessage::request());
+        sendMidiMessage (SettingsMessage::request());
     };
 
-    addAndMakeVisible(button_RefreshSettings);
-    
+    addAndMakeVisible (button_RefreshSettings);
+
     setupGroupConnections();
     setupGroupTranspose();
     setupGroupPresetDump();
@@ -43,39 +43,38 @@ SettingsTab::SettingsTab(MidiHandler *midiHandler) : Component(), MidiComponent(
     setupGroupSync();
     setupGroupFactoryReset();
 
-    setSettingsGroupsEnabled(false);
+    setSettingsGroupsEnabled (false);
 }
 
 void SettingsTab::handlePro800SettingsUpdate()
 {
-  std::shared_ptr<SettingsMessage> settingsMessage = getCurrentSettings();
-  if(!settingsMessage || !settingsMessage->isValid())
-  {
-    setSettingsGroupsEnabled(false);
-    return;
-  }
-
-  setSettingsGroupsEnabled(true);
-
-  for (const auto &[setting, component] : this->settingsListeners)
-  {
-
-    // special case handling for weird UI cases
-    if ( setting == Pro800Settings::VOICE_KILL )
+    std::shared_ptr<SettingsMessage> settingsMessage = getCurrentSettings();
+    if (!settingsMessage || !settingsMessage->isValid())
     {
-        uint8_t value = (uint8_t)settingsMessage->getValue(Pro800Settings::VOICE_KILL);
-
-        for ( int i = 0; i < 8; i++ )
-        {
-          this->checkBox_Voice[i].setToggleState( value & 0x01, juce::NotificationType::dontSendNotification );
-          value >>= 1;
-        }
-
-        continue;
+        setSettingsGroupsEnabled (false);
+        return;
     }
 
-    setComponentValue(component, settingsMessage->getValue(setting));
-  }
+    setSettingsGroupsEnabled (true);
+
+    for (const auto& [setting, component] : this->settingsListeners)
+    {
+        // special case handling for weird UI cases
+        if (setting == Pro800Settings::VOICE_KILL)
+        {
+            uint8_t value = (uint8_t) settingsMessage->getValue (Pro800Settings::VOICE_KILL);
+
+            for (int i = 0; i < 8; i++)
+            {
+                this->checkBox_Voice[i].setToggleState (value & 0x01, juce::NotificationType::dontSendNotification);
+                value >>= 1;
+            }
+
+            continue;
+        }
+
+        setComponentValue (component, settingsMessage->getValue (setting));
+    }
 }
 
 void SettingsTab::resized()
@@ -92,332 +91,333 @@ void SettingsTab::resized()
     auto rightColumn = area.withLeft (2 * groupWidth);
 
     // the button sits above the right column; the other columns leave the same space so that the groups line up
-    leftColumn.removeFromTop(refreshHeight);
-    middleColumn.removeFromTop(refreshHeight);
-    button_RefreshSettings.setBounds(rightColumn.removeFromTop(refreshHeight));
+    leftColumn.removeFromTop (refreshHeight);
+    middleColumn.removeFromTop (refreshHeight);
+    button_RefreshSettings.setBounds (rightColumn.removeFromTop (refreshHeight));
 
-    this->group_Connections.setBounds (leftColumn.removeFromTop (11*elementHeight));
-    this->group_Transpose.setBounds (middleColumn.removeFromTop (11*elementHeight));
-    this->group_PresetDump.setBounds (rightColumn.removeFromTop (11*elementHeight));
+    this->group_Connections.setBounds (leftColumn.removeFromTop (11 * elementHeight));
+    this->group_Transpose.setBounds (middleColumn.removeFromTop (11 * elementHeight));
+    this->group_PresetDump.setBounds (rightColumn.removeFromTop (11 * elementHeight));
 
-    this->group_Voices.setBounds (leftColumn.removeFromTop (6*elementHeight));
-    this->group_Tuning.setBounds (middleColumn.removeFromTop (6*elementHeight));
-    this->group_RetuneEncoder.setBounds (rightColumn.removeFromTop (6*elementHeight));
+    this->group_Voices.setBounds (leftColumn.removeFromTop (6 * elementHeight));
+    this->group_Tuning.setBounds (middleColumn.removeFromTop (6 * elementHeight));
+    this->group_RetuneEncoder.setBounds (rightColumn.removeFromTop (6 * elementHeight));
 
-    this->group_Display.setBounds (leftColumn.removeFromTop (4*elementHeight));
-    this->group_AutoTune.setBounds (middleColumn.removeFromTop (4*elementHeight));
-    this->group_Miscellaneous.setBounds (rightColumn.removeFromTop (4*elementHeight));
+    this->group_Display.setBounds (leftColumn.removeFromTop (4 * elementHeight));
+    this->group_AutoTune.setBounds (middleColumn.removeFromTop (4 * elementHeight));
+    this->group_Miscellaneous.setBounds (rightColumn.removeFromTop (4 * elementHeight));
 
-    this->group_Sync.setBounds (leftColumn.removeFromTop (6*elementHeight));
-    this->group_FactoryReset.setBounds (middleColumn.removeFromTop (6*elementHeight));
+    this->group_Sync.setBounds (leftColumn.removeFromTop (6 * elementHeight));
+    this->group_FactoryReset.setBounds (middleColumn.removeFromTop (6 * elementHeight));
 }
 
+// clang-format off
 void SettingsTab::setupGroupConnections()
 {
-  addEnumItems(combo_ConnectionsMidiInputChannel, {{"Dip Switches", SETTINGS_MIDI_RX_DIPS},
-                                                   {"All",          SETTINGS_MIDI_RX_ALL},
-                                                   {"Off",          SETTINGS_MIDI_RX_OFF}});
-  addEnumItems(combo_ConnectionsMidiOutputChannel, {{"Dip Switches", SETTINGS_MIDI_TX_DIPS},
-                                                    {"Thru",         SETTINGS_MIDI_TX_THRU}});
-  for ( int ch = 0; ch < 16; ch++ )
-  {
-    const juce::String channelName(ch + 1);
-    combo_ConnectionsMidiInputChannel.addItem(channelName, SETTINGS_MIDI_RX_1 + ch + COMBO_BOX_ID_OFFSET);
-    combo_ConnectionsMidiOutputChannel.addItem(channelName, SETTINGS_MIDI_TX_1 + ch + COMBO_BOX_ID_OFFSET);
-  }
+    addEnumItems(combo_ConnectionsMidiInputChannel, {{"Dip Switches", SETTINGS_MIDI_RX_DIPS},
+                                                     {"All",          SETTINGS_MIDI_RX_ALL},
+                                                     {"Off",          SETTINGS_MIDI_RX_OFF}});
+    addEnumItems(combo_ConnectionsMidiOutputChannel, {{"Dip Switches", SETTINGS_MIDI_TX_DIPS},
+                                                      {"Thru",         SETTINGS_MIDI_TX_THRU}});
+    for ( int ch = 0; ch < 16; ch++ )
+    {
+        const juce::String channelName(ch + 1);
+        combo_ConnectionsMidiInputChannel.addItem(channelName, SETTINGS_MIDI_RX_1 + ch + COMBO_BOX_ID_OFFSET);
+        combo_ConnectionsMidiOutputChannel.addItem(channelName, SETTINGS_MIDI_TX_1 + ch + COMBO_BOX_ID_OFFSET);
+    }
 
-  const std::vector<EnumItem> midiModeItems = {{"Send & Receive", SETTINGS_MIDI_MODE_TX_RX},
-                                               {"Send",           SETTINGS_MIDI_MODE_TX},
-                                               {"Receive",        SETTINGS_MIDI_MODE_RX},
-                                               {"Off",            SETTINGS_MIDI_MODE_OFF}};
-  addEnumItems(combo_ConnectionsMidiCC, midiModeItems);
-  addEnumItems(combo_ConnectionsMidiPC, midiModeItems);
+    const std::vector<EnumItem> midiModeItems = {{"Send & Receive", SETTINGS_MIDI_MODE_TX_RX},
+                                                 {"Send",           SETTINGS_MIDI_MODE_TX},
+                                                 {"Receive",        SETTINGS_MIDI_MODE_RX},
+                                                 {"Off",            SETTINGS_MIDI_MODE_OFF}};
+    addEnumItems(combo_ConnectionsMidiCC, midiModeItems);
+    addEnumItems(combo_ConnectionsMidiPC, midiModeItems);
 
-  addEnumItems(combo_ConnectionsSyncInPolarity, {{"Rise", SETTINGS_POLARITY_RISE},
-                                                 {"Fall", SETTINGS_POLARITY_FALL},
-                                                 {"Both", SETTINGS_POLARITY_BOTH}});
+    addEnumItems(combo_ConnectionsSyncInPolarity, {{"Rise", SETTINGS_POLARITY_RISE},
+                                                   {"Fall", SETTINGS_POLARITY_FALL},
+                                                   {"Both", SETTINGS_POLARITY_BOTH}});
 
-  addEnumItems(combo_ConnectionsSyncInPPQN, {{"1PPS",   SETTINGS_SYNC_IN_1PPS},
-                                             {"1PPQN",  SETTINGS_SYNC_IN_1PPQN},
-                                             {"2PPQN",  SETTINGS_SYNC_IN_2PPQN},
-                                             {"4PPQN",  SETTINGS_SYNC_IN_4PPQN},
-                                             {"24PPQN", SETTINGS_SYNC_IN_24PPQN},
-                                             {"48PPQN", SETTINGS_SYNC_IN_48PPQN}});
+    addEnumItems(combo_ConnectionsSyncInPPQN, {{"1PPS",   SETTINGS_SYNC_IN_1PPS},
+                                               {"1PPQN",  SETTINGS_SYNC_IN_1PPQN},
+                                               {"2PPQN",  SETTINGS_SYNC_IN_2PPQN},
+                                               {"4PPQN",  SETTINGS_SYNC_IN_4PPQN},
+                                               {"24PPQN", SETTINGS_SYNC_IN_24PPQN},
+                                               {"48PPQN", SETTINGS_SYNC_IN_48PPQN}});
 
-  this->group_Connections.addComponents( {
-    &label_ConnectionsMidiInputChannel,       &combo_ConnectionsMidiInputChannel,
-    &label_ConnectionsMidiOutputChannel,      &combo_ConnectionsMidiOutputChannel,
-    &label_ConnectionsMidiCC,                 &combo_ConnectionsMidiCC,
-    &label_ConnectionsMidiPC,                 &combo_ConnectionsMidiPC,
-    &label_ConnectionsSyncItForwardEnabled,   &checkBox_ConnectionsSyncInForwardEnabled,
-    &label_ConnectionsSyncInPolarity,         &combo_ConnectionsSyncInPolarity,
-    &label_ConnectionsSyncInStartStopEnabled, &checkBox_ConnectionsSyncInStartStopEnabled,
-    &label_ConnectionsSyncInPPQN,             &combo_ConnectionsSyncInPPQN,
-    &label_ConnectionsLocalEnable,            &checkBox_ConnectionsLocalEnable,
-    &label_ConnectionsSoftThru,               &checkBox_ConnectionsSoftThru
-  });
+    this->group_Connections.addComponents( {
+        &label_ConnectionsMidiInputChannel,       &combo_ConnectionsMidiInputChannel,
+        &label_ConnectionsMidiOutputChannel,      &combo_ConnectionsMidiOutputChannel,
+        &label_ConnectionsMidiCC,                 &combo_ConnectionsMidiCC,
+        &label_ConnectionsMidiPC,                 &combo_ConnectionsMidiPC,
+        &label_ConnectionsSyncItForwardEnabled,   &checkBox_ConnectionsSyncInForwardEnabled,
+        &label_ConnectionsSyncInPolarity,         &combo_ConnectionsSyncInPolarity,
+        &label_ConnectionsSyncInStartStopEnabled, &checkBox_ConnectionsSyncInStartStopEnabled,
+        &label_ConnectionsSyncInPPQN,             &combo_ConnectionsSyncInPPQN,
+        &label_ConnectionsLocalEnable,            &checkBox_ConnectionsLocalEnable,
+        &label_ConnectionsSoftThru,               &checkBox_ConnectionsSoftThru
+    });
 
-  this->setupSettingsComponent(Pro800Settings::MIDI_RX_CHANNEL,    &combo_ConnectionsMidiInputChannel);
-  this->setupSettingsComponent(Pro800Settings::MIDI_TX_CHANNEL,    &combo_ConnectionsMidiOutputChannel);
-  this->setupSettingsComponent(Pro800Settings::MIDI_CC_MODE,       &combo_ConnectionsMidiCC);
-  this->setupSettingsComponent(Pro800Settings::MIDI_PC_MODE,       &combo_ConnectionsMidiPC);
-  this->setupSettingsComponent(Pro800Settings::SYNC_IN_FORWARD,    &checkBox_ConnectionsSyncInForwardEnabled);
-  this->setupSettingsComponent(Pro800Settings::SYNC_IN_POLARITY,   &combo_ConnectionsSyncInPolarity);
-  this->setupSettingsComponent(Pro800Settings::SYNC_IN_START_STOP, &checkBox_ConnectionsSyncInStartStopEnabled);
-  this->setupSettingsComponent(Pro800Settings::SYNC_IN_PPQN,       &combo_ConnectionsSyncInPPQN);
-  this->setupSettingsComponent(Pro800Settings::LOCAL_ENABLE,       &checkBox_ConnectionsLocalEnable);
-  this->setupSettingsComponent(Pro800Settings::SOFT_THRU,          &checkBox_ConnectionsSoftThru);
+    this->setupSettingsComponent(Pro800Settings::MIDI_RX_CHANNEL,    &combo_ConnectionsMidiInputChannel);
+    this->setupSettingsComponent(Pro800Settings::MIDI_TX_CHANNEL,    &combo_ConnectionsMidiOutputChannel);
+    this->setupSettingsComponent(Pro800Settings::MIDI_CC_MODE,       &combo_ConnectionsMidiCC);
+    this->setupSettingsComponent(Pro800Settings::MIDI_PC_MODE,       &combo_ConnectionsMidiPC);
+    this->setupSettingsComponent(Pro800Settings::SYNC_IN_FORWARD,    &checkBox_ConnectionsSyncInForwardEnabled);
+    this->setupSettingsComponent(Pro800Settings::SYNC_IN_POLARITY,   &combo_ConnectionsSyncInPolarity);
+    this->setupSettingsComponent(Pro800Settings::SYNC_IN_START_STOP, &checkBox_ConnectionsSyncInStartStopEnabled);
+    this->setupSettingsComponent(Pro800Settings::SYNC_IN_PPQN,       &combo_ConnectionsSyncInPPQN);
+    this->setupSettingsComponent(Pro800Settings::LOCAL_ENABLE,       &checkBox_ConnectionsLocalEnable);
+    this->setupSettingsComponent(Pro800Settings::SOFT_THRU,          &checkBox_ConnectionsSoftThru);
 
-  addAndMakeVisible(group_Connections);
+    addAndMakeVisible(group_Connections);
 }
 
 void SettingsTab::setupGroupTranspose()
 {
-  spinBox_TransposeAmount.setRange(-35.0, 35.0, 1.0);
+    spinBox_TransposeAmount.setRange(-35.0, 35.0, 1.0);
 
-  this->group_Transpose.addComponents( {
-    &label_TransposeAmount, &spinBox_TransposeAmount
-  });
+    this->group_Transpose.addComponents( {
+        &label_TransposeAmount, &spinBox_TransposeAmount
+    });
 
-  this->setupSettingsComponent(Pro800Settings::TRANSPOSE, &spinBox_TransposeAmount);
+    this->setupSettingsComponent(Pro800Settings::TRANSPOSE, &spinBox_TransposeAmount);
 
-  addAndMakeVisible(group_Transpose);
+    addAndMakeVisible(group_Transpose);
 }
 
 void SettingsTab::setupGroupPresetDump()
 {
-  this->group_PresetDump.addComponent(&button_PresetDump);
+    this->group_PresetDump.addComponent(&button_PresetDump);
 
-  this->group_PresetDump.setEnabled(false); // not implemented yet
+    this->group_PresetDump.setEnabled(false); // not implemented yet
 
-  addAndMakeVisible(group_PresetDump);
+    addAndMakeVisible(group_PresetDump);
 }
 
 void SettingsTab::setupGroupVoices()
 {
-  for ( int i = 0; i < 8; i++ )
-  {
-    checkBox_Voice[i].setButtonText("Voice " + juce::String::formatted("%d", (i+1)));
-  }
+    for ( int i = 0; i < 8; i++ )
+    {
+        checkBox_Voice[i].setButtonText("Voice " + juce::String::formatted("%d", (i+1)));
+    }
 
-  this->group_Voices.addComponents( {
-    &label_VoiceKill,
-    &checkBox_Voice[0], &checkBox_Voice[4],
-    &checkBox_Voice[1], &checkBox_Voice[5],
-    &checkBox_Voice[2], &checkBox_Voice[6],
-    &checkBox_Voice[3], &checkBox_Voice[7],
-  }, {}, {2, 1, 1, 1, 1, 1, 1, 1, 1});
+    this->group_Voices.addComponents( {
+        &label_VoiceKill,
+        &checkBox_Voice[0], &checkBox_Voice[4],
+        &checkBox_Voice[1], &checkBox_Voice[5],
+        &checkBox_Voice[2], &checkBox_Voice[6],
+        &checkBox_Voice[3], &checkBox_Voice[7],
+    }, {}, {2, 1, 1, 1, 1, 1, 1, 1, 1});
 
-  for ( int i = 0; i < 8; i++ )
-  {
-    setupSettingsComponent(Pro800Settings::VOICE_KILL, &checkBox_Voice[i]);
-  }
+    for ( int i = 0; i < 8; i++ )
+    {
+        setupSettingsComponent(Pro800Settings::VOICE_KILL, &checkBox_Voice[i]);
+    }
 
-  addAndMakeVisible(group_Voices);
+    addAndMakeVisible(group_Voices);
 }
 
 void SettingsTab::setupGroupTuning()
 {
-  this->group_Tuning.addComponents( {
-    &label_TuningRetuneElement, &combo_TuningRetuneElement,
-    &label_TuningRetuneOctave,  &combo_TuningRetuneOctave
-  });
+    this->group_Tuning.addComponents( {
+        &label_TuningRetuneElement, &combo_TuningRetuneElement,
+        &label_TuningRetuneOctave,  &combo_TuningRetuneOctave
+    });
 
-  this->group_Tuning.setEnabled(false); // not implemented yet
+    this->group_Tuning.setEnabled(false); // not implemented yet
 
-  addAndMakeVisible(group_Tuning);
+    addAndMakeVisible(group_Tuning);
 }
 
 void SettingsTab::setupGroupRetuneEncoder()
 {
-  this->group_RetuneEncoder.addComponents( {
-    &label_RetuneTuning, &spinBox_RetuneTuning
-  });
+    this->group_RetuneEncoder.addComponents( {
+        &label_RetuneTuning, &spinBox_RetuneTuning
+    });
 
-  this->group_RetuneEncoder.setEnabled(false); // not implemented yet
+    this->group_RetuneEncoder.setEnabled(false); // not implemented yet
 
-  addAndMakeVisible(group_RetuneEncoder);
+    addAndMakeVisible(group_RetuneEncoder);
 }
 
 void SettingsTab::setupGroupDisplay()
 {
-  spinBox_DisplayBrightness.setRange(1.0, 16.0, 1.0);
+    spinBox_DisplayBrightness.setRange(1.0, 16.0, 1.0);
 
-  spinBox_DisplayParameterTime.setRange(0.0, 100, 1.0);
+    spinBox_DisplayParameterTime.setRange(0.0, 100, 1.0);
 
-  this->group_Display.addComponents( {
-    &label_DisplayBrightness, &spinBox_DisplayBrightness,
-    &label_DisplayParameterTime, &spinBox_DisplayParameterTime,
-    &label_DisplayPresetNameEnabled, &checkBox_DisplayPresetNameEnabled
-  });
+    this->group_Display.addComponents( {
+        &label_DisplayBrightness, &spinBox_DisplayBrightness,
+        &label_DisplayParameterTime, &spinBox_DisplayParameterTime,
+        &label_DisplayPresetNameEnabled, &checkBox_DisplayPresetNameEnabled
+    });
 
-  setupSettingsComponent(Pro800Settings::BRIGHTNESS,             &spinBox_DisplayBrightness);
-  setupSettingsComponent(Pro800Settings::DISPLAY_PARAMETER_TIME, &spinBox_DisplayParameterTime);
-  setupSettingsComponent(Pro800Settings::SHOW_PRESET_NAME,       &checkBox_DisplayPresetNameEnabled);
+    setupSettingsComponent(Pro800Settings::BRIGHTNESS,             &spinBox_DisplayBrightness);
+    setupSettingsComponent(Pro800Settings::DISPLAY_PARAMETER_TIME, &spinBox_DisplayParameterTime);
+    setupSettingsComponent(Pro800Settings::SHOW_PRESET_NAME,       &checkBox_DisplayPresetNameEnabled);
 
-  addAndMakeVisible(group_Display);
+    addAndMakeVisible(group_Display);
 }
 
 void SettingsTab::setupGroupAutoTune()
 {
-  addEnumItems(combo_AutoTunePrecision, {{"0.5 cent", SETTINGS_TUNER_PRECISION_0_5CT},
-                                         {"1.0 cent", SETTINGS_TUNER_PRECISION_1CT},
-                                         {"1.5 cent", SETTINGS_TUNER_PRECISION_1_5CT},
-                                         {"2.0 cent", SETTINGS_TUNER_PRECISION_2CT}});
+    addEnumItems(combo_AutoTunePrecision, {{"0.5 cent", SETTINGS_TUNER_PRECISION_0_5CT},
+                                           {"1.0 cent", SETTINGS_TUNER_PRECISION_1CT},
+                                           {"1.5 cent", SETTINGS_TUNER_PRECISION_1_5CT},
+                                           {"2.0 cent", SETTINGS_TUNER_PRECISION_2CT}});
 
-  this->group_AutoTune.addComponents( {
-    &label_AutoTunePrecision, &combo_AutoTunePrecision
-  });
+    this->group_AutoTune.addComponents( {
+        &label_AutoTunePrecision, &combo_AutoTunePrecision
+    });
 
-  setupSettingsComponent(Pro800Settings::TUNER_PRECISION, &combo_AutoTunePrecision);
+    setupSettingsComponent(Pro800Settings::TUNER_PRECISION, &combo_AutoTunePrecision);
 
-  addAndMakeVisible(group_AutoTune);
+    addAndMakeVisible(group_AutoTune);
 }
 
 void SettingsTab::setupGroupMiscellaneous()
 {
-  spinBox_MiscExternalFilterModAmount.setRange(0.0, 65535.0, 1.0);
-  addEnumItems(combo_MiscVoicePriority, {{"Last", SETTINGS_VOICE_PRIORITY_LAST},
-                                         {"Low",  SETTINGS_VOICE_PRIORITY_LOW},
-                                         {"High", SETTINGS_VOICE_PRIORITY_HIGH}});
+    spinBox_MiscExternalFilterModAmount.setRange(0.0, 65535.0, 1.0);
+    addEnumItems(combo_MiscVoicePriority, {{"Last", SETTINGS_VOICE_PRIORITY_LAST},
+                                           {"Low",  SETTINGS_VOICE_PRIORITY_LOW},
+                                           {"High", SETTINGS_VOICE_PRIORITY_HIGH}});
 
-  combo_MiscPedalPriority.setEnabled(false); // not implemented yet (not in standard settings message)
+    combo_MiscPedalPriority.setEnabled(false); // not implemented yet (not in standard settings message)
 
-  this->group_Miscellaneous.addComponents( {
-    &label_MiscExternalFilterModAmount, &spinBox_MiscExternalFilterModAmount,
-    &label_MiscVoicePriority,           &combo_MiscVoicePriority,
-    &label_MiscPedalPriority,           &combo_MiscPedalPriority
-  });
+    this->group_Miscellaneous.addComponents( {
+        &label_MiscExternalFilterModAmount, &spinBox_MiscExternalFilterModAmount,
+        &label_MiscVoicePriority,           &combo_MiscVoicePriority,
+        &label_MiscPedalPriority,           &combo_MiscPedalPriority
+    });
 
-  setupSettingsComponent(Pro800Settings::EXTERNAL_CV_AMOUNT, &spinBox_MiscExternalFilterModAmount);
-  setupSettingsComponent(Pro800Settings::VOICE_PRIORITY,     &combo_MiscVoicePriority);
+    setupSettingsComponent(Pro800Settings::EXTERNAL_CV_AMOUNT, &spinBox_MiscExternalFilterModAmount);
+    setupSettingsComponent(Pro800Settings::VOICE_PRIORITY,     &combo_MiscVoicePriority);
 
-  addAndMakeVisible(group_Miscellaneous);
+    addAndMakeVisible(group_Miscellaneous);
 }
 
 void SettingsTab::setupGroupSync()
 {
-  addEnumItems(combo_SyncSource, {{"Internal", SETTINGS_SYNC_SOURCE_INTERNAL},
-                                  {"MIDI",     SETTINGS_SYNC_SOURCE_MIDI},
-                                  {"USB",      SETTINGS_SYNC_SOURCE_USB},
-                                  {"External", SETTINGS_SYNC_SOURCE_EXTERNAL}});
+    addEnumItems(combo_SyncSource, {{"Internal", SETTINGS_SYNC_SOURCE_INTERNAL},
+                                    {"MIDI",     SETTINGS_SYNC_SOURCE_MIDI},
+                                    {"USB",      SETTINGS_SYNC_SOURCE_USB},
+                                    {"External", SETTINGS_SYNC_SOURCE_EXTERNAL}});
 
-  spinBox_SyncClockBPM.valueFromTextFunction = [](const juce::String &text) { return text.getFloatValue() * 10.0; };
-  spinBox_SyncClockBPM.textFromValueFunction = [](double value)             { return juce::String::formatted("%.1f", value/10.0); };
-  spinBox_SyncClockBPM.setRange(500, 4000, 1.0);
+    spinBox_SyncClockBPM.valueFromTextFunction = [](const juce::String &text) { return text.getFloatValue() * 10.0; };
+    spinBox_SyncClockBPM.textFromValueFunction = [](double value)             { return juce::String::formatted("%.1f", value/10.0); };
+    spinBox_SyncClockBPM.setRange(500, 4000, 1.0);
 
-  addEnumItems(combo_SyncClockSubdivision, {{"1/4",   SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4},
-                                            {"1/4T",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4T},
-                                            {"1/8",   SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8},
-                                            {"1/8T",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8T},
-                                            {"1/16",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_16},
-                                            {"1/16T", SETTINGS_SYNC_CLOCK_SUBDIVISION_1_16T},
-                                            {"1/32",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32},
-                                            {"1/32T", SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32T}});
+    addEnumItems(combo_SyncClockSubdivision, {{"1/4",   SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4},
+                                              {"1/4T",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_4T},
+                                              {"1/8",   SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8},
+                                              {"1/8T",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_8T},
+                                              {"1/16",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_16},
+                                              {"1/16T", SETTINGS_SYNC_CLOCK_SUBDIVISION_1_16T},
+                                              {"1/32",  SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32},
+                                              {"1/32T", SETTINGS_SYNC_CLOCK_SUBDIVISION_1_32T}});
 
-  spinBox_SyncClockSwing.setRange(50.0, 95.0, 1.0);
-  spinBox_SyncClockNoteLength.setRange(1.0, 100.0, 1.0);
+    spinBox_SyncClockSwing.setRange(50.0, 95.0, 1.0);
+    spinBox_SyncClockNoteLength.setRange(1.0, 100.0, 1.0);
 
-  this->group_Sync.addComponents( {
-    &label_SyncSource,           &combo_SyncSource,
-    &label_SyncClockBPM,         &spinBox_SyncClockBPM,
-    &label_SyncClockSubdivision, &combo_SyncClockSubdivision,
-    &label_SyncClockSwing,       &spinBox_SyncClockSwing,
-    &label_SyncClockNoteLength,  &spinBox_SyncClockNoteLength
-  });
+    this->group_Sync.addComponents( {
+        &label_SyncSource,           &combo_SyncSource,
+        &label_SyncClockBPM,         &spinBox_SyncClockBPM,
+        &label_SyncClockSubdivision, &combo_SyncClockSubdivision,
+        &label_SyncClockSwing,       &spinBox_SyncClockSwing,
+        &label_SyncClockNoteLength,  &spinBox_SyncClockNoteLength
+    });
 
 
-  setupSettingsComponent(Pro800Settings::SYNC_SOURCE, &combo_SyncSource);
-  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_BPM, &spinBox_SyncClockBPM);
-  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_SUBDIVISION, &combo_SyncClockSubdivision);
-  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_SWING, &spinBox_SyncClockSwing);
-  setupSettingsComponent(Pro800Settings::SYNC_CLOCK_NOTE_LENGTH, &spinBox_SyncClockNoteLength);
+    setupSettingsComponent(Pro800Settings::SYNC_SOURCE, &combo_SyncSource);
+    setupSettingsComponent(Pro800Settings::SYNC_CLOCK_BPM, &spinBox_SyncClockBPM);
+    setupSettingsComponent(Pro800Settings::SYNC_CLOCK_SUBDIVISION, &combo_SyncClockSubdivision);
+    setupSettingsComponent(Pro800Settings::SYNC_CLOCK_SWING, &spinBox_SyncClockSwing);
+    setupSettingsComponent(Pro800Settings::SYNC_CLOCK_NOTE_LENGTH, &spinBox_SyncClockNoteLength);
 
-  addAndMakeVisible(group_Sync);
+    addAndMakeVisible(group_Sync);
 }
 
 void SettingsTab::setupGroupFactoryReset()
 {
-  this->group_FactoryReset.addComponent(&button_FactoryReset);
+    this->group_FactoryReset.addComponent(&button_FactoryReset);
 
-  button_FactoryReset.onClick = [this] {
-    juce::Component::SafePointer<SettingsTab> safeThis(this);
-    const auto callback = juce::ModalCallbackFunction::create ([safeThis] (int result) {
-      if ( result == 1 && safeThis != nullptr )
-      {
-        safeThis->requestFactoryReset();
-      }
-    });
-    juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon, "Factory Reset", "This will trigger a factory reset of the device. Are you sure?", "OK", "Abort", this, callback);
-  };
+    button_FactoryReset.onClick = [this] {
+        juce::Component::SafePointer<SettingsTab> safeThis(this);
+        const auto callback = juce::ModalCallbackFunction::create ([safeThis] (int result) {
+            if ( result == 1 && safeThis != nullptr )
+            {
+                safeThis->requestFactoryReset();
+            }
+        });
+        juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon, "Factory Reset", "This will trigger a factory reset of the device. Are you sure?", "OK", "Abort", this, callback);
+    };
 
-  addAndMakeVisible(group_FactoryReset);
+    addAndMakeVisible(group_FactoryReset);
 }
 
-void SettingsTab::setSettingsGroupsEnabled(bool enable)
+// clang-format on
+void SettingsTab::setSettingsGroupsEnabled (bool enable)
 {
-  this->group_Connections.setEnabled(enable);
-  this->group_Transpose.setEnabled(enable);
-  this->group_PresetDump.setEnabled(false); // not implemented
-  this->group_Voices.setEnabled(enable);
-  this->group_Tuning.setEnabled(false); // not implemented
-  this->group_RetuneEncoder.setEnabled(false); // not implemented
-  this->group_Display.setEnabled(enable);
-  this->group_AutoTune.setEnabled(enable);
-  this->group_Miscellaneous.setEnabled(enable);
-  this->group_Sync.setEnabled(enable);
-  this->group_FactoryReset.setEnabled(true); // always enabled (does not depend on settings)
+    this->group_Connections.setEnabled (enable);
+    this->group_Transpose.setEnabled (enable);
+    this->group_PresetDump.setEnabled (false); // not implemented
+    this->group_Voices.setEnabled (enable);
+    this->group_Tuning.setEnabled (false); // not implemented
+    this->group_RetuneEncoder.setEnabled (false); // not implemented
+    this->group_Display.setEnabled (enable);
+    this->group_AutoTune.setEnabled (enable);
+    this->group_Miscellaneous.setEnabled (enable);
+    this->group_Sync.setEnabled (enable);
+    this->group_FactoryReset.setEnabled (true); // always enabled (does not depend on settings)
 }
 
-void SettingsTab::setupSettingsComponent(Pro800Settings setting, juce::Component *component)
+void SettingsTab::setupSettingsComponent (Pro800Settings setting, juce::Component* component)
 {
     this->settingsListeners[setting] = component;
 
     // special case handling for weird UI cases
-    if ( setting == Pro800Settings::VOICE_KILL )
+    if (setting == Pro800Settings::VOICE_KILL)
     {
-        juce::ToggleButton *checkBox = dynamic_cast<juce::ToggleButton*>(component);
-        if ( checkBox == nullptr )
+        juce::ToggleButton* checkBox = dynamic_cast<juce::ToggleButton*> (component);
+        if (checkBox == nullptr)
         {
-            juce::Logger::writeToLog("[ERROR] Cannot setup voice kill checkboxes... Not a toggle button");
+            juce::Logger::writeToLog ("[ERROR] Cannot setup voice kill checkboxes... Not a toggle button");
             return;
         }
 
         checkBox->onClick = [this] {
-          // ignore component and just create combined byte of all 8 bits
-          uint8_t enabledVoices = 0;
-          for ( int i = 7; i >= 0; i-- )
-          {
-            enabledVoices = (uint8_t)((enabledVoices << (uint8_t)1) | (this->checkBox_Voice[i].getToggleState() ? (uint8_t)1 : (uint8_t)0));
-          }
+            // ignore component and just create combined byte of all 8 bits
+            uint8_t enabledVoices = 0;
+            for (int i = 7; i >= 0; i--)
+            {
+                enabledVoices = (uint8_t) ((enabledVoices << (uint8_t) 1) | (this->checkBox_Voice[i].getToggleState() ? (uint8_t) 1 : (uint8_t) 0));
+            }
 
-          updateSettings(Pro800Settings::VOICE_KILL, enabledVoices);
+            updateSettings (Pro800Settings::VOICE_KILL, enabledVoices);
         };
 
         return;
     }
 
-    if ( juce::Slider *slider = dynamic_cast<juce::Slider*>(component))
+    if (juce::Slider* slider = dynamic_cast<juce::Slider*> (component))
     {
-        slider->onValueChange = ([this, slider, setting] { 
-            updateSettings(setting, (int)slider->getValue()); 
+        slider->onValueChange = ([this, slider, setting] {
+            updateSettings (setting, (int) slider->getValue());
         });
     }
-    else if ( juce::ComboBox *comboBox = dynamic_cast<juce::ComboBox*>(component))
+    else if (juce::ComboBox* comboBox = dynamic_cast<juce::ComboBox*> (component))
     {
-        comboBox->onChange = ([this, comboBox, setting] { 
-            updateSettings(setting, comboBox->getSelectedId() - COMBO_BOX_ID_OFFSET);
+        comboBox->onChange = ([this, comboBox, setting] {
+            updateSettings (setting, comboBox->getSelectedId() - COMBO_BOX_ID_OFFSET);
         });
     }
-    else if ( juce::ToggleButton *button = dynamic_cast<juce::ToggleButton*>(component))
+    else if (juce::ToggleButton* button = dynamic_cast<juce::ToggleButton*> (component))
     {
         button->onClick = ([this, button, setting] {
-            updateSettings(setting, (button->getToggleState() ? Pro800SettingsOnOff::SETTINGS_ON : Pro800SettingsOnOff::SETTINGS_OFF ));
+            updateSettings (setting, (button->getToggleState() ? Pro800SettingsOnOff::SETTINGS_ON : Pro800SettingsOnOff::SETTINGS_OFF));
         });
     }
-    else 
+    else
     {
-        juce::Logger::writeToLog("[WARNING] setupSettingsComponent(): Unknown component type for setting " + juce::String((int)setting));
+        juce::Logger::writeToLog ("[WARNING] setupSettingsComponent(): Unknown component type for setting " + juce::String ((int) setting));
     }
-
 }

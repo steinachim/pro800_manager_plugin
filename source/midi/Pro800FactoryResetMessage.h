@@ -28,7 +28,7 @@ public:
 
     static juce::MidiMessage request()
     {
-        return makeRequest({REQUEST_ID, 0x00});
+        return makeRequest ({ REQUEST_ID, 0x00 });
     }
 
 private:

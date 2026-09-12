@@ -20,38 +20,38 @@
 
 #include <algorithm>
 
-Pro800MidiMessage::Pro800MidiMessage(const juce::MidiMessage &message) : Pro800MidiMessage(message.getRawData(), message.getRawDataSize())
+Pro800MidiMessage::Pro800MidiMessage (const juce::MidiMessage& message) : Pro800MidiMessage (message.getRawData(), message.getRawDataSize())
 {
 }
 
-Pro800MidiMessage::Pro800MidiMessage(const uint8_t *newRawData, int newRawDataSize)
+Pro800MidiMessage::Pro800MidiMessage (const uint8_t* newRawData, int newRawDataSize)
 {
-    if ( newRawData != nullptr && newRawDataSize > 0 )
+    if (newRawData != nullptr && newRawDataSize > 0)
     {
-        this->rawData.assign(newRawData, newRawData + newRawDataSize);
+        this->rawData.assign (newRawData, newRawData + newRawDataSize);
     }
 }
 
-juce::MidiMessage Pro800MidiMessage::makeRequest(std::initializer_list<uint8_t> payload)
+juce::MidiMessage Pro800MidiMessage::makeRequest (std::initializer_list<uint8_t> payload)
 {
     std::vector<uint8_t> request;
-    request.reserve(PRO800_HEADER.size() + payload.size());
-    request.insert(request.end(), PRO800_HEADER.begin(), PRO800_HEADER.end());
-    request.insert(request.end(), payload.begin(), payload.end());
-    return juce::MidiMessage::createSysExMessage(request.data(), (int)request.size());
+    request.reserve (PRO800_HEADER.size() + payload.size());
+    request.insert (request.end(), PRO800_HEADER.begin(), PRO800_HEADER.end());
+    request.insert (request.end(), payload.begin(), payload.end());
+    return juce::MidiMessage::createSysExMessage (request.data(), (int) request.size());
 }
 
 juce::String Pro800MidiMessage::toString() const
 {
-    return "Pro800 SysEx Message: " + juce::String::toHexString(rawData.data(), (int)rawData.size());
+    return "Pro800 SysEx Message: " + juce::String::toHexString (rawData.data(), (int) rawData.size());
 }
 
 juce::MidiMessage Pro800MidiMessage::toMidiMessage() const
 {
-    return juce::MidiMessage(rawData.data(), (int)rawData.size());
+    return juce::MidiMessage (rawData.data(), (int) rawData.size());
 }
 
-const std::vector<uint8_t> &Pro800MidiMessage::getRawData() const
+const std::vector<uint8_t>& Pro800MidiMessage::getRawData() const
 {
     return this->rawData;
 }
@@ -61,11 +61,12 @@ size_t Pro800MidiMessage::getRawDataSize() const
     return this->rawData.size();
 }
 
-bool Pro800MidiMessage::isDataPosition(size_t position) const
+bool Pro800MidiMessage::isDataPosition (size_t position) const
 {
     return position > 0 && position + 1 < this->rawData.size();
 }
 
+// clang-format off
 bool Pro800MidiMessage::isValid() const
 {
     if( this->rawData.size() <= POS_MESSAGE_TYPE )// long enough to at least have a response type?
@@ -83,10 +84,11 @@ bool Pro800MidiMessage::isValid() const
 
     return true;
 }
+// clang-format on
 
 bool Pro800MidiMessage::isCorrectResponse() const
 {
-    return (this->rawData.at(POS_MESSAGE_TYPE) == getResponseType()) || getResponseType() == RESPONSE_UNINIT;
+    return (this->rawData.at (POS_MESSAGE_TYPE) == getResponseType()) || getResponseType() == RESPONSE_UNINIT;
 }
 
 uint8_t Pro800MidiMessage::getResponseType() const
@@ -94,31 +96,31 @@ uint8_t Pro800MidiMessage::getResponseType() const
     return RESPONSE_UNINIT;
 }
 
-uint8_t Pro800MidiMessage::getUint8Value(size_t position) const
+uint8_t Pro800MidiMessage::getUint8Value (size_t position) const
 {
     // low-level function: ignore validity check
-    if ( position >= getRawDataSize() )
+    if (position >= getRawDataSize())
     {
-        juce::Logger::writeToLog("Pro800MidiMessage::getUint8Value() - reading out of range. Returning 0!");
+        juce::Logger::writeToLog ("Pro800MidiMessage::getUint8Value() - reading out of range. Returning 0!");
         return 0;
     }
 
     return this->rawData[position];
 }
 
-void Pro800MidiMessage::setUint8Value(size_t position, uint8_t value)
+void Pro800MidiMessage::setUint8Value (size_t position, uint8_t value)
 {
     // low-level function: ignore validity check
-    if ( position >= getRawDataSize() )
+    if (position >= getRawDataSize())
     {
-        juce::Logger::writeToLog("Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!");
+        juce::Logger::writeToLog ("Pro800MidiMessage::setUint8Value() - cannot set value outside of data range!");
         return;
     }
 
     this->rawData[position] = value;
 }
 
-void Pro800MidiMessage::resizeRawData(size_t newSize)
+void Pro800MidiMessage::resizeRawData (size_t newSize)
 {
-    this->rawData.resize(newSize, 0);
+    this->rawData.resize (newSize, 0);
 }

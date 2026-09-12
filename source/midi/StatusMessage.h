@@ -25,8 +25,7 @@
 class StatusMessage : public Pro800MidiMessage
 {
 public:
-    enum Status
-    {
+    enum Status {
         STATUS_OK = 0x00,
         STATUS_ERROR = 0x01,
         STATUS_INVALID = 0xFF
@@ -34,8 +33,8 @@ public:
 
     static constexpr uint8_t RESPONSE_ID = 0x01;
 
-    explicit StatusMessage(const juce::MidiMessage &message);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_STATUS;}
+    explicit StatusMessage (const juce::MidiMessage& message);
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_STATUS; }
 
     virtual bool isValid() const override;
 
@@ -47,7 +46,7 @@ protected:
     virtual uint8_t getResponseType() const override;
 
 private:
-    static const std::map<Status, const char *> STATUS_STRING;
+    static const std::map<Status, const char*> STATUS_STRING;
 
     static constexpr size_t POS_STATUS_BYTE = 0x0A;
 };

@@ -20,9 +20,9 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "MidiComponent.h"
-#include "LocalProgramListBox.h"
 #include "../midi/MidiHandler.h"
+#include "LocalProgramListBox.h"
+#include "MidiComponent.h"
 
 #include <memory>
 #include <vector>
@@ -32,20 +32,20 @@ class ProgramModel;
 class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private MidiHandler::Listener
 {
 public:
-    explicit ProgramManagementTab(MidiHandler *handler);
+    explicit ProgramManagementTab (MidiHandler* handler);
     virtual ~ProgramManagementTab() override;
 
     void resized() override;
 
-    virtual void handlePro800ProgramDump(std::shared_ptr<ProgramMessage> &programMessage) override;
+    virtual void handlePro800ProgramDump (std::shared_ptr<ProgramMessage>& programMessage) override;
 
 private:
     using ProgramList = std::vector<std::shared_ptr<ProgramMessage>>;
 
     // MidiHandler::Listener: progress of dumps and program transfers
-    void backgroundSendingProgress(const juce::String &description, int numSent, int numTotal) override;
-    void backgroundSendingFinished(bool cancelled) override;
-    void setTransferRunning(bool running);
+    void backgroundSendingProgress (const juce::String& description, int numSent, int numTotal) override;
+    void backgroundSendingFinished (bool cancelled) override;
+    void setTransferRunning (bool running);
 
     void loadSelectedProgram();
     void compareSelectedPrograms();
@@ -54,11 +54,11 @@ private:
     void sendAllProgramsToSynth();
 
     /** The valid (non-empty) programs of the given rows. */
-    static ProgramList validPrograms(ProgramModel &model, const juce::SparseSet<int> &rows);
-    static juce::SparseSet<int> allRows(ProgramModel &model);
+    static ProgramList validPrograms (ProgramModel& model, const juce::SparseSet<int>& rows);
+    static juce::SparseSet<int> allRows (ProgramModel& model);
 
     /** Puts deep copies of the programs into the target list; optionally also sends them to the synth. */
-    void copyPrograms(const ProgramList &programs, ProgramModel &to, bool sendToSynth);
+    void copyPrograms (const ProgramList& programs, ProgramModel& to, bool sendToSynth);
 
     juce::ListBox listBox_ProgramListSynth;
     LocalProgramListBox listBox_ProgramListLocal;

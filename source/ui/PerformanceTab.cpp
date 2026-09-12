@@ -17,7 +17,7 @@
  **/
 
 #include "PerformanceTab.h"
-#include "../midi/ProgramMessage.h" 
+#include "../midi/ProgramMessage.h"
 #include "../tailoring/Pro800CCConstants.h"
 #include "../tailoring/Pro800ProgramConstants.h"
 
@@ -51,22 +51,22 @@ void PerformanceTab::resized()
     auto middleColumn = area.withLeft (groupWidth).withRight (2 * groupWidth);
     auto rightColumn = area.withLeft (2 * groupWidth);
 
-    this->group_LFO.setBounds (leftColumn.removeFromTop (4*elementHeight));
-    this->group_Vibrato.setBounds (middleColumn.removeFromTop (4*elementHeight));
-    this->group_Modulation.setBounds (rightColumn.removeFromTop (4*elementHeight));
+    this->group_LFO.setBounds (leftColumn.removeFromTop (4 * elementHeight));
+    this->group_Vibrato.setBounds (middleColumn.removeFromTop (4 * elementHeight));
+    this->group_Modulation.setBounds (rightColumn.removeFromTop (4 * elementHeight));
 
-    this->group_Envelopes.setBounds (leftColumn.removeFromTop (5*elementHeight));
-    this->group_PitchBend.setBounds (middleColumn.removeFromTop (5*elementHeight));
-    this->group_Oscillators.setBounds (rightColumn.removeFromTop (5*elementHeight));
+    this->group_Envelopes.setBounds (leftColumn.removeFromTop (5 * elementHeight));
+    this->group_PitchBend.setBounds (middleColumn.removeFromTop (5 * elementHeight));
+    this->group_Oscillators.setBounds (rightColumn.removeFromTop (5 * elementHeight));
 
-    this->group_Velocity.setBounds (leftColumn.removeFromTop (4*elementHeight));
-    this->group_Aftertouch.setBounds (middleColumn.removeFromTop (4*elementHeight));
-    this->group_Spread.setBounds (rightColumn.removeFromTop (4*elementHeight));
+    this->group_Velocity.setBounds (leftColumn.removeFromTop (4 * elementHeight));
+    this->group_Aftertouch.setBounds (middleColumn.removeFromTop (4 * elementHeight));
+    this->group_Spread.setBounds (rightColumn.removeFromTop (4 * elementHeight));
 
-    this->group_Glide.setBounds (middleColumn.removeFromTop (4*elementHeight));
+    this->group_Glide.setBounds (middleColumn.removeFromTop (4 * elementHeight));
 }
 
-
+// clang-format off
 void PerformanceTab::setupGroupLFO()
 {
     // 1 - LFO
@@ -281,3 +281,4 @@ void PerformanceTab::setupGroupGlide()
 
     addAndMakeVisible(group_Glide);
 }
+// clang-format on

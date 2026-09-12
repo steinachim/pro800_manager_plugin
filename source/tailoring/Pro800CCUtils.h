@@ -23,7 +23,7 @@
 class Pro800CCUtils
 {
 public:
-    static int ccFromProgramEnumValue(int enumValue, int numValues)
+    static int ccFromProgramEnumValue (int enumValue, int numValues)
     {
         // warning: this mapping does *not* work for Pro800ProgramLfoDestinationBitMask because it's a bitmask
         if (numValues <= 0)
@@ -32,10 +32,10 @@ public:
         }
 
         int stepSize = 127 / numValues + 1;
-        return (uint8_t)(enumValue * stepSize);
+        return (uint8_t) (enumValue * stepSize);
     }
 
-    static int programEnumValueFromCC(int ccValue, int numValues)
+    static int programEnumValueFromCC (int ccValue, int numValues)
     {
         // warning: this mapping does *not* work for Pro800ProgramLfoDestinationBitMask because it's a bitmask
         if (numValues <= 0)

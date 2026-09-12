@@ -18,48 +18,47 @@
 
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include "Pro800DataMessage.h"
-#include "../tailoring/Pro800ProgramConstants.h"
 #include "../tailoring/Pro800CCConstants.h"
+#include "../tailoring/Pro800ProgramConstants.h"
+#include "Pro800DataMessage.h"
 
 class ProgramMessage : public Pro800DataMessage
 {
 public:
-    
     static constexpr uint16_t NUM_PROGRAMS = 400;
 
     static constexpr uint8_t SUPPORTED_PRESET_VERSION = 111;
     static constexpr size_t PROGRAM_MESSAGE_SIZE = 210; // complete size of a SUPPORTED_PRESET_VERSION program dump
 
-    static juce::MidiMessage request(int programNumber);
+    static juce::MidiMessage request (int programNumber);
 
     ProgramMessage();
-    explicit ProgramMessage(const juce::MidiMessage &message);
-    ProgramMessage(const uint8_t *newRawData, int newRawDataSize);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_PROGRAM;}
+    explicit ProgramMessage (const juce::MidiMessage& message);
+    ProgramMessage (const uint8_t* newRawData, int newRawDataSize);
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_PROGRAM; }
 
     virtual bool isValid() const override;
 
     uint16_t getProgramNumber() const;
     std::string getProgramBankNumber() const;
-    void setProgramNumber(uint16_t programNumber);
+    void setProgramNumber (uint16_t programNumber);
 
     std::string getProgramName() const;
-    void setProgramName(const std::string &newName);
+    void setProgramName (const std::string& newName);
 
     virtual juce::String toString() const override;
 
-    bool isLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination) const;
-    void setLfoDestinationEnabled(Pro800ProgramLfoDestinationBitMask destination, bool enabled);
+    bool isLfoDestinationEnabled (Pro800ProgramLfoDestinationBitMask destination) const;
+    void setLfoDestinationEnabled (Pro800ProgramLfoDestinationBitMask destination, bool enabled);
 
-    int getLfoDestinationValue(Pro800CCMessages ccNumber) const;
+    int getLfoDestinationValue (Pro800CCMessages ccNumber) const;
 
-    int getValue(Pro800ProgramField field) const;
-    void setValue(Pro800ProgramField field, int value);
+    int getValue (Pro800ProgramField field) const;
+    void setValue (Pro800ProgramField field, int value);
 
 private:
     void upgradeOlderPresetVersion();

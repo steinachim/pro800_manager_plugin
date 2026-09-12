@@ -26,7 +26,7 @@ class MidiHandler;
 class MainWidget : public juce::TabbedComponent
 {
 public:
-    explicit MainWidget(MidiHandler *midiHandler);
+    explicit MainWidget (MidiHandler* midiHandler);
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWidget)

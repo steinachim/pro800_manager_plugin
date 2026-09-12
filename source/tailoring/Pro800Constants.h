@@ -23,7 +23,7 @@
 #include <string>
 
 struct Pro800Parameter
-{    
+{
     size_t firstByte;
     uint8_t numBytes;
     std::string name;
@@ -31,6 +31,7 @@ struct Pro800Parameter
     bool isSigned = false; // for int values only
 };
 
+// clang-format off
 enum class MessageType
 {
     MIDI_LOG,        // every message sent or received, for logging
@@ -40,4 +41,4 @@ enum class MessageType
     PRO800_STATUS,
     PRO800_PROGRAM
 };
-
+// clang-format on

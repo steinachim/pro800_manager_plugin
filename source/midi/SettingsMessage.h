@@ -18,12 +18,11 @@
 
 #pragma once
 
-#include "Pro800DataMessage.h"
 #include "../tailoring/Pro800Constants.h"
 #include "../tailoring/Pro800SettingsConstants.h"
+#include "Pro800DataMessage.h"
 
 #include <vector>
-
 
 class SettingsMessage : public Pro800DataMessage
 {
@@ -35,14 +34,13 @@ public:
 
     static juce::MidiMessage request();
 
-    explicit SettingsMessage(const juce::MidiMessage &message);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_SETTINGS;}
+    explicit SettingsMessage (const juce::MidiMessage& message);
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_SETTINGS; }
 
     virtual bool isValid() const override;
-    
+
     virtual juce::String toString() const override;
 
-    void setValue(Pro800Settings setting, int value);
-    int getValue(Pro800Settings setting) const;
-
+    void setValue (Pro800Settings setting, int value);
+    int getValue (Pro800Settings setting) const;
 };

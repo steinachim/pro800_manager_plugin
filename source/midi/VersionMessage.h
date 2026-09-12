@@ -30,8 +30,8 @@ public:
 
     static juce::MidiMessage request();
 
-    explicit VersionMessage(const juce::MidiMessage &message);
-    virtual MessageType getMessageType() const override { return MessageType::PRO800_VERSION;}
+    explicit VersionMessage (const juce::MidiMessage& message);
+    virtual MessageType getMessageType() const override { return MessageType::PRO800_VERSION; }
 
     virtual bool isValid() const override;
 
@@ -45,12 +45,11 @@ protected:
     uint8_t getResponseType() const override;
 
 private:
-    enum VersionPosition
-    {
+    enum VersionPosition {
         VERSION_FIELD_1 = 0x0A,
         VERSION_FIELD_2 = 0x0B,
         VERSION_FIELD_3 = 0x0C
     };
 
-    static inline const std::set<std::string> SUPPORTED_FIRMWARE_VERSIONS = {"1.4.6"};
+    static inline const std::set<std::string> SUPPORTED_FIRMWARE_VERSIONS = { "1.4.6" };
 };
