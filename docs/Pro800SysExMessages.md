@@ -304,7 +304,7 @@ The contents are the following. Ranges marked "on the front panel" are what the 
 |8 | 1 | *overflow byte*
 |9 | 1 | Preset Mode<br> --> records that a Program Change selected the current preset: reads `1` in every state firmware 1.4.6 produces, including manual mode and after front-panel edits (0 = "manual" and 2 = "edited", as documented earlier, are never written by it). Freely writable and kept, but ignored. **It is not an edit flag**; nothing readable over MIDI says whether the current preset has unsaved edits
 |10 | 1 | MIDI RX Channel<br> --> 0 = ALL, 1 = dip switches, - [2-17] = channel [1-16], 18 = OFF. The DIP position can be resolved with `0x70` indices `28-2B` (the sum of the readings is the 0-based channel). Not validated: any byte is stored and kept, and **every value above 18 behaves as OFF** (the synth is deaf) while the front panel displays a meaningless channel number for it. Closing the front-panel menu for this setting writes the displayed value back over whatever was sent
-|11 | 1 | Voice Kill (one bit per voice)
+|11 | 1 | Voice Kill (one bit per voice, bit 0 = voice 1)<br> --> despite the name a **set bit means the voice is enabled**: the plugin's Voice Enable checkboxes match the synth's own menu (measured)
 |12 | 1 | MIDI TX Channel<br> --> 0 = THRU, 1 = dip switches, [2-17] = channel [1-16]
 |13 | 1 | Sync Source<br> --> 0 = internal, 1 = MIDI, 2 = USB, 3 = external
 |14 | 1 | unknown
