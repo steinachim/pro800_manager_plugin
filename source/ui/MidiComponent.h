@@ -56,8 +56,6 @@ public:
     static inline const juce::Identifier PROGRAM_FIELD_PROPERTY { "programField" };
     static inline const juce::Identifier SETTINGS_FIELD_PROPERTY { "settingsField" };
 
-    static constexpr int PROGRAM_SEND_INTERVAL_MS = 20; // pause between two program dumps sent to the synth
-
     /** Combo box item ids are the enum (or CC) value plus this offset, because item ids must be non-zero. */
     static constexpr int COMBO_BOX_ID_OFFSET = 1;
 
@@ -87,10 +85,6 @@ public:
     virtual void handleMidiLog (const juce::MidiMessage& message, const juce::String& logPrefix, bool isPolling);
 
     void requestFactoryReset();
-    void requestProgramDump();
-
-    /** Writes the programs to the synth, paced in the background so that the UI stays responsive. */
-    void sendPrograms (const std::vector<std::shared_ptr<ProgramMessage>>& programs);
 
     /** Sends an arbitrary message to the synth immediately. */
     void sendMidiMessage (const juce::MidiMessage& message);

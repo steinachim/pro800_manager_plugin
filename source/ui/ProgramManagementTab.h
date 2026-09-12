@@ -30,7 +30,7 @@
 
 class ProgramModel;
 
-class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private MidiHandler::Listener, private SynthSession::Listener
+class ProgramManagementTab : public juce::Component, public juce::DragAndDropContainer, public MidiComponent, private SynthSession::Listener
 {
 public:
     ProgramManagementTab (MidiHandler* handler, SynthSession& session);
@@ -43,14 +43,10 @@ public:
 private:
     using ProgramList = std::vector<std::shared_ptr<ProgramMessage>>;
 
-    // MidiHandler::Listener: progress of dumps and program transfers
-    void backgroundSendingProgress (const juce::String& description, int numSent, int numTotal) override;
-    void backgroundSendingFinished (bool cancelled) override;
-    void setTransferRunning (bool running);
-
-    // SynthSession::Listener: the preset the synth is on, and whether a Load may be started
+    // SynthSession::Listener: the preset the synth is on, how a dump or transfer is getting on, what may be started
     void synthSessionChanged() override;
     void updateLoadButton();
+    void updateTransferProgress();
 
     void loadSelectedProgram();
     void compareSelectedPrograms();

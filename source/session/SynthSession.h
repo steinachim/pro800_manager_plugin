@@ -149,6 +149,10 @@ public:
     static constexpr int WRITE_CONFIRM_STEP_MS = 300;
     /** No SysEx request this soon after a channel-voice message: it would only be lost and retried. */
     static constexpr int CHANNEL_VOICE_QUIET_MS = 1000;
+    /** How many slots in a row may go unanswered before a dump or transfer gives up on the synth. */
+    static constexpr int MAX_CONSECUTIVE_FAILURES = 3;
+    /** How often a step-by-step activity tells the listeners; every slot would re-lay the UI out hundreds of times a second. */
+    static constexpr int PROGRESS_NOTIFY_EVERY = 5;
 
     explicit SynthSession (MidiHandler& midiHandler);
     ~SynthSession() override;
@@ -171,6 +175,20 @@ public:
 
     /** Reads the settings block now (one poll). */
     void refresh();
+
+    /**
+     * Reads all 400 program slots, one request at a time. Each reply reaches the program list the same way a
+     * single read does; an empty slot answers with the bare F0 F7 the protocol uses for it and leaves the slot
+     * empty rather than timing out. Gives up if the synth stops answering several slots in a row.
+     */
+    void readAllPrograms();
+
+    /**
+     * Writes the programs to the synth, each one confirmed by its status reply and then by reading the slot
+     * back - the only check that catches a write the synth accepts and does not store. Slots that could not be
+     * confirmed are named at the end; the rest are still written.
+     */
+    void writePrograms (std::vector<std::shared_ptr<ProgramMessage>> programs);
 
     /**
      * Changes one setting on the synth: patches the block, writes it back whole (there is no per-field write) after
@@ -219,9 +237,17 @@ public:
     const Pointer& getPointer() const { return this->pointer; }
     const Provenance& getProvenance() const { return this->provenance; }
 
-    /** What the session is doing right now ("Connecting...", "Selecting B05..."), empty when idle. */
+    /** What the session is doing right now ("Connecting...", "Reading programs 12/400"), empty when idle. */
     const juce::String& getActivity() const { return this->activity; }
     bool isBusy() const { return this->activity.isNotEmpty(); }
+
+    /** How far a step-by-step activity has got; total is 0 for the ones that have no steps to count. */
+    int getActivityDone() const { return this->activityDone; }
+    int getActivityTotal() const { return this->activityTotal; }
+    bool isActivityCancellable() const { return this->activityTotal > 0; }
+
+    /** Stops a running dump or transfer after the request in flight; the rest is left undone. */
+    void cancelActivity();
 
     /** Connected, idle, and no program transfer running (whose replies would be mistaken for ours). */
     bool canStartAction() const;
@@ -250,6 +276,12 @@ private:
     void readDipSwitch (size_t which, std::shared_ptr<std::map<Pro800PanelIndex, int>> values, std::function<void (std::optional<int> dipSum)> callback);
     void readPanelStep (size_t step, std::shared_ptr<Pro800PanelState> state, std::function<void (std::optional<Pro800PanelState>)> callback);
 
+    using ProgramList = std::vector<std::shared_ptr<ProgramMessage>>;
+    void readAllProgramsStep (int program, int consecutiveFailures);
+    void writeProgramsStep (std::shared_ptr<ProgramList> programs, size_t index, std::shared_ptr<std::vector<int>> unconfirmed, int consecutiveFailures);
+    /** Writes one program and reads it back; confirmed is false if the synth did not store exactly what it was sent. */
+    void writeProgramVerified (const ProgramMessage& program, std::function<void (bool answered, bool confirmed)> callback);
+
     void writeSettings (std::shared_ptr<SettingsMessage> newSettings, std::function<void (bool accepted)> callback);
     void sendReload (std::function<void (bool accepted)> callback);
 
@@ -276,7 +308,9 @@ private:
     void verifyPendingWrites();
     void notifySettingsChanged();
     void applyChannels();
-    void setActivity (const juce::String& newActivity);
+    void setActivity (const juce::String& newActivity, int done = 0, int total = 0);
+    /** Moves a step-by-step activity on, telling the listeners only now and then: 400 of these run in a second or two. */
+    void setActivityProgress (int done);
     void fail (const juce::String& error);
     /** Like fail(), for something that worked but is worth knowing about; shown in the same place. */
     void warn (const juce::String& note);
@@ -296,6 +330,10 @@ private:
     Pointer pointer;
     Provenance provenance;
     juce::String activity;
+    juce::String activityDescription; // without the "12/400"
+    int activityDone = 0;
+    int activityTotal = 0;
+    bool cancelRequested = false;
     juce::String lastError;
 
     std::shared_ptr<SettingsMessage> settings;

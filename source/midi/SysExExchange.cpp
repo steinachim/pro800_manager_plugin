@@ -130,13 +130,25 @@ void SysExExchange::timerCallback()
         return;
     }
 
+    // a poll going unanswered is not news: it repeats on a timer, so logging it would fill the log for as long as
+    // the synth is away. Whoever owns the poll says once what the silence means.
+    const bool worthLogging = !this->current->isPolling;
+
     if (this->attemptsLeft > 0)
     {
-        juce::Logger::writeToLog ("[WARNING] No reply to " + this->current->description + " - sending again (" + juce::String (this->attemptsLeft) + " attempt(s) left)");
+        if (worthLogging)
+        {
+            juce::Logger::writeToLog ("[WARNING] No reply to " + this->current->description + " - sending again (" + juce::String (this->attemptsLeft) + " attempt(s) left)");
+        }
+
         sendAttempt();
         return;
     }
 
-    juce::Logger::writeToLog ("[WARNING] No reply to " + this->current->description + " - giving up");
+    if (worthLogging)
+    {
+        juce::Logger::writeToLog ("[WARNING] No reply to " + this->current->description + " - giving up");
+    }
+
     complete (nullptr);
 }

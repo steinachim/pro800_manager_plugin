@@ -62,7 +62,9 @@ namespace TestMessages
 
         int settingsCommitLagMs = 0; // how long after a settings write the new block becomes readable
         bool ignoreSettingsWrites = false; // accept them with OK but never commit (a menu open on the synth, say)
+        bool ignoreProgramWrites = false; // accept them with OK but store nothing
         int dropNextRequests = 0; // lose the next n requests (the synth stays silent)
+        int dropFromProgram = -1; // from this program on, program reads and writes go unanswered (-1 = answer them all)
 
         int reloads = 0;
         int settingsWrites = 0;
@@ -163,6 +165,11 @@ namespace TestMessages
                 case Pro800DataMessage::REQUEST_ID:
                 {
                     const int address = param (0) | (param (1) << 7);
+                    if (dropFromProgram >= 0 && address != SettingsMessage::ADDRESS && address >= dropFromProgram)
+                    {
+                        return;
+                    }
+
                     if (address == SettingsMessage::ADDRESS)
                     {
                         commitIfDue();
@@ -195,7 +202,7 @@ namespace TestMessages
                             commitAt = juce::Time::getMillisecondCounterHiRes() + settingsCommitLagMs;
                         }
                     }
-                    else
+                    else if (!ignoreProgramWrites)
                     {
                         programs[address] = bytes;
                     }

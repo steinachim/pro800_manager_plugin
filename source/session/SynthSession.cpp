@@ -213,6 +213,8 @@ void SynthSession::connect()
     this->pointerProgramReadFor.reset();
     this->lastPanelState.reset();
     this->currentLfoShape.reset();
+    this->cancelRequested = false;
+    this->pollFailures = 0;
     this->pendingWrites.clear();
     this->failedWrites.clear();
     this->writeDebounce.stopTimer();
@@ -311,7 +313,7 @@ void SynthSession::disconnect()
 //==============================================================================
 bool SynthSession::canStartAction() const
 {
-    return isConnected() && !isBusy() && !this->midiHandler.isBackgroundSending();
+    return isConnected() && !isBusy();
 }
 
 void SynthSession::selectProgram (int program)
@@ -640,6 +642,168 @@ void SynthSession::alignWithPanel()
     });
 }
 
+void SynthSession::readAllPrograms()
+{
+    if (!canStartAction())
+    {
+        return;
+    }
+
+    this->cancelRequested = false;
+    setActivity ("Reading programs", 0, ProgramMessage::NUM_PROGRAMS);
+    readAllProgramsStep (0, 0);
+}
+
+void SynthSession::readAllProgramsStep (int program, int consecutiveFailures)
+{
+    if (this->cancelRequested || program >= ProgramMessage::NUM_PROGRAMS)
+    {
+        const bool cancelled = this->cancelRequested;
+        this->cancelRequested = false;
+        setActivity ("");
+
+        if (cancelled)
+        {
+            warn ("Stopped after " + juce::String (program) + " of " + juce::String (ProgramMessage::NUM_PROGRAMS) + " programs.");
+        }
+        else
+        {
+            this->lastError.clear();
+            notify();
+        }
+        return;
+    }
+
+    readProgram (program, false, [this, program, consecutiveFailures] (std::shared_ptr<ProgramMessage> record, bool slotIsEmpty) {
+        // an empty slot answers too - with the bare F0 F7 - so only silence counts as a failure here
+        const bool answered = (record != nullptr || slotIsEmpty);
+        const int failures = answered ? 0 : consecutiveFailures + 1;
+
+        if (failures >= MAX_CONSECUTIVE_FAILURES)
+        {
+            // the failures were consecutive by construction, so this is where the answers stopped - and the slots
+            // named after it hold nothing that was read, whatever the list still shows for them
+            const int firstUnanswered = program - (MAX_CONSECUTIVE_FAILURES - 1);
+
+            this->cancelRequested = false;
+            setActivity ("");
+            disconnect();
+            fail (firstUnanswered > 0
+                      ? "The synth stopped answering at program " + programLabel (firstUnanswered) + "; the list holds what was read up to "
+                            + programLabel (firstUnanswered - 1) + "."
+                      : juce::String ("The synth did not answer any program request."));
+            return;
+        }
+
+        setActivityProgress (program + 1);
+        readAllProgramsStep (program + 1, failures);
+    });
+}
+
+void SynthSession::writePrograms (ProgramList programs)
+{
+    if (!canStartAction() || programs.empty())
+    {
+        return;
+    }
+
+    this->cancelRequested = false;
+    setActivity ("Sending programs", 0, (int) programs.size());
+    writeProgramsStep (std::make_shared<ProgramList> (std::move (programs)), 0, std::make_shared<std::vector<int>>(), 0);
+}
+
+void SynthSession::writeProgramsStep (std::shared_ptr<ProgramList> programs, size_t index, std::shared_ptr<std::vector<int>> unconfirmed, int consecutiveFailures)
+{
+    if (this->cancelRequested || index >= programs->size())
+    {
+        const bool cancelled = this->cancelRequested;
+        this->cancelRequested = false;
+        setActivity ("");
+
+        juce::StringArray names;
+        for (const int program : *unconfirmed)
+        {
+            names.add (programLabel (program));
+        }
+
+        if (!names.isEmpty())
+        {
+            fail (juce::String (names.size()) + " program(s) could not be confirmed on the synth: " + names.joinIntoString (", ")
+                  + ". Read the programs again to see what is stored.");
+        }
+        else if (cancelled)
+        {
+            warn ("Stopped after " + juce::String (index) + " of " + juce::String (programs->size()) + " programs.");
+        }
+        else
+        {
+            this->lastError.clear();
+            notify();
+        }
+        return;
+    }
+
+    const auto& program = *(*programs)[index];
+    const int programNumber = program.getProgramNumber();
+
+    writeProgramVerified (program, [this, programs, index, unconfirmed, consecutiveFailures, programNumber] (bool answered, bool confirmed) {
+        const int failures = answered ? 0 : consecutiveFailures + 1;
+
+        if (failures >= MAX_CONSECUTIVE_FAILURES)
+        {
+            // as above: the last few were all unanswered, so the writes that got through end before them
+            const size_t written = index + 1 - MAX_CONSECUTIVE_FAILURES;
+            const auto& firstUnanswered = *(*programs)[index + 1 - MAX_CONSECUTIVE_FAILURES];
+
+            this->cancelRequested = false;
+            setActivity ("");
+            disconnect();
+            fail ("The synth stopped answering at program " + programLabel (firstUnanswered.getProgramNumber()) + "; "
+                  + juce::String ((int) written) + " program(s) were written before that.");
+            return;
+        }
+
+        if (!confirmed)
+        {
+            unconfirmed->push_back (programNumber);
+        }
+
+        setActivityProgress ((int) index + 1);
+        writeProgramsStep (programs, index + 1, unconfirmed, failures);
+    });
+}
+
+void SynthSession::writeProgramVerified (const ProgramMessage& program, std::function<void (bool answered, bool confirmed)> callback)
+{
+    const int programNumber = program.getProgramNumber();
+    const auto sent = std::make_shared<std::vector<uint8_t>> (program.getRawData());
+
+    sendRequest (program.toMidiMessage(), SysExMatchers::isStatusReply, "program " + programLabel (programNumber) + " write", SysExExchange::DEFAULT_RETRIES, false, [this, programNumber, sent, callback] (const juce::MidiMessage* reply) {
+        if (reply == nullptr)
+        {
+            callback (false, false);
+            return;
+        }
+
+        if (!isAccepted (reply))
+        {
+            callback (true, false);
+            return;
+        }
+
+        // the status says the write was taken, not that it was stored: read the slot back and compare
+        readProgram (programNumber, false, [sent, callback] (std::shared_ptr<ProgramMessage> record, bool slotIsEmpty) {
+            if (record == nullptr && !slotIsEmpty)
+            {
+                callback (false, false);
+                return;
+            }
+
+            callback (true, record != nullptr && record->getRawData() == *sent);
+        });
+    });
+}
+
 void SynthSession::readPanelState (std::function<void (std::optional<Pro800PanelState>)> callback)
 {
     readPanelStep (0, std::make_shared<Pro800PanelState>(), std::move (callback));
@@ -844,7 +1008,18 @@ void SynthSession::poll (bool isPolling)
     readSettings (isPolling, [this, isPolling] (std::shared_ptr<SettingsMessage> newSettings) {
         if (newSettings == nullptr)
         {
-            if (++this->pollFailures >= 2 && this->pointer.freshness == PointerFreshness::CONFIRMED)
+            this->pollFailures++;
+
+            if (this->pollFailures >= MAX_CONSECUTIVE_FAILURES)
+            {
+                // the synth is gone - unplugged, powered off, port taken by something else. Asking every
+                // POLL_INTERVAL_MS from here to eternity would achieve nothing but a stream of timeouts.
+                disconnect();
+                fail ("The synth stopped answering. Check the cable and press Connect again.");
+                return;
+            }
+
+            if (this->pollFailures >= 2 && this->pointer.freshness == PointerFreshness::CONFIRMED)
             {
                 this->pointer.freshness = PointerFreshness::UNKNOWN;
                 notify();
@@ -1049,10 +1224,33 @@ void SynthSession::applyChannels()
     this->midiHandler.setInboundChannel ((uint8_t) this->channels.receiveChannel());
 }
 
-void SynthSession::setActivity (const juce::String& newActivity)
+void SynthSession::setActivity (const juce::String& newActivity, int done, int total)
 {
-    this->activity = newActivity;
+    this->activityDescription = newActivity;
+    this->activityDone = done;
+    this->activityTotal = total;
+    this->activity = (total > 0 && newActivity.isNotEmpty()) ? newActivity + " " + juce::String (done) + "/" + juce::String (total) : newActivity;
     notify();
+}
+
+void SynthSession::setActivityProgress (int done)
+{
+    this->activityDone = done;
+    this->activity = this->activityDescription + " " + juce::String (done) + "/" + juce::String (this->activityTotal);
+
+    // one notification per slot would have the whole UI re-laying itself out a few hundred times a second
+    if (done % PROGRESS_NOTIFY_EVERY == 0 || done == this->activityTotal)
+    {
+        notify();
+    }
+}
+
+void SynthSession::cancelActivity()
+{
+    if (this->activityTotal > 0)
+    {
+        this->cancelRequested = true;
+    }
 }
 
 void SynthSession::fail (const juce::String& error)
@@ -1077,7 +1275,7 @@ void SynthSession::notify()
 //==============================================================================
 void SynthSession::timerCallback()
 {
-    if (!isConnected() || isBusy() || this->verifyingWrites || this->midiHandler.isExchangeBusy() || this->midiHandler.isBackgroundSending()
+    if (!isConnected() || isBusy() || this->verifyingWrites || this->midiHandler.isExchangeBusy()
         || this->midiHandler.channelVoiceSentWithin (CHANNEL_VOICE_QUIET_MS))
     {
         return;

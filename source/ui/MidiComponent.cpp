@@ -63,19 +63,6 @@ void MidiComponent::requestFactoryReset()
     this->midiHandler->sendMidiMessage (Pro800FactoryResetMessage::request());
 }
 
-void MidiComponent::sendPrograms (const std::vector<std::shared_ptr<ProgramMessage>>& programs)
-{
-    std::vector<juce::MidiMessage> messages;
-    messages.reserve (programs.size());
-
-    for (const auto& program : programs)
-    {
-        messages.push_back (program->toMidiMessage());
-    }
-
-    this->midiHandler->sendMidiMessagesInBackground (std::move (messages), PROGRAM_SEND_INTERVAL_MS, "Sending program");
-}
-
 MidiHandler& MidiComponent::getMidiHandler() const
 {
     return *this->midiHandler;
@@ -109,11 +96,6 @@ void MidiComponent::addEnumItems (juce::ComboBox& comboBox, const std::vector<En
 void MidiComponent::sendMidiMessage (const juce::MidiMessage& message)
 {
     this->midiHandler->sendMidiMessage (message);
-}
-
-void MidiComponent::requestProgramDump()
-{
-    this->midiHandler->requestProgramDump();
 }
 
 void MidiComponent::handlePro800Message (MessageType type, const std::shared_ptr<Pro800MidiMessage>& message)

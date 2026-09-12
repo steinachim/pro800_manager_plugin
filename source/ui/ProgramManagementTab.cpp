@@ -37,7 +37,7 @@ ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler, SynthSessi
     button_RefreshDump.onClick = [this] {
         // the list only ever shows what the synth answered to the latest dump request
         model_ProgramListSynth->reset();
-        requestProgramDump();
+        getSynthSession().readAllPrograms();
     };
 
     // clang-format off
@@ -61,7 +61,7 @@ ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler, SynthSessi
 
     button_LocalToSynthAll.onClick = [this] { sendAllProgramsToSynth(); };
 
-    button_CancelTransfer.onClick = [this] { getMidiHandler().cancelBackgroundSending(); };
+    button_CancelTransfer.onClick = [this] { getSynthSession().cancelActivity(); };
     progressBar_Transfer.setPercentageDisplay (false);
 
     addAndMakeVisible (label_Synth);
@@ -85,7 +85,6 @@ ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler, SynthSessi
 
     button_Load.setTooltip ("Selects the preset on the synth and makes it recall it - like selecting it on the synth, unsaved edits there are discarded");
 
-    getMidiHandler().addListener (this);
     getSynthSession().addListener (this);
     synthSessionChanged();
 }
@@ -93,7 +92,6 @@ ProgramManagementTab::ProgramManagementTab (MidiHandler* midiHandler, SynthSessi
 ProgramManagementTab::~ProgramManagementTab()
 {
     getSynthSession().removeListener (this);
-    getMidiHandler().removeListener (this);
 }
 
 //==============================================================================
@@ -101,7 +99,24 @@ void ProgramManagementTab::synthSessionChanged()
 {
     const auto& pointer = getSynthSession().getPointer();
     model_ProgramListSynth->markCurrentRow (pointer.program.has_value() && getSynthSession().isConnected() ? *pointer.program : -1);
+    updateTransferProgress();
     updateLoadButton();
+}
+
+void ProgramManagementTab::updateTransferProgress()
+{
+    const auto& session = getSynthSession();
+    const bool running = session.isActivityCancellable();
+
+    transferProgress = (running && session.getActivityTotal() > 0) ? (double) session.getActivityDone() / (double) session.getActivityTotal() : 0.0;
+    progressBar_Transfer.setTextToDisplay (session.getActivity());
+    progressBar_Transfer.setVisible (running);
+    button_CancelTransfer.setVisible (running);
+
+    // everything that would start a second one
+    button_RefreshDump.setEnabled (session.canStartAction());
+    button_LocalToSynth.setEnabled (session.canStartAction());
+    button_LocalToSynthAll.setEnabled (session.canStartAction());
 }
 
 void ProgramManagementTab::updateLoadButton()
@@ -114,37 +129,6 @@ void ProgramManagementTab::updateLoadButton()
 }
 
 //==============================================================================
-void ProgramManagementTab::backgroundSendingProgress (const juce::String& description, int numSent, int numTotal)
-{
-    if (!progressBar_Transfer.isVisible())
-    {
-        setTransferRunning (true);
-    }
-
-    transferProgress = numTotal > 0 ? (double) numSent / (double) numTotal : 0.0;
-    progressBar_Transfer.setTextToDisplay (description + " " + juce::String (numSent) + "/" + juce::String (numTotal));
-}
-
-void ProgramManagementTab::backgroundSendingFinished (bool /*cancelled*/)
-{
-    setTransferRunning (false);
-}
-
-void ProgramManagementTab::setTransferRunning (bool running)
-{
-    transferProgress = 0.0;
-    progressBar_Transfer.setVisible (running);
-    button_CancelTransfer.setVisible (running);
-
-    // everything that would start another transfer (and thereby cancel this one)
-    button_RefreshDump.setEnabled (!running);
-    button_LocalToSynth.setEnabled (!running);
-    button_LocalToSynthAll.setEnabled (!running);
-
-    // and a Load, whose replies the transfer's would get mixed up with
-    updateLoadButton();
-}
-
 void ProgramManagementTab::resized()
 {
     const int buttonWidth = 120;
@@ -228,7 +212,7 @@ void ProgramManagementTab::copyPrograms (const ProgramList& programs, ProgramMod
 
     if (sendToSynth)
     {
-        sendPrograms (copies);
+        getSynthSession().writePrograms (copies);
     }
 }
 

@@ -24,51 +24,6 @@
 
 #include "../ui/MidiComponent.h"
 
-namespace
-{
-    // generous: the sender thread checks for exit after every message, so it stops within one interval
-    constexpr int SENDER_THREAD_STOP_TIMEOUT_MS = 2000;
-}
-
-//==============================================================================
-MidiHandler::BackgroundSender::BackgroundSender (MidiHandler& handler)
-    : juce::Thread ("Pro800 MIDI sender"), owner (handler)
-{
-}
-
-void MidiHandler::BackgroundSender::send (std::vector<juce::MidiMessage> newMessages, int newIntervalMs, const juce::String& newDescription)
-{
-    stopThread (SENDER_THREAD_STOP_TIMEOUT_MS); // no-op if idle, otherwise cancels the running sequence
-
-    this->messages = std::move (newMessages);
-    this->intervalMs = newIntervalMs;
-    this->description = newDescription;
-
-    if (!this->messages.empty())
-    {
-        startThread();
-    }
-}
-
-void MidiHandler::BackgroundSender::run()
-{
-    const int numTotal = (int) this->messages.size();
-    int numSent = 0;
-
-    for (; numSent < numTotal && !threadShouldExit(); numSent++)
-    {
-        this->owner.sendMidiMessage (this->messages[(size_t) numSent]);
-        this->owner.queueEvent (ProgressEvent { this->description, numSent + 1, numTotal });
-
-        if (numSent + 1 < numTotal)
-        {
-            wait (this->intervalMs); // returns early when stopThread() notifies us
-        }
-    }
-
-    this->owner.queueEvent (FinishedEvent { numSent < numTotal });
-}
-
 //==============================================================================
 MidiHandler::MidiHandler()
     : sysExExchange ([this] (const juce::MidiMessage& message, bool isPolling) { sendMidiMessage (message, isPolling); })
@@ -77,17 +32,14 @@ MidiHandler::MidiHandler()
 
 MidiHandler::~MidiHandler()
 {
-    // 1. nobody may call sendMidiMessage() from another thread anymore
-    cancelBackgroundSending();
-
-    // 2. close the devices: no more incoming callbacks after this
+    // 1. close the devices: no more incoming callbacks after this
     {
         const juce::ScopedLock lock (this->deviceLock);
         this->midiInput.reset();
         this->midiOutput.reset();
     }
 
-    // 3. whatever is still queued will never be delivered
+    // 2. whatever is still queued will never be delivered
     cancelPendingUpdate();
 }
 
@@ -118,9 +70,6 @@ void MidiHandler::setInboundChannel (uint8_t channel)
 
 void MidiHandler::connectMidiDevices (const juce::String& inputDeviceIdentifier, const juce::String& outputDeviceIdentifier)
 {
-    // the sender thread must not be in the middle of using the old output device
-    cancelBackgroundSending();
-
     // whatever was waiting for a reply from the old device will not get one
     cancelExchanges();
 
@@ -147,7 +96,6 @@ bool MidiHandler::hasOpenDevices() const
 
 void MidiHandler::setTestTransport (std::function<void (const juce::MidiMessage&)> output)
 {
-    cancelBackgroundSending();
     cancelExchanges();
 
     {
@@ -166,7 +114,7 @@ void MidiHandler::handleIncomingMidiMessage (juce::MidiInput* /*source*/, const 
     queueEvent (MidiEvent { message, false });
 }
 
-void MidiHandler::queueEvent (QueuedEvent event)
+void MidiHandler::queueEvent (MidiEvent event)
 {
     {
         const juce::ScopedLock lock (this->pendingEventsLock);
@@ -180,7 +128,7 @@ void MidiHandler::handleAsyncUpdate()
 {
     // take the whole batch so that the lock is not held while the components run
     // (they may send messages themselves, which queues again)
-    std::vector<QueuedEvent> batch;
+    std::vector<MidiEvent> batch;
     {
         const juce::ScopedLock lock (this->pendingEventsLock);
         batch.swap (this->pendingEvents);
@@ -188,18 +136,8 @@ void MidiHandler::handleAsyncUpdate()
 
     for (const auto& event : batch)
     {
-        std::visit ([this] (const auto& e) { handleEvent (e); }, event);
+        handleEvent (event);
     }
-}
-
-void MidiHandler::handleEvent (const ProgressEvent& event)
-{
-    this->listeners.call ([&] (Listener& l) { l.backgroundSendingProgress (event.description, event.numSent, event.numTotal); });
-}
-
-void MidiHandler::handleEvent (const FinishedEvent& event)
-{
-    this->listeners.call ([&] (Listener& l) { l.backgroundSendingFinished (event.cancelled); });
 }
 
 void MidiHandler::handleEvent (const MidiEvent& event)
@@ -410,11 +348,6 @@ bool MidiHandler::isExchangeBusy() const
     return this->sysExExchange.isBusy();
 }
 
-bool MidiHandler::isBackgroundSending() const
-{
-    return this->backgroundSender.isThreadRunning();
-}
-
 void MidiHandler::sendMidiMessage (const juce::MidiMessage& message)
 {
     sendMidiMessage (message, false);
@@ -439,37 +372,4 @@ void MidiHandler::sendMidiMessage (const juce::MidiMessage& message, bool isPoll
 
     queueEvent (MidiEvent { message, true, isPolling }); // for the log
     this->midiOutput->sendMessageNow (message);
-}
-
-void MidiHandler::sendMidiMessagesInBackground (std::vector<juce::MidiMessage> messages, int intervalMs, const juce::String& progressDescription)
-{
-    {
-        // report a missing device once here instead of once per message from the sender thread
-        const juce::ScopedLock lock (this->deviceLock);
-        if (!this->midiOutput)
-        {
-            juce::Logger::writeToLog ("[ERROR] Cannot send MIDI messages: MIDI output device is not open!");
-            return;
-        }
-    }
-
-    this->backgroundSender.send (std::move (messages), intervalMs, progressDescription);
-}
-
-void MidiHandler::requestProgramDump()
-{
-    std::vector<juce::MidiMessage> requests;
-    requests.reserve (ProgramMessage::NUM_PROGRAMS);
-
-    for (int program = 0; program < ProgramMessage::NUM_PROGRAMS; program++)
-    {
-        requests.push_back (ProgramMessage::request (program));
-    }
-
-    sendMidiMessagesInBackground (std::move (requests), PROGRAM_DUMP_REQUEST_INTERVAL_MS, "Requesting program");
-}
-
-void MidiHandler::cancelBackgroundSending()
-{
-    this->backgroundSender.stopThread (SENDER_THREAD_STOP_TIMEOUT_MS);
 }

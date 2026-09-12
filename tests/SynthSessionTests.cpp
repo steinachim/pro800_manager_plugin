@@ -31,6 +31,28 @@ using namespace TestMessages;
 
 namespace
 {
+    /** Collects what the code logs, so that a test can say what should and should not end up in it. */
+    struct CapturedLog : private juce::Logger
+    {
+        CapturedLog() { juce::Logger::setCurrentLogger (this); }
+        ~CapturedLog() override { juce::Logger::setCurrentLogger (nullptr); }
+
+        int countContaining (const juce::String& text) const
+        {
+            int count = 0;
+            for (const auto& line : lines)
+            {
+                count += line.contains (text) ? 1 : 0;
+            }
+            return count;
+        }
+
+        juce::StringArray lines;
+
+    private:
+        void logMessage (const juce::String& message) override { lines.add (message); }
+    };
+
     /** A handler, a fake synth behind it and a session on top; the synth starts on B43 "Strings" with channel 3 in and out. */
     struct Bench
     {
@@ -223,6 +245,57 @@ TEST_CASE ("SynthSession: a preset selected on the synth is followed, and counts
     REQUIRE (bench.session.getPointer().name == "Flute");
     REQUIRE (bench.session.getProvenance().basis == SynthSession::Provenance::Basis::STORED);
     REQUIRE (bench.session.getProvenance().program == 7);
+}
+
+TEST_CASE ("SynthSession: a synth that stops answering ends the connection instead of being polled forever", "[session]")
+{
+    Bench bench;
+    CapturedLog log;
+    bench.connect();
+    REQUIRE (bench.session.isConnected());
+
+    // unplugged, powered off, or the port taken by something else
+    bench.synth.dropNextRequests = 1000;
+    const size_t sentAfterConnect = bench.synth.received.size();
+
+    bench.messageThread.runFor (7000); // three polls, each two attempts
+
+    REQUIRE_FALSE (bench.session.isConnected());
+    REQUIRE (bench.session.getLastError().contains ("stopped answering"));
+    REQUIRE (bench.session.getPointer().program == std::nullopt);
+    REQUIRE_FALSE (bench.session.getChannels().readFromSynth);
+
+    // and it stays quiet: no more polls once it has given up
+    const size_t sentWhenGivenUp = bench.synth.received.size();
+    REQUIRE (sentWhenGivenUp > sentAfterConnect);
+    bench.messageThread.runFor (4000);
+    REQUIRE (bench.synth.received.size() == sentWhenGivenUp);
+
+    SECTION ("the polls that failed on the way there did not fill the log")
+    {
+        // three polls, each sent twice - and not one of them is worth a line, because they repeat on a timer
+        REQUIRE (log.countContaining ("No reply to settings request") == 0);
+
+        // what the silence means is said once, by whoever owns the poll
+        REQUIRE (log.countContaining ("stopped answering") == 1);
+    }
+
+    SECTION ("a request the user asked for does say when it goes unanswered")
+    {
+        log.lines.clear();
+        bench.session.connect(); // the identity probe is nobody's routine background traffic
+        bench.messageThread.runFor (4000);
+
+        REQUIRE (log.countContaining ("No reply to firmware version request") > 0);
+    }
+
+    SECTION ("connecting again picks it back up")
+    {
+        bench.synth.dropNextRequests = 0;
+        bench.connect (500);
+        REQUIRE (bench.session.isConnected());
+        REQUIRE (bench.session.getPointer().program == 143);
+    }
 }
 
 TEST_CASE ("SynthSession: edits are noted from what the plugin sends and what the synth reports", "[session]")
@@ -505,4 +578,155 @@ TEST_CASE ("SynthSession: aligning is refused when the synth would not hear the 
         REQUIRE (bench.session.getLastError().contains ("OFF"));
         REQUIRE (bench.synth.receivedCCs().empty());
     }
+}
+
+//==============================================================================
+namespace
+{
+    /** "B05" for 105, as the synth's own display writes it. */
+    juce::String programLabelForTest (int program)
+    {
+        return juce::String::formatted ("%c%02d", 'A' + program / SettingsMessage::PROGRAMS_PER_BANK, program % SettingsMessage::PROGRAMS_PER_BANK);
+    }
+
+    /** How many program reads (0x77 at a program address) the synth was asked for. */
+    int programReads (const FakePro800& synth)
+    {
+        int reads = 0;
+        for (const auto& bytes : synth.received)
+        {
+            const bool isSettings = bytes.size() > Pro800DataMessage::ADDRESS_MSB_POS && bytes[Pro800DataMessage::ADDRESS_LSB_POS] == SettingsMessage::ADDRESS_LOW
+                                    && bytes[Pro800DataMessage::ADDRESS_MSB_POS] == SettingsMessage::ADDRESS_HIGH;
+
+            if (bytes.size() > Pro800DataMessage::ADDRESS_MSB_POS && bytes[Pro800MidiMessage::POS_MESSAGE_TYPE] == Pro800DataMessage::REQUEST_ID && !isSettings)
+            {
+                reads++;
+            }
+        }
+        return reads;
+    }
+}
+
+TEST_CASE ("SynthSession: reading all programs walks the whole address space, empty slots included", "[session][programs]")
+{
+    Bench bench;
+    bench.connect();
+    const int readsBefore = programReads (bench.synth);
+
+    bench.session.readAllPrograms();
+    REQUIRE (bench.session.isBusy());
+    REQUIRE (bench.session.isActivityCancellable());
+    REQUIRE (bench.session.getActivityTotal() == ProgramMessage::NUM_PROGRAMS);
+    REQUIRE (bench.session.getActivity().contains ("0/400"));
+
+    bench.messageThread.runFor (4000);
+
+    REQUIRE_FALSE (bench.session.isBusy());
+    REQUIRE_FALSE (bench.session.isActivityCancellable()); // the progress bar goes away with it
+    REQUIRE (bench.session.getLastError().isEmpty());
+
+    // one request per slot and no more: an empty slot answers with F0 F7, so nothing timed out and was retried
+    REQUIRE (programReads (bench.synth) - readsBefore == ProgramMessage::NUM_PROGRAMS);
+}
+
+TEST_CASE ("SynthSession: a dump can be stopped, and gives up if the synth goes quiet", "[session][programs]")
+{
+    SECTION ("cancelling stops it after the request in flight")
+    {
+        Bench bench;
+        bench.connect();
+        const int readsBefore = programReads (bench.synth);
+
+        bench.session.readAllPrograms();
+        bench.session.cancelActivity(); // the first slot is already on its way
+        bench.messageThread.runFor (1000);
+
+        REQUIRE_FALSE (bench.session.isBusy());
+        REQUIRE (programReads (bench.synth) - readsBefore < 5);
+        REQUIRE (bench.session.getLastError().contains ("Stopped after"));
+    }
+
+    SECTION ("a synth that stops answering ends it rather than timing out four hundred times")
+    {
+        Bench bench;
+        bench.connect();
+        const int readsBefore = programReads (bench.synth);
+
+        bench.synth.dropNextRequests = 1000;
+        bench.session.readAllPrograms();
+        bench.messageThread.runFor (8000);
+
+        REQUIRE_FALSE (bench.session.isBusy());
+
+        // three slots, each tried twice, and then it stops
+        REQUIRE (programReads (bench.synth) - readsBefore <= 2 * SynthSession::MAX_CONSECUTIVE_FAILURES);
+
+        // A00 was the first slot that went unanswered, so nothing was read at all
+        REQUIRE (bench.session.getLastError() == "The synth did not answer any program request.");
+
+        // and the synth is gone, so the connection goes with it rather than waiting for the poll to notice
+        REQUIRE_FALSE (bench.session.isConnected());
+    }
+}
+
+TEST_CASE ("SynthSession: a dump that dies part-way names where the data ends", "[session][programs]")
+{
+    Bench bench;
+    bench.connect();
+
+    bench.synth.dropFromProgram = 55; // A55 and everything after it goes unanswered
+    bench.session.readAllPrograms();
+    bench.messageThread.runFor (8000);
+
+    REQUIRE_FALSE (bench.session.isBusy());
+
+    // A55, A56 and A57 were all tried and none answered, so the list holds nothing for them: the message names
+    // the first of the three and the last slot that did answer, not the last one tried
+    REQUIRE (bench.session.getLastError() == "The synth stopped answering at program A55; the list holds what was read up to A54.");
+    REQUIRE_FALSE (bench.session.isConnected());
+}
+
+TEST_CASE ("SynthSession: writing programs confirms each one by reading the slot back", "[session][programs]")
+{
+    Bench bench;
+    bench.connect();
+
+    ProgramMessage first (toMidi (programDump (200)));
+    first.setProgramName ("Written A");
+    ProgramMessage second (toMidi (programDump (201)));
+    second.setProgramName ("Written B");
+
+    const std::vector<std::shared_ptr<ProgramMessage>> programs = { std::make_shared<ProgramMessage> (first), std::make_shared<ProgramMessage> (second) };
+
+    bench.session.writePrograms (programs);
+    REQUIRE (bench.session.getActivityTotal() == 2);
+    bench.messageThread.runFor (2000);
+
+    REQUIRE_FALSE (bench.session.isBusy());
+    REQUIRE (bench.session.getLastError().isEmpty());
+    REQUIRE (bench.synth.programs.count (200) == 1);
+    REQUIRE (ProgramMessage (toMidi (bench.synth.programs.at (200))).getProgramName() == "Written A");
+    REQUIRE (ProgramMessage (toMidi (bench.synth.programs.at (201))).getProgramName() == "Written B");
+
+    SECTION ("each slot was written and then read back")
+    {
+        REQUIRE (bench.synth.indexOfSent (Pro800DataMessage::RESPONSE_ID, { 0x48, 0x01 }) >= 0); // write of 200
+        REQUIRE (bench.synth.indexOfSent (Pro800DataMessage::REQUEST_ID, { 0x48, 0x01 }) > bench.synth.indexOfSent (Pro800DataMessage::RESPONSE_ID, { 0x48, 0x01 }));
+    }
+}
+
+TEST_CASE ("SynthSession: a write the synth accepts but does not store is named", "[session][programs]")
+{
+    Bench bench;
+    bench.connect();
+    bench.synth.ignoreProgramWrites = true; // status OK, nothing stored - what a read-back is there to catch
+
+    ProgramMessage program (toMidi (programDump (200)));
+    program.setProgramName ("Lost");
+    bench.session.writePrograms ({ std::make_shared<ProgramMessage> (program) });
+    bench.messageThread.runFor (2000);
+
+    REQUIRE_FALSE (bench.session.isBusy());
+    REQUIRE (bench.session.getLastError().contains ("could not be confirmed"));
+    REQUIRE (bench.session.getLastError().contains ("C00")); // program 200
 }
