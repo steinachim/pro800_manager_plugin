@@ -200,6 +200,16 @@ int ProgramMessage::lfoDestinationValue (uint8_t lfoDestinations, Pro800CCMessag
     return 0;
 }
 
+int ProgramMessage::pitchBendRangeSemitones (int fieldValue)
+{
+    return (fieldValue >> 11) & 0x1F;
+}
+
+int ProgramMessage::getPitchBendRangeSemitones() const
+{
+    return pitchBendRangeSemitones (getValue (Pro800ProgramField::PITCHBEND_RANGE));
+}
+
 juce::String ProgramMessage::toString() const
 {
     juce::String header = "Pro800 Program Dump: ";

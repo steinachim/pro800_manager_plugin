@@ -392,7 +392,8 @@ inline const std::map<Pro800ProgramField, Pro800Parameter> PRO800_PROGRAM_FIELDS
  * layout (measured: a version 109 factory preset stored through the front panel comes back as 111 with every existing
  * field unchanged and these values appended, see docs/Pro800SysExMessages.md). ProgramMessage fills an upgraded record
  * the same way, so that a preset written back through the plugin sounds like one the synth converted on its own.
- * The pitch bend range is 12 semitones on the scale the 0x11 message uses (semitones x 2048).
+ * The pitch bend range is 12 semitones the way the 0x11 message writes it (semitones x 2048, i.e. the count in the
+ * field's top five bits and zero below - see ProgramMessage::pitchBendRangeSemitones()).
  */
 inline const std::map<Pro800ProgramField, int> PRO800_PROGRAM_UPGRADE_DEFAULTS =
 {

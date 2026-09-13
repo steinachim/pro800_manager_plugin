@@ -39,6 +39,7 @@
 ### Fixes
 - Vibrato Amount showed the LFO Amount when a preset was loaded.
 - A CC received from the synth could set a control from a stale value.
+- The Pitch Bend Range slider showed one semitone too few for most presets (a 12-semitone preset as 11): the stored value's top five bits are the semitone count, and the synth writes different low bits depending on whether the value came from a SysEx message, a CC or the front panel. The docs describe the field as measured.
 
 ### Other
 - New application icon.

@@ -154,6 +154,9 @@ enum indices 0..n-1 (the `Pro800Program*` enums in `source/tailoring/Pro800Progr
      --> PITCH_BEND_TARGET_VOLUME = 96
     PITCH_BEND_RANGE = 42,  
      --> 0-31 semitones (0-3 = 0, 4-7 = 1, 8-11 = 2, ..., 124-127 = 31)
+     --> received, the byte is stored in the preset as cc x 516 + 3 (0 for 0), whose top five bits are the
+         semitone count; transmitted (a change on the panel), it is the stored value >> 9 - so a value sent
+         comes back unchanged (RE session 19; see field 196 in Pro800SysExMessages.md)
 
 ### Menu: Performance 6
     OSC_A_FREQ_POT_MODE = 68, // see: Pro800ProgramFreqPotMode

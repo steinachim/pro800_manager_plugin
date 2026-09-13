@@ -343,6 +343,12 @@ void MidiComponent::loadFromProgram (const ProgramMessage& program)
                 int value = program.getLfoDestinationValue (getMidiCC (*component));
                 setComponentValue (component, value);
             }
+            else if (field == Pro800ProgramField::PITCHBEND_RANGE)
+            {
+                // the semitone count is the field's top five bits, not the field scaled to 0-31: a 12-semitone record
+                // holds 24576, which scaled would show as 11 (see ProgramMessage::pitchBendRangeSemitones)
+                setComponentValue (component, program.getPitchBendRangeSemitones());
+            }
             else if (field != Pro800ProgramField::NONE)
             {
                 int value = program.getValue (field);
@@ -374,7 +380,14 @@ void MidiComponent::loadFromPanel (const Pro800PanelValues& values)
             {
                 if (const auto value = values.fields.find (field); value != values.fields.end())
                 {
-                    setComponentValue (component, value->second, 65535);
+                    if (field == Pro800ProgramField::PITCHBEND_RANGE)
+                    {
+                        setComponentValue (component, ProgramMessage::pitchBendRangeSemitones (value->second));
+                    }
+                    else
+                    {
+                        setComponentValue (component, value->second, 65535);
+                    }
                 }
             }
             else if (const auto ccValue = values.ccValues.find (midiCC); ccValue != values.ccValues.end())

@@ -285,6 +285,49 @@ TEST_CASE ("ProgramMessage: presets from older firmwares are upgraded to the cur
     }
 }
 
+TEST_CASE ("ProgramMessage: the pitch bend range is the field's top five bits, whoever wrote it", "[midi][program]")
+{
+    // every value below was read back from a saved record on firmware 1.4.6 (reverse-engineering session 19), and
+    // the synth's own menu displayed the semitone count given here for the ones an operator looked at
+    SECTION ("written by the 0x11 message: semitones x 2048")
+    {
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (24 * 2048) == 24);
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (12 * 2048) == 12); // also what the synth fills in on upgrade
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (0) == 0);
+    }
+
+    SECTION ("written by a received CC 42: the CC byte replicated into 16 bits, cc x 516 + 3")
+    {
+        // clang-format off
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (1551) == 0);   // CC 3
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (2067) == 1);   // CC 4
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (3615) == 1);   // CC 7
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (24771) == 12); // CC 48
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (49539) == 24); // CC 96
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (51087) == 24); // CC 99, displayed as 24
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (63987) == 31); // CC 124
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (65535) == 31); // CC 127
+        // clang-format on
+    }
+
+    SECTION ("written by the front panel's wheel: any value inside the semitone's band")
+    {
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (49531) == 24);
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (50563) == 24);
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (50715) == 24);
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (50737) == 24); // the value this doc once called "the" 24
+        REQUIRE (ProgramMessage::pitchBendRangeSemitones (26470) == 12);
+    }
+
+    SECTION ("a record reads its own field the same way")
+    {
+        auto bytes = programDump (5);
+        ProgramMessage program (bytes.data(), (int) bytes.size());
+        program.setValue (Pro800ProgramField::PITCHBEND_RANGE, 49531);
+        REQUIRE (program.getPitchBendRangeSemitones() == 24);
+    }
+}
+
 TEST_CASE ("ProgramMessage: the upgrade matches what the synth writes when it saves an older preset", "[midi][program]")
 {
     // captured on firmware 1.4.6: factory preset A00 "Organ I" (version 109, 193 bytes) stored through the front panel

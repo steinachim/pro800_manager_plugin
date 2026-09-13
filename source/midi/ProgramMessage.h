@@ -63,6 +63,15 @@ public:
     int getValue (Pro800ProgramField field) const;
     void setValue (Pro800ProgramField field, int value);
 
+    /**
+     * The semitone count (0-31) a Pitchbend Range field value means: its top five bits. The low eleven bits depend on
+     * who wrote the field - the 0x11 message leaves them zero (semitones x 2048), a received CC 42 stores the CC byte
+     * replicated into 16 bits (cc x 516 + 3), the front panel's wheel any value inside the semitone's band - and the
+     * synth reads all of them this way (reverse-engineering doc, section 13; measured in its session 19).
+     */
+    static int pitchBendRangeSemitones (int fieldValue);
+    int getPitchBendRangeSemitones() const;
+
 private:
     void upgradeOlderPresetVersion();
 };

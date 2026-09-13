@@ -103,7 +103,8 @@ enum class Pro800CCMessages
 
     // Menu: Performance 5
     PITCH_BEND_TARGET = 66, // see: Pro800ProgramPitchBendTarget
-    PITCH_BEND_RANGE = 42,  // 0-31 semitones (0-3 = 0, 4-7 = 1, 8-11 = 2, ..., 124-127 = 31)
+    PITCH_BEND_RANGE = 42,  // 0-31 semitones (0-3 = 0, 4-7 = 1, 8-11 = 2, ..., 124-127 = 31); the synth stores the
+                            // byte as cc x 516 + 3 and transmits the stored value >> 9, so a value round-trips
 
     // Menu: Performance 6
     OSC_A_FREQ_POT_MODE = 68, // see: Pro800ProgramFreqPotMode
