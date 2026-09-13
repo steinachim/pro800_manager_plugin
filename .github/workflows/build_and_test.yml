@@ -186,6 +186,7 @@ jobs:
           pkgbuild --identifier "${{ env.BUNDLE_ID }}.app.pkg" --version $VERSION --root "$(dirname "${{ env.STANDALONE_PATH }}")" --component-plist standalone.plist --install-location "/Applications" "packaging/${{ env.PRODUCT_NAME }}.app.pkg"
 
           cd packaging
+          cp ../LICENSE resources/LICENSE.txt # the installer's licence pane shows the project's licence
           envsubst < distribution.xml.template > distribution.xml
           productbuild --resources ./resources --distribution distribution.xml --timestamp "${{ env.ARTIFACT_NAME }}.pkg"
       #    productbuild --resources ./resources --distribution distribution.xml --sign "${{ secrets.DEVELOPER_ID_INSTALLER }}" --timestamp "${{ env.ARTIFACT_NAME }}.pkg"

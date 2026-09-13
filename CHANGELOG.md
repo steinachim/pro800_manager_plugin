@@ -44,6 +44,7 @@
 - New application icon.
 - The window is resizable within the limits the layout can handle.
 - Built on JUCE 9.0.2; macOS 10.14 or newer.
+- The installers show the project's licence (AGPL-3.0) and a real readme instead of the build template's EULA and placeholder text.
 - The protocol documentation in `docs/` covers everything the reverse-engineering sessions found: the control-surface and knob reads, the settings-write messages, the hazards, the transport behaviour, the settings block's selection pointer, how the synth converts older presets.
 - Unit tests for the MIDI protocol layer and the session (`ctest`).
 

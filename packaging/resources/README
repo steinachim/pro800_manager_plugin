@@ -1,5 +1,16 @@
-Thanks for installing!
+Pro-800 Manager Plugin
 
-This plugin was made with the Pamplejuce template.
+Remote control for the Behringer Pro-800 synthesizer, and a manager for
+its stored presets: import, export, move, copy and rename.
 
-TODO: Update this text with what you want to show up in your macOS installer.
+This installer offers the standalone application (in /Applications) and
+the VST3 and AU plugins (in /Library/Audio/Plug-Ins/VST3 and
+/Library/Audio/Plug-Ins/Components). Connect the Pro-800 by USB, pick its
+port and press Connect.
+
+The installer and the binaries are not signed, so macOS asks you to allow
+them (System Settings > Privacy & Security).
+
+Free software under the GNU Affero General Public License, version 3.
+Source code, documentation and issue tracker:
+https://github.com/steinachim/pro800_manager_plugin
