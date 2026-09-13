@@ -17,7 +17,6 @@ env:
   HOMEBREW_NO_INSTALL_CLEANUP: 1
   SCCACHE_GHA_ENABLED: true
   SCCACHE_CACHE_MULTIARCH: 1
-  IPP_DIR: C:\Program Files (x86)\Intel\oneAPI\ipp\latest\lib\cmake\ipp
 
 defaults:
   run:
@@ -79,11 +78,6 @@ jobs:
         run: |
           sudo apt-get update && sudo apt install libasound2-dev libx11-dev libxinerama-dev libxext-dev libfreetype6-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev xvfb ninja-build
           sudo /usr/bin/Xvfb $DISPLAY &
-
-      - name: Install IPP (Windows)
-        if: (runner.os == 'Windows')
-        run: |
-          nuget install intelipp.static.win-x64 -Version 2022.2.0.575
 
       - name: Install Ninja (Windows)
         if: runner.os == 'Windows'

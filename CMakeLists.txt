@@ -141,9 +141,6 @@ target_link_libraries(SharedCode
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
-# IPP support, comment out to disable
-include(PamplejuceIPP)
-
 # Unit tests (Catch2) in /tests, run with ctest or the Tests executable
 include(Tests)
 
